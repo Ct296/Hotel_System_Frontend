@@ -1,11 +1,26 @@
-<script setup></script>
-
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <nav class="main-nav">
+    <router-link to="/">Trang chủ</router-link>
+    <router-link to="/login">Đăng nhập</router-link>
+  </nav>
+  
+  <!-- Nơi Router sẽ render các trang HomeView, LoginView... -->
+  <router-view></router-view> 
 </template>
 
-<style scoped></style>
+<style scoped>
+.main-nav {
+  padding: 15px 20px;
+  background-color: #2c3e50;
+  margin-bottom: 20px;
+}
+.main-nav a {
+  color: white;
+  text-decoration: none;
+  margin-right: 20px;
+  font-weight: bold;
+}
+.main-nav a.router-link-active {
+  color: #3498db;
+}
+</style>
