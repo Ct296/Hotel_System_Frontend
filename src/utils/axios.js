@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useAuthStore } from '../stores/authStore';
 import router from '../router';
 
-const api = axios.create({npm audit fix
+const api = axios.create({
     baseURL: 'http://localhost:8080', // Port mặc định của Spring Boot
     withCredentials: true // Cho phép gửi Session Cookie (dùng cho Chat AI)
 });
