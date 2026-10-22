@@ -1,38 +1,47 @@
+// src/utils/axios.js
 import axios from 'axios';
+import { useAuthStore } from '../stores/authStore';
+import router from '../router';
 
-const api = axios.create({
-    // Trỏ đến port 8080 của Spring Boot Backend
-    baseURL: 'http://localhost:8080', 
-    timeout: 10000, // Hủy request nếu quá 10 giây không có phản hồi
-    headers: {
-        'Content-Type': 'application/json',
-    }
+const api = axios.create({npm audit fix
+    baseURL: 'http://localhost:8080', // Port mặc định của Spring Boot
+    withCredentials: true // Cho phép gửi Session Cookie (dùng cho Chat AI)
 });
 
-// Interceptor cho Request: Tự động gắn Token vào header trước khi gọi API
+// Request Interceptor: Tự động đính kèm JWT Token
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers['Authorization'] = `Bearer ${token}`;
+        // Lưu ý: Gọi useAuthStore() bên trong interceptor để tránh lỗi chưa khởi tạo Pinia
+        const authStore = useAuthStore();
+        if (authStore.token) {
+            config.headers.Authorization = `Bearer ${authStore.token}`;
         }
         return config;
     },
-    (error) => {
-        return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
 );
 
-// Interceptor cho Response: Xử lý lỗi chung từ Backend trả về
+// Response Interceptor: Xử lý lỗi từ Backend
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response && error.response.status === 401) {
-            // Logic xử lý khi token hết hạn hoặc chưa đăng nhập
-            console.warn("Unauthorized! Redirecting to login...");
-            
-            // Bạn có thể mở comment dòng dưới khi đã cấu hình Vue Router
-            // window.location.href = '/login'; 
+        if (error.response) {
+            // Xử lý khi Token hết hạn hoặc sai Token (401)
+            if (error.response.status === 401) {
+                const authStore = useAuthStore();
+                
+                // Lấy role trước khi xóa để biết nên đá về trang login nào
+                const isEmp = authStore.isEmployee; 
+                
+                authStore.clearAuth();
+                
+                // Đá văng ra trang đăng nhập tương ứng
+                if (isEmp) {
+                    router.push('/employee/login');
+                } else {
+                    router.push('/login');
+                }
+            }
         }
         return Promise.reject(error);
     }
