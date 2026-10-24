@@ -49,20 +49,21 @@ const handleLogin = async () => {
   errorMsg.value = ''
   isLoading.value = true
   try {
+    // 1. CHỈNH LẠI API KHỚP VỚI BACKEND
     const response = await api.post('/api/auth/login', {
       email: email.value,
       password: password.value,
-      isEmployee: true // Ép kiểm tra quyền nội bộ
+      employee: true 
     })
     
     authStore.setAuth(response.data)
     const role = response.data.role
 
-    // Điều hướng dựa trên Role
-    if (role === 'ADMIN') router.push('/admin/dashboard')
+    // 2. CHỈNH LẠI ĐƯỜNG DẪN ROUTER CHUYỂN HƯỚNG
+    if (role === 'ADMIN') router.push('/employee/admin')
     else if (role === 'MANAGER') router.push('/manager/dashboard')
     else if (role === 'STAFF') router.push('/staff/dashboard')
-    else router.push('/') // Phòng hờ lỗi
+    else router.push('/') 
 
   } catch (error) {
     errorMsg.value = error.response?.data?.error || 'Đăng nhập thất bại!'

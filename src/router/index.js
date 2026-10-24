@@ -2,39 +2,41 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { h } from 'vue'
 
-// Import Layouts
 import CustomerLayout from '../layouts/CustomerLayout.vue'
 import DashboardLayout from '../layouts/DashboardLayout.vue'
 
 const DummyComponent = { render: () => h('div', { class: 'p-5 text-center' }, h('h2', 'Trang này đang được xây dựng...')) }
 
 const routes = [
-// CÁC TRANG KHÔNG DÙNG LAYOUT CHUNG (Auth)
+  // --- AUTH ROUTES ---
   { path: '/login', name: 'Login', component: () => import('../views/auth/Login.vue'), meta: { guestOnly: true } },
   { path: '/register', name: 'Register', component: () => import('../views/auth/Register.vue'), meta: { guestOnly: true } },
   { path: '/employee/login', name: 'EmployeeLogin', component: () => import('../views/auth/EmployeeLogin.vue'), meta: { guestOnly: true, isEmployeeRoute: true } },
-  // CÁC TRANG DÙNG CUSTOMER LAYOUT
+
+  // --- CUSTOMER ROUTES ---
   {
     path: '/',
     component: CustomerLayout,
     children: [
       { path: '', redirect: '/home' },
-      { path: 'home', name: 'Home', component: DummyComponent }, // Sẽ thay bằng import Home.vue sau
-      { path: 'customer/profile', name: 'CustomerProfile', component: DummyComponent, meta: { requiresAuth: true, role: 'CUSTOMER' } }
-      // Các route public khác: rooms, services, guide... sẽ nằm trong đây
+      { path: 'home', name: 'Home', component: () => import('../views/public/Home.vue') },
+      { path: 'rooms', name: 'Rooms', component: () => import('../views/public/Rooms.vue') }
     ]
   },
 
-  // CÁC TRANG DÙNG DASHBOARD LAYOUT (Nội bộ)
+  // --- INTERNAL (DASHBOARD) ROUTES ---
   {
     path: '/employee',
     component: DashboardLayout,
     meta: { requiresAuth: true, isEmployeeRoute: true },
     children: [
-      { path: '/admin/dashboard', name: 'Admin Dashboard', component: DummyComponent, meta: { roles: ['ADMIN'] } },
-      { path: '/manager/dashboard', name: 'Manager Dashboard', component: DummyComponent, meta: { roles: ['MANAGER', 'ADMIN'] } },
-      { path: '/staff/dashboard', name: 'Staff Dashboard', component: DummyComponent, meta: { roles: ['STAFF', 'MANAGER', 'ADMIN'] } },
-      { path: '/employee/profile', name: 'Employee Profile', component: DummyComponent, meta: { roles: ['STAFF', 'MANAGER', 'ADMIN'] } }
+      { path: '', redirect: '/employee/admin' },
+      { path: 'admin', name: 'AdminDashboard', component: () => import('../views/admin/AdminDashboard.vue'), meta: { roles: ['ADMIN'] } },
+      { path: 'accounts', name: 'AccountManagement', component: () => import('../views/admin/AccountManagement.vue'), meta: { roles: ['ADMIN'] } },
+
+      
+      { path: 'manager', name: 'ManagerDashboard', component: DummyComponent, meta: { roles: ['MANAGER', 'ADMIN'] } },
+      { path: 'staff', name: 'StaffDashboard', component: DummyComponent, meta: { roles: ['STAFF', 'MANAGER', 'ADMIN'] } }
     ]
   },
 
@@ -46,21 +48,25 @@ const router = createRouter({
   routes
 })
 
-// NAVIGATION GUARDS (GIỮ NGUYÊN NHƯ CŨ)
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   const isAuthenticated = authStore.isAuthenticated
   const userRole = authStore.role
 
+  // Đang login rồi mà cố tình vào trang login nữa
   if (to.meta.guestOnly && isAuthenticated) {
-    if (authStore.isEmployee) return next('/manager/dashboard') 
+    if (authStore.isEmployee) return next('/employee/admin')
     return next('/home')
   }
 
+  // Chặn người lạ vào trang cần quyền
   if (to.meta.requiresAuth) {
     if (!isAuthenticated) return to.meta.isEmployeeRoute ? next('/employee/login') : next('/login')
-    if (to.meta.roles && !to.meta.roles.includes(userRole)) return next('/home')
-    if (to.meta.role && to.meta.role !== userRole) return next('/home')
+    
+    // Check Role nội bộ
+    if (to.meta.roles && !to.meta.roles.includes(userRole)) {
+      return authStore.isEmployee ? next('/employee/admin') : next('/home')
+    }
   }
 
   next()
