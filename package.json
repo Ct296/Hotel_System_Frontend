@@ -13,11 +13,14 @@
     "apexcharts": "^8.4.1",
     "axios": "^1.20.0",
     "bootstrap": "^5.3.8",
+    "chart.js": "^4.6.1",
     "pinia": "^4.1.0",
     "pinia-plugin-persistedstate": "^4.7.1",
     "vue": "rc",
+    "vue-chartjs": "^5.3.4",
     "vue-router": "^5.4.0",
-    "vue3-apexcharts": "^1.11.3"
+    "vue3-apexcharts": "^1.11.3",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.8",

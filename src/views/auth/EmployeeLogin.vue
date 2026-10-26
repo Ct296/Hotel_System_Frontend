@@ -61,9 +61,16 @@ const handleLogin = async () => {
 
     // 2. CHỈNH LẠI ĐƯỜNG DẪN ROUTER CHUYỂN HƯỚNG
     if (role === 'ADMIN') router.push('/employee/admin')
-    else if (role === 'MANAGER') router.push('/manager/dashboard')
-    else if (role === 'STAFF') router.push('/staff/dashboard')
-    else router.push('/') 
+        else if (response.data.role === 'MANAGER') {
+          // Bắt đúng chức danh để đẩy về đúng trang
+          if (response.data.user.title === 'HR_MANAGER') {
+            router.push('/employee/manager/staffs') // HR thì vào thẳng trang Quản lý nhân sự
+          } else {
+            router.push('/employee/manager/dashboard') // Vận hành thì vào Dashboard
+          }
+        } 
+        else if (role === 'STAFF') router.push('/staff/dashboard')
+        else router.push('/')
 
   } catch (error) {
     errorMsg.value = error.response?.data?.error || 'Đăng nhập thất bại!'
