@@ -59,18 +59,23 @@ const handleLogin = async () => {
     authStore.setAuth(response.data)
     const role = response.data.role
 
-    // 2. CHỈNH LẠI ĐƯỜNG DẪN ROUTER CHUYỂN HƯỚNG
-    if (role === 'ADMIN') router.push('/employee/admin')
-        else if (response.data.role === 'MANAGER') {
-          // Bắt đúng chức danh để đẩy về đúng trang
-          if (response.data.user.title === 'HR_MANAGER') {
-            router.push('/employee/manager/staffs') // HR thì vào thẳng trang Quản lý nhân sự
-          } else {
-            router.push('/employee/manager/dashboard') // Vận hành thì vào Dashboard
-          }
-        } 
-        else if (role === 'STAFF') router.push('/staff/dashboard')
-        else router.push('/')
+    // 2. ĐƯỜNG DẪN ROUTER CHUYỂN HƯỚNG
+    if (role === 'ADMIN') {
+      router.push('/employee/admin')
+    } else if (role === 'MANAGER') {
+      const title = response.data.user.title
+      if (title === 'HR_MANAGER') {
+        router.push('/employee/manager/staffs')
+      } else if (title === 'CUSTOMER_MANAGER') {
+        router.push('/employee/manager/customer-dashboard')
+      } else {
+        router.push('/employee/manager/dashboard') 
+      }
+    } else if (role === 'STAFF') {
+      router.push('/employee/staff')
+    } else {
+      router.push('/')
+    }
 
   } catch (error) {
     errorMsg.value = error.response?.data?.error || 'Đăng nhập thất bại!'

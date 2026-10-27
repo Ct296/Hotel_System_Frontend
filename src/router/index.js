@@ -79,25 +79,42 @@ const routes = [
       },
 
       {
-        path: 'manager/incidents',
-        name: 'IncidentManagement',
+        path: 'manager/incidents',  name: 'IncidentManagement',
         component: () => import('../views/manager/operation/IncidentManagement.vue'),
         meta: { roles: ['MANAGER'] }
       },
       
       {
-          path: 'manager/hr-dashboard',
-          name: 'HrDashboard',
+          path: 'manager/hr-dashboard', name: 'HrDashboard',
           component: () => import('../views/manager/hr/HrDashboard.vue'),
           meta: { roles: ['MANAGER'] }
       },
 
       {
-          path: 'manager/staffs',
-          name: 'StaffManagement',
-          component: () => import('../views/manager/hr/StaffManagement.vue'),
-          meta: { roles: ['MANAGER'] }
-        },
+        path: 'manager/staffs', name: 'StaffManagement',
+        component: () => import('../views/manager/hr/StaffManagement.vue'),
+        meta: { roles: ['MANAGER'] }
+      },
+
+      { path: 'manager/customer-dashboard', name: 'CustomerDashboard', 
+        component: () => import('../views/manager/customer/CustomerDashboard.vue'), 
+        meta: { roles: ['MANAGER'] } 
+      },
+
+      { path: 'manager/customer-list', name: 'CustomerManagement', 
+        component: () => import('../views/manager/customer/CustomerManagement.vue'), 
+        meta: { roles: ['MANAGER'] } 
+      },
+
+      { path: 'manager/tier-config', name: 'TierManagement', 
+        component: () => import('../views/manager/customer/TierManagement.vue'), 
+        meta: { roles: ['MANAGER'] } 
+      },
+
+      { path: 'manager/reviews-ai', name: 'ReviewAiManagement', 
+        component: () => import('../views/manager/customer/ReviewAiManagement.vue'), 
+        meta: { roles: ['MANAGER'] } 
+      },
 
 
       { path: 'staff', name: 'StaffDashboard', component: DummyComponent, meta: { roles: ['STAFF'] } }
@@ -118,13 +135,18 @@ router.beforeEach((to, from) => {
   const userRole = authStore.role
   const userTitle = authStore.user?.title // Lấy chức danh Manager
 
+  // Hàm tiện ích xác định trang chủ của từng Manager
+  const getManagerRedirect = (title) => {
+    if (title === 'HR_MANAGER') return '/employee/manager/staffs'
+    if (title === 'CUSTOMER_MANAGER') return '/employee/manager/customer-dashboard'
+    return '/employee/manager/dashboard'
+  }
+
   // 1. Ngăn chặn người đã đăng nhập mà cố tình truy cập lại trang Login
   if (to.meta.guestOnly && isAuthenticated) {
     if (authStore.isEmployee) {
         if (userRole === 'ADMIN') return '/employee/admin'
-        if (userRole === 'MANAGER') {
-            return userTitle === 'HR_MANAGER' ? '/employee/manager/staffs' : '/employee/manager/dashboard'
-        }
+        if (userRole === 'MANAGER') return getManagerRedirect(userTitle)
         return '/employee/staff'
     }
     return '/home'
@@ -137,24 +159,26 @@ router.beforeEach((to, from) => {
     // 2.1. Đẩy người dùng về đúng khu vực nếu cố tình truy cập sai Role
     if (to.meta.roles && !to.meta.roles.includes(userRole)) {
       if (userRole === 'ADMIN') return '/employee/admin'
-      if (userRole === 'MANAGER') {
-          return userTitle === 'HR_MANAGER' ? '/employee/manager/staffs' : '/employee/manager/dashboard'
-      }
+      if (userRole === 'MANAGER') return getManagerRedirect(userTitle)
       if (userRole === 'STAFF') return '/employee/staff'
       return '/home'
     }
 
-    // 2.2. BẢO VỆ CHÉO: Ngăn chặn tuyệt đối HR vào Vận hành và ngược lại
+    // 2.2. BẢO VỆ CHÉO MANAGER: Quản lý bộ phận nào chỉ được xem bộ phận đó
     if (userRole === 'MANAGER' && to.path.includes('/manager/')) {
-       // Cập nhật danh sách các đường dẫn hợp lệ của HR
        const isHrRoute = to.path.includes('/manager/staffs') || to.path.includes('/manager/hr-dashboard')
        
-       if (userTitle === 'HR_MANAGER' && !isHrRoute) {
-           return '/employee/manager/staffs' // HR thì chỉ được ở trong nhà HR
-       }
-       if (userTitle === 'OPERATION_MANAGER' && isHrRoute) {
-           return '/employee/manager/dashboard' // OP thì không được rờ tới HR
-       }
+       // SỬA Ở ĐÂY: Thêm tất cả 4 đường dẫn của Customer Manager vào danh sách hợp lệ
+       const isCustomerRoute = to.path.includes('/manager/customer-dashboard') || 
+                               to.path.includes('/manager/customer-list') || 
+                               to.path.includes('/manager/tier-config') || 
+                               to.path.includes('/manager/reviews-ai')
+                               
+       const isOpRoute = !isHrRoute && !isCustomerRoute 
+       
+       if (userTitle === 'HR_MANAGER' && !isHrRoute) return '/employee/manager/staffs'
+       if (userTitle === 'CUSTOMER_MANAGER' && !isCustomerRoute) return '/employee/manager/customer-dashboard'
+       if (userTitle === 'OPERATION_MANAGER' && !isOpRoute) return '/employee/manager/dashboard'
     }
   }
   

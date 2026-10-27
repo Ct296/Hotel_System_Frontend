@@ -77,6 +77,23 @@
           </li>
         </template>
 
+        <!-- MENU CHỈ DÀNH CHO MANAGER: KHÁCH HÀNG (CUSTOMER) -->
+        <template v-if="authStore.isManager && (authStore.user?.jobTitle === 'CUSTOMER_MANAGER' || authStore.user?.title === 'CUSTOMER_MANAGER')">
+          <h6 class="text-uppercase text-muted fw-bold mt-4 mb-2 px-3" style="font-size: 0.8rem;">CRM (Khách Hàng)</h6>
+          <li class="nav-item">
+            <router-link to="/employee/manager/customer-dashboard" class="nav-link text-white rounded menu-item"><i class="fas fa-chart-pie me-2"></i> Tổng Quan CRM</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link to="/employee/manager/customer-list" class="nav-link text-white rounded menu-item"><i class="fas fa-users-viewfinder me-2"></i> Quản Lý Tệp Khách</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link to="/employee/manager/tier-config" class="nav-link text-white rounded menu-item"><i class="fas fa-gem me-2"></i> Cấu Hình Hạng Thẻ</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link to="/employee/manager/reviews-ai" class="nav-link text-white rounded menu-item"><i class="fas fa-robot me-2"></i> Đánh Giá AI PhoBERT</router-link>
+          </li>
+        </template>
+
         <li class="nav-item mt-5">
           <button @click="handleLogout" class="btn btn-danger w-100 fw-bold shadow-sm">
             <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
