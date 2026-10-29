@@ -43,7 +43,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from '../../../utils/axios'`
+import api from '../../../utils/axios'
 
 const dashboardData = ref({})
 const showAiModal = ref(false)

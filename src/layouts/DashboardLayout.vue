@@ -94,6 +94,43 @@
           </li>
         </template>
 
+
+        <!-- MENU CHÍNH CHO STAFF (LỄ TÂN) -->
+        <template v-if="authStore.isStaff">
+          <h6 class="text-uppercase text-muted fw-bold mt-4 mb-2 px-3" style="font-size: 0.8rem;">Nghiệp vụ Lễ tân</h6>
+          <li class="nav-item">
+            <router-link to="/employee/staff/overview" class="nav-link text-white rounded menu-item">
+              <i class="fas fa-chart-pie me-2"></i> Tổng quan
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link to="/employee/staff/timeline" class="nav-link text-white rounded menu-item">
+              <i class="fas fa-calendar-check me-2"></i> Timeline & Walk-in
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link to="/employee/staff/bookings" class="nav-link text-white rounded menu-item">
+              <i class="fas fa-list-check me-2"></i> Booking Online
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link to="/employee/staff/stay" class="nav-link text-white rounded menu-item">
+              <i class="fas fa-bed me-2"></i> Khách đang ở
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link to="/employee/staff/history" class="nav-link text-white rounded menu-item">
+              <i class="fas fa-clock-rotate-left me-2"></i> Lịch sử
+            </router-link>
+          </li>
+        </template>
+
+        <li class="nav-item mt-4">
+          <router-link to="/employee/settings" class="nav-link text-white rounded menu-item">
+            <i class="fas fa-cog me-2"></i> Cài đặt
+          </router-link>
+        </li>
+        
         <li class="nav-item mt-5">
           <button @click="handleLogout" class="btn btn-danger w-100 fw-bold shadow-sm">
             <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
@@ -107,8 +144,11 @@
       <header class="bg-white shadow-sm py-3 px-4 d-flex justify-content-end align-items-center">
         <div class="d-flex align-items-center gap-3">
           <span class="fw-semibold text-secondary">Xin chào, {{ authStore.user?.fullName || 'Nhân sự' }}</span>
-          <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center shadow-sm" style="width: 40px; height: 40px;">
-            <i class="fas fa-user"></i>
+          
+          <!-- HIỂN THỊ AVATAR ĐÃ ĐƯỢC ĐỒNG BỘ -->
+          <div class="rounded-circle d-flex justify-content-center align-items-center shadow-sm border border-2 border-white bg-primary text-white overflow-hidden" style="width: 40px; height: 40px;">
+            <img v-if="authStore.user?.avatar" :src="getImageUrl(authStore.user.avatar)" class="w-100 h-100" style="object-fit: cover;" @error="handleImageError" alt="Avatar">
+            <i v-else class="fas fa-user"></i>
           </div>
         </div>
       </header>
@@ -128,6 +168,15 @@ import api from '../utils/axios'
 
 const authStore = useAuthStore()
 const router = useRouter()
+
+const getImageUrl = (path) => {
+  if (!path) return ''
+  return path.startsWith('http') ? path : `https://api.ct296.id.vn${path}`
+}
+
+const handleImageError = (e) => {
+  e.target.style.display = 'none' // Ẩn ảnh lỗi, hiện icon default
+}
 
 const handleLogout = async () => {
   try {

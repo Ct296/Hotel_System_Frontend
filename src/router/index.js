@@ -13,20 +13,45 @@ const routes = [
   { path: '/employee/login', name: 'EmployeeLogin', component: () => import('../views/auth/EmployeeLogin.vue'), meta: { guestOnly: true, isEmployeeRoute: true } },
 
   // --- KIOSK CHẤM CÔNG ---
-  { 
-    path: '/kiosk', 
-    name: 'TimeclockKiosk', 
-    component: () => import('../views/kiosk/Timeclock.vue') 
-  },
+  {  path: '/kiosk', name: 'TimeclockKiosk', component: () => import('../views/kiosk/Timeclock.vue')},
 
-  // --- CUSTOMER ROUTES ---
+  // --- CUSTOMER ROUTES (Public & Private) ---
   {
     path: '/',
     component: CustomerLayout,
     children: [
       { path: '', redirect: '/home' },
+      
+      // 1. CÁC TRANG PUBLIC (Không cần đăng nhập)
       { path: 'home', name: 'Home', component: () => import('../views/public/Home.vue') },
-      { path: 'rooms', name: 'Rooms', component: () => import('../views/public/Rooms.vue') }
+      { path: 'rooms', name: 'Rooms', component: () => import('../views/public/Rooms.vue') },
+      { path: 'services', name: 'Services', component: () => import('../views/public/Services.vue') },
+      { path: 'about', name: 'About', component: () => import('../views/public/About.vue') },
+      { path: 'guide', name: 'Guide', component: () => import('../views/public/Guide.vue') },
+      { path: 'reviews', name: 'Reviews', component: () => import('../views/public/Reviews.vue') },
+      { path: 'policy', name: 'Policy', component: () => import('../views/public/Policy.vue') },
+      
+      // 2. CÁC TRANG PRIVATE (Yêu cầu đăng nhập tài khoản Khách Hàng)
+      { 
+        path: 'customer/profile', name: 'CustomerProfile', 
+        component: () => import('../views/customer/CustomerProfile.vue'),
+        meta: { requiresAuth: true, roles: ['CUSTOMER'] } 
+      },
+      { 
+        path: 'customer/booking', name: 'CustomerBooking', 
+        component: () => import('../views/customer/Booking.vue'),
+        meta: { requiresAuth: true, roles: ['CUSTOMER'] } 
+      },
+      { 
+        path: 'customer/booking/payment', name: 'BookingPayment', 
+        component: () => import('../views/customer/BookingPayment.vue'),
+        meta: { requiresAuth: true, roles: ['CUSTOMER'] } 
+      },
+      { 
+        path: 'customer/settings', name: 'CustomerSettings', 
+        component: () => import('../views/customer/CustomerSettings.vue'),
+        meta: { requiresAuth: true, roles: ['CUSTOMER'] } 
+      }
     ]
   },
 
@@ -36,90 +61,115 @@ const routes = [
     component: DashboardLayout,
     meta: { requiresAuth: true, isEmployeeRoute: true },
     children: [
-      { path: '', redirect: '/employee/admin' },
-      
-      { path: 'admin', name: 'AdminDashboard', component: () => import('../views/admin/AdminDashboard.vue'), meta: { roles: ['ADMIN'] } },
-      { path: 'accounts', name: 'AccountManagement', component: () => import('../views/admin/AccountManagement.vue'), meta: { roles: ['ADMIN'] } },
-      
+      { 
+        path: 'settings', name: 'EmployeeSettings',
+        component: () => import('../views/common/EmployeeSettings.vue'),
+        meta: { roles: ['ADMIN', 'MANAGER', 'STAFF'] }
+      },
 
+      // Admin
+      { path: '', redirect: '/employee/admin' },
+      { path: 'admin', name: 'AdminDashboard', 
+        component: () => import('../views/admin/AdminDashboard.vue'), 
+        meta: { roles: ['ADMIN'] } 
+      },
+      { path: 'accounts', name: 'AccountManagement', 
+        component: () => import('../views/admin/AccountManagement.vue'), 
+        meta: { roles: ['ADMIN'] } 
+      },
+      
+      // OP (Operation Manager)
       { 
         path: 'manager/dashboard', name: 'OperationDashboard', 
         component: () => import('../views/manager/operation/OperationDashboard.vue'), 
         meta: { roles: ['MANAGER'] } 
       },
-
       { 
         path: 'manager/room-types', name: 'RoomTypeManagement', 
         component: () => import('../views/manager/operation/RoomTypeManagement.vue'), 
         meta: { roles: ['MANAGER'] } 
       },
-
       { 
         path: 'manager/amenities', name: 'AmenityManagement', 
         component: () => import('../views/manager/operation/AmenityManagement.vue'), 
         meta: { roles: ['MANAGER'] } 
       },
-
       { 
         path: 'manager/rooms', name: 'RoomManagement', 
         component: () => import('../views/manager/operation/RoomManagement.vue'), 
         meta: { roles: ['MANAGER'] } 
       },
-      
       { 
         path: 'manager/pricing', name: 'PricingManagement', 
         component: () => import('../views/manager/operation/PricingManagement.vue'), 
         meta: { roles: ['MANAGER'] } 
       },
-
       { 
         path: 'manager/services', name: 'ServiceManagement', 
         component: () => import('../views/manager/operation/ServiceManagement.vue'), 
         meta: { roles: ['MANAGER'] } 
       },
-
       {
         path: 'manager/incidents',  name: 'IncidentManagement',
         component: () => import('../views/manager/operation/IncidentManagement.vue'),
         meta: { roles: ['MANAGER'] }
       },
       
+      // HR (HR Manager)
       {
           path: 'manager/hr-dashboard', name: 'HrDashboard',
           component: () => import('../views/manager/hr/HrDashboard.vue'),
           meta: { roles: ['MANAGER'] }
       },
-
       {
         path: 'manager/staffs', name: 'StaffManagement',
         component: () => import('../views/manager/hr/StaffManagement.vue'),
         meta: { roles: ['MANAGER'] }
       },
 
+      // Cus Manager (Customer Manager)
       { path: 'manager/customer-dashboard', name: 'CustomerDashboard', 
         component: () => import('../views/manager/customer/CustomerDashboard.vue'), 
         meta: { roles: ['MANAGER'] } 
       },
-
       { path: 'manager/customer-list', name: 'CustomerManagement', 
         component: () => import('../views/manager/customer/CustomerManagement.vue'), 
         meta: { roles: ['MANAGER'] } 
       },
-
       { path: 'manager/tier-config', name: 'TierManagement', 
         component: () => import('../views/manager/customer/TierManagement.vue'), 
         meta: { roles: ['MANAGER'] } 
       },
-
       { path: 'manager/reviews-ai', name: 'ReviewAiManagement', 
         component: () => import('../views/manager/customer/ReviewAiManagement.vue'), 
         meta: { roles: ['MANAGER'] } 
       },
 
-
-      { path: 'staff', name: 'StaffDashboard', component: DummyComponent, meta: { roles: ['STAFF'] } }
+      // Staff (Lễ tân)
+      { path: 'staff', redirect: '/employee/staff/overview' },
+      { path: 'staff/overview', name: 'StaffOverview', 
+        component: () => import('../views/staff/StaffOverview.vue'), 
+        meta: { roles: ['STAFF'] } 
+      },
+      { path: 'staff/timeline', name: 'StaffTimeline', 
+        component: () => import('../views/staff/StaffTimelineWalkIn.vue'), 
+        meta: { roles: ['STAFF'] } 
+      },
+      { path: 'staff/bookings', name: 'StaffBookings', 
+        component: () => import('../views/staff/StaffBookings.vue'), 
+        meta: { roles: ['STAFF'] } 
+      },
+      { path: 'staff/stay', name: 'StaffStay', 
+        component: () => import('../views/staff/StaffStay.vue'), 
+        meta: { roles: ['STAFF'] } 
+      },
+      { path: 'staff/history', name: 'StaffHistory', 
+        component: () => import('../views/staff/StaffHistory.vue'), 
+        meta: { roles: ['STAFF'] } 
+      }
     ]
   },
+
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../views/common/Error404.vue') }
 ]
 
@@ -128,14 +178,13 @@ const router = createRouter({
   routes
 })
 
-// Cách dùng mới theo chuẩn Vue Router 4
+// Navigation Guard
 router.beforeEach((to, from) => {
   const authStore = useAuthStore()
   const isAuthenticated = authStore.isAuthenticated
   const userRole = authStore.role
-  const userTitle = authStore.user?.title // Lấy chức danh Manager
+  const userTitle = authStore.user?.title 
 
-  // Hàm tiện ích xác định trang chủ của từng Manager
   const getManagerRedirect = (title) => {
     if (title === 'HR_MANAGER') return '/employee/manager/staffs'
     if (title === 'CUSTOMER_MANAGER') return '/employee/manager/customer-dashboard'
@@ -168,7 +217,6 @@ router.beforeEach((to, from) => {
     if (userRole === 'MANAGER' && to.path.includes('/manager/')) {
        const isHrRoute = to.path.includes('/manager/staffs') || to.path.includes('/manager/hr-dashboard')
        
-       // SỬA Ở ĐÂY: Thêm tất cả 4 đường dẫn của Customer Manager vào danh sách hợp lệ
        const isCustomerRoute = to.path.includes('/manager/customer-dashboard') || 
                                to.path.includes('/manager/customer-list') || 
                                to.path.includes('/manager/tier-config') || 
@@ -182,7 +230,6 @@ router.beforeEach((to, from) => {
     }
   }
   
-  // Hợp lệ tất cả thì cho phép qua cửa
   return true
 })
 

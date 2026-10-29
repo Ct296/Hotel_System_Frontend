@@ -1,52 +1,72 @@
 <template>
   <div>
-    <!-- Hero Section -->
-    <section class="hero-section text-white text-center d-flex align-items-center justify-content-center" style="min-height: 70vh; background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;">
-      <div class="container px-4">
-        <h1 class="display-3 fw-bold mb-4">Chào mừng đến với ITHotel</h1>
-        <p class="lead mb-5 fs-4 text-light">Trải nghiệm không gian nghỉ dưỡng đẳng cấp và dịch vụ hoàn hảo.</p>
-        <router-link to="/rooms" class="btn btn-warning btn-lg fw-bold px-5 py-3 rounded-pill shadow text-uppercase transition-all hover-scale">
-          <i class="fas fa-calendar-check me-2"></i> Đặt phòng ngay
-        </router-link>
+    <!-- HERO SECTION & TÌM KIẾM -->
+    <section class="position-relative pt-5 pb-4 overflow-hidden" style="background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,255,255,0.84)), linear-gradient(135deg, #5b3df5, #1d4ed8);">
+      <div class="container position-relative z-1">
+        <div class="row align-items-center g-4">
+          <div class="col-lg-6">
+            <span class="badge bg-primary rounded-pill px-3 py-2 mb-3 shadow-sm"><i class="fas fa-sparkles me-2"></i>ITHotel Experience</span>
+            <h1 class="display-4 fw-bold text-dark mb-3" style="line-height: 1.1;">Đặt phòng nhanh,<br>trải nghiệm hạng sang</h1>
+            <p class="text-muted fs-5 mb-4">Tìm phòng theo giờ trong vài giây. Xem hạng phòng chi tiết và tận hưởng không gian lưu trú hiện đại.</p>
+          </div>
+          
+          <div class="col-lg-6">
+            <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5">
+              <h3 class="fw-bold text-dark mb-1">Tìm phòng nhanh</h3>
+              <p class="text-muted small mb-4">Chọn thời gian để kiểm tra phòng trống</p>
+              
+              <form @submit.prevent="searchRooms" class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold small text-secondary text-uppercase">Giờ nhận phòng</label>
+                  <input type="datetime-local" v-model="searchForm.checkIn" class="form-control form-control-lg bg-light" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold small text-secondary text-uppercase">Giờ trả phòng</label>
+                  <input type="datetime-local" v-model="searchForm.checkOut" class="form-control form-control-lg bg-light" required>
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-bold small text-secondary text-uppercase">Hạng phòng (Tùy chọn)</label>
+                  <select v-model="searchForm.typeId" class="form-select form-select-lg bg-light">
+                    <option value="">-- Tất cả hạng phòng --</option>
+                    <option v-for="type in homeData.roomTypes" :key="type.id" :value="type.id">{{ type.name }}</option>
+                  </select>
+                </div>
+                <div class="col-12 mt-4">
+                  <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow"><i class="fas fa-search me-2"></i> TÌM PHÒNG NGAY</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="py-5 bg-white">
-      <div class="container py-5">
+    <!-- DANH SÁCH PHÒNG CAO CẤP -->
+    <section class="py-5 bg-light" v-if="homeData.luxuryRoomTypes?.length > 0">
+      <div class="container py-4">
         <div class="text-center mb-5">
-          <h2 class="fw-bold text-dark">Dịch vụ nổi bật</h2>
-          <div class="mx-auto bg-primary mt-2" style="height: 3px; width: 60px;"></div>
+          <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-2">CURATED COLLECTION</span>
+          <h2 class="fw-bold text-dark">PHÒNG VIP & CAO CẤP</h2>
+          <div class="mx-auto bg-primary mt-3" style="width: 60px; height: 3px;"></div>
         </div>
-        
-        <div class="row g-4 text-center">
-          <div class="col-md-4">
-            <div class="p-4 border-0 rounded-4 shadow-sm h-100 bg-light feature-card transition-all">
-              <div class="icon-box bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4 shadow" style="width: 70px; height: 70px;">
-                <i class="fas fa-bed fs-3"></i>
+        <div class="row g-4">
+          <div class="col-md-4" v-for="type in homeData.luxuryRoomTypes" :key="type.id">
+            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden room-card">
+              <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80" class="card-img-top" style="height: 250px; object-fit: cover;">
+              <div class="card-body p-4">
+                <h5 class="fw-bold text-dark">{{ type.name }}</h5>
+                <p class="text-muted small mb-3">{{ type.description || 'Không gian sang trọng, đẳng cấp.' }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-primary fw-bold fs-5">{{ formatPrice(type.basePrice) }}<small class="text-muted fs-6">/giờ</small></span>
+                  <div class="d-flex gap-2">
+                    <span class="badge bg-light text-dark border"><i class="fas fa-user me-1"></i>{{ type.adultMax + type.childrenMax }}</span>
+                    <span class="badge bg-light text-dark border"><i class="fas fa-vector-square me-1"></i>{{ type.area }}m&sup2;</span>
+                  </div>
+                </div>
               </div>
-              <h4 class="fw-bold">Phòng sang trọng</h4>
-              <p class="text-muted mb-0">Đa dạng các loại phòng từ Tiêu chuẩn đến Suite, đáp ứng mọi nhu cầu lưu trú.</p>
-            </div>
-          </div>
-          
-          <div class="col-md-4">
-            <div class="p-4 border-0 rounded-4 shadow-sm h-100 bg-light feature-card transition-all">
-              <div class="icon-box bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4 shadow" style="width: 70px; height: 70px;">
-                <i class="fas fa-concierge-bell fs-3"></i>
+              <div class="card-footer bg-white border-0 p-4 pt-0">
+                <router-link :to="`/rooms?typeId=${type.id}`" class="btn btn-outline-primary w-100 fw-bold">Xem chi tiết</router-link>
               </div>
-              <h4 class="fw-bold">Hỗ trợ 24/7</h4>
-              <p class="text-muted mb-0">Đội ngũ nhân viên tận tâm, chuyên nghiệp luôn sẵn sàng phục vụ bạn bất cứ lúc nào.</p>
-            </div>
-          </div>
-          
-          <div class="col-md-4">
-            <div class="p-4 border-0 rounded-4 shadow-sm h-100 bg-light feature-card transition-all">
-              <div class="icon-box bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4 shadow" style="width: 70px; height: 70px;">
-                <i class="fas fa-map-marked-alt fs-3"></i>
-              </div>
-              <h4 class="fw-bold">Vị trí đắc địa</h4>
-              <p class="text-muted mb-0">Tọa lạc ngay trung tâm, dễ dàng kết nối đến các điểm du lịch và mua sắm.</p>
             </div>
           </div>
         </div>
@@ -55,16 +75,40 @@
   </div>
 </template>
 
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import api from '../../utils/axios'
+
+const router = useRouter()
+const homeData = ref({ roomTypes: [], luxuryRoomTypes: [], budgetRoomTypes: [] })
+const searchForm = ref({ checkIn: '', checkOut: '', typeId: '' })
+
+const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price || 0) + ' đ'
+
+const fetchHomeData = async () => {
+  try {
+    const res = await api.get('/api/public/home')
+    homeData.value = res.data
+  } catch (error) { console.error(error) }
+}
+
+const searchRooms = () => {
+  // Chuyển hướng sang trang Danh sách phòng kèm tham số tìm kiếm
+  router.push({
+    path: '/rooms',
+    query: { 
+      checkIn: searchForm.value.checkIn, 
+      checkOut: searchForm.value.checkOut, 
+      typeId: searchForm.value.typeId 
+    }
+  })
+}
+
+onMounted(() => fetchHomeData())
+</script>
+
 <style scoped>
-.hover-scale:hover {
-  transform: scale(1.05);
-}
-.feature-card:hover {
-  transform: translateY(-5px);
-  background-color: #fff !important;
-  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
-}
-.transition-all {
-  transition: all 0.3s ease;
-}
+.room-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.room-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important; }
 </style>
