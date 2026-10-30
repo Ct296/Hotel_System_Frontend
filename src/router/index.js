@@ -170,7 +170,7 @@ const routes = [
     ]
   },
 
-  { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../views/common/Error404.vue') }
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../views/common/Error.vue') }
 ]
 
 const router = createRouter({

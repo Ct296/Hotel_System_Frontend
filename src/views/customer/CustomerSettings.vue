@@ -1,5 +1,5 @@
 <template>
-  <div class="container-fluid py-4 bg-body min-vh-100">
+  <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
         <h3 class="fw-bold text-body-emphasis mb-1">Cài đặt hệ thống</h3>
@@ -14,13 +14,23 @@
     </div>
 
     <div class="row g-4 align-items-start">
-      <!-- CỘT TRÁI: MENU CÀI ĐẶT (Khóa cứng, không cuộn) -->
+      <!-- CỘT TRÁI: MENU CÀI ĐẶT (Đã khóa cứng) -->
       <div class="col-lg-3">
         <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary settings-sidebar">
           <div class="card-body p-3">
-            <div class="nav flex-column nav-pills gap-2">
+            <div class="nav flex-column nav-pills gap-2" role="tablist" aria-orientation="vertical">
               
-              <!-- Nhóm 1: Tài khoản -->
+              <!-- Nhóm 1: Trải nghiệm -->
+              <button class="nav-link text-start fw-semibold py-3" :class="{ active: activeTab === 'preferences' }" @click="activeTab = 'preferences'">
+                <i class="fas fa-desktop me-3 text-center" style="width: 20px;"></i>Hiển thị & Giao diện
+              </button>
+              <button class="nav-link text-start fw-semibold py-3" :class="{ active: activeTab === 'notifications' }" @click="activeTab = 'notifications'">
+                <i class="fas fa-bell me-3 text-center" style="width: 20px;"></i>Âm báo & Thông báo
+              </button>
+
+              <hr class="my-2 text-secondary opacity-25">
+
+              <!-- Nhóm 2: Tài khoản -->
               <button class="nav-link text-start fw-semibold py-3" :class="{ active: activeTab === 'profile' }" @click="activeTab = 'profile'">
                 <i class="fas fa-user-edit me-3 text-center" style="width: 20px;"></i>Hồ sơ cá nhân
               </button>
@@ -28,19 +38,19 @@
                 <i class="fas fa-key me-3 text-center" style="width: 20px;"></i>Đổi mật khẩu
               </button>
 
-              <hr class="my-2 text-body-secondary opacity-25">
+              <hr class="my-2 text-secondary opacity-25">
 
-              <!-- Nhóm 2: Trải nghiệm & Bảo mật -->
-              <button class="nav-link text-start fw-semibold py-3" :class="{ active: activeTab === 'preferences' }" @click="activeTab = 'preferences'">
-                <i class="fas fa-desktop me-3 text-center" style="width: 20px;"></i>Hiển thị & Giao diện
-              </button>
+              <!-- Nhóm 3: Lịch sử & Bảo mật -->
               <button class="nav-link text-start fw-semibold py-3" :class="{ active: activeTab === 'security' }" @click="activeTab = 'security'">
                 <i class="fas fa-shield-alt me-3 text-center" style="width: 20px;"></i>Lịch sử đăng nhập
               </button>
+              <button class="nav-link text-start fw-semibold py-3" :class="{ active: activeTab === 'account_status' }" @click="activeTab = 'account_status'">
+                <i class="fas fa-history me-3 text-center" style="width: 20px;"></i>Lịch sử trạng thái
+              </button>
 
-              <hr class="my-2 text-body-secondary opacity-25">
+              <hr class="my-2 text-secondary opacity-25">
               
-              <!-- Nút Quay Lại Hồ Sơ (Gộp chung vào khối) -->
+              <!-- Nút Quay Lại Hồ Sơ (Dành riêng cho Customer) -->
               <router-link to="/customer/profile" class="btn btn-outline-danger fw-bold rounded-3 w-100 text-start py-2 d-flex align-items-center mt-2">
                 <i class="fas fa-arrow-left me-3 text-center" style="width: 20px;"></i> Quay lại Hồ sơ
               </router-link>
@@ -49,10 +59,10 @@
         </div>
       </div>
 
-      <!-- CỘT PHẢI: NỘI DUNG CÀI ĐẶT (Phần này sẽ cuộn) -->
+      <!-- CỘT PHẢI: NỘI DUNG CÀI ĐẶT -->
       <div class="col-lg-9">
         
-        <!-- TAB 1: CẬP NHẬT HỒ SƠ -->
+        <!-- TAB HỒ SƠ CÁ NHÂN -->
         <div v-if="activeTab === 'profile'" class="card border-0 shadow-sm rounded-4 bg-body-tertiary">
           <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2">
             <h5 class="fw-bold text-primary mb-0">Thông tin cá nhân</h5>
@@ -74,24 +84,42 @@
                   </div>
                 </div>
 
-                <div class="col-md-6"><label class="fw-bold mb-1 text-body-secondary">Họ</label><input v-model="profileForm.lastName" type="text" class="form-control form-control-lg bg-body" required></div>
-                <div class="col-md-6"><label class="fw-bold mb-1 text-body-secondary">Tên</label><input v-model="profileForm.firstName" type="text" class="form-control form-control-lg bg-body" required></div>
-                <div class="col-md-6"><label class="fw-bold mb-1 text-body-secondary">Số điện thoại</label><input v-model="profileForm.phoneNumber" type="text" class="form-control form-control-lg bg-body" required></div>
-                <div class="col-md-6"><label class="fw-bold mb-1 text-body-secondary">CCCD / Hộ chiếu</label><input v-model="profileForm.pid" type="text" class="form-control form-control-lg bg-body" required></div>
+                <div class="col-md-6">
+                  <label class="fw-bold mb-1 text-body-secondary">Họ <span class="text-danger">*</span></label>
+                  <input v-model="profileForm.lastName" type="text" class="form-control form-control-lg bg-body text-body-emphasis" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="fw-bold mb-1 text-body-secondary">Tên <span class="text-danger">*</span></label>
+                  <input v-model="profileForm.firstName" type="text" class="form-control form-control-lg bg-body text-body-emphasis" required>
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="fw-bold mb-1 text-body-secondary">Số điện thoại <span class="text-danger">*</span></label>
+                  <input v-model="profileForm.phoneNumber" type="text" class="form-control form-control-lg bg-body text-body-emphasis" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="fw-bold mb-1 text-body-secondary">CCCD / Hộ chiếu <span class="text-danger">*</span></label>
+                  <input v-model="profileForm.pid" type="text" class="form-control form-control-lg bg-body text-body-emphasis" required>
+                </div>
                 
                 <div class="col-md-4">
-                  <label class="fw-bold mb-1 text-body-secondary">Quốc tịch</label>
-                  <select v-model="profileForm.nationality" class="form-select form-select-lg bg-body" required>
+                  <label class="fw-bold mb-1 text-body-secondary">Quốc tịch <span class="text-danger">*</span></label>
+                  <select v-model="profileForm.nationality" class="form-select form-select-lg bg-body text-body-emphasis" required>
                     <option v-for="country in countries" :key="country" :value="country">{{ country }}</option>
                   </select>
                 </div>
                 <div class="col-md-4">
-                  <label class="fw-bold mb-1 text-body-secondary">Giới tính</label>
-                  <select v-model="profileForm.sex" class="form-select form-select-lg bg-body" required>
-                    <option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="UNSPECIFIED">Không xác định</option>
+                  <label class="fw-bold mb-1 text-body-secondary">Giới tính <span class="text-danger">*</span></label>
+                  <select v-model="profileForm.sex" class="form-select form-select-lg bg-body text-body-emphasis" required>
+                    <option value="MALE">Nam</option>
+                    <option value="FEMALE">Nữ</option>
+                    <option value="UNSPECIFIED">Không xác định</option>
                   </select>
                 </div>
-                <div class="col-md-4"><label class="fw-bold mb-1 text-body-secondary">Ngày sinh</label><input v-model="profileForm.dateOfBirth" type="date" class="form-control form-control-lg bg-body" required></div>
+                <div class="col-md-4">
+                  <label class="fw-bold mb-1 text-body-secondary">Ngày sinh <span class="text-danger">*</span></label>
+                  <input v-model="profileForm.dateOfBirth" type="date" class="form-control form-control-lg bg-body text-body-emphasis" required>
+                </div>
               </div>
 
               <div class="text-end mt-4 pt-3 border-top border-secondary-subtle">
@@ -103,7 +131,7 @@
           </div>
         </div>
 
-        <!-- TAB 2: ĐỔI MẬT KHẨU -->
+        <!-- TAB ĐỔI MẬT KHẨU -->
         <div v-if="activeTab === 'password'" class="card border-0 shadow-sm rounded-4 bg-body-tertiary">
           <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2">
             <h5 class="fw-bold text-primary mb-0">Đổi mật khẩu</h5>
@@ -111,21 +139,21 @@
           <div class="card-body p-4">
             <form @submit.prevent="submitPasswordChange">
               <div class="mb-3">
-                <label class="fw-bold mb-1 text-body-secondary">Mật khẩu hiện tại</label>
-                <input v-model="passwordForm.oldPass" type="password" class="form-control form-control-lg bg-body" required>
+                <label class="fw-bold mb-1 text-body-secondary">Mật khẩu hiện tại <span class="text-danger">*</span></label>
+                <input v-model="passwordForm.oldPass" type="password" class="form-control form-control-lg bg-body text-body-emphasis" required>
               </div>
               <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                  <label class="fw-bold mb-1 text-body-secondary">Mật khẩu mới</label>
-                  <input v-model="passwordForm.newPass" type="password" class="form-control form-control-lg bg-body" minlength="8" required>
+                  <label class="fw-bold mb-1 text-body-secondary">Mật khẩu mới <span class="text-danger">*</span></label>
+                  <input v-model="passwordForm.newPass" type="password" class="form-control form-control-lg bg-body text-body-emphasis" minlength="8" required>
                 </div>
                 <div class="col-md-6">
-                  <label class="fw-bold mb-1 text-body-secondary">Xác nhận mật khẩu mới</label>
-                  <input v-model="passwordForm.confirmPass" type="password" class="form-control form-control-lg bg-body" minlength="8" required>
+                  <label class="fw-bold mb-1 text-body-secondary">Xác nhận mật khẩu mới <span class="text-danger">*</span></label>
+                  <input v-model="passwordForm.confirmPass" type="password" class="form-control form-control-lg bg-body text-body-emphasis" minlength="8" required>
                 </div>
               </div>
               <div class="text-end border-top border-secondary-subtle pt-3">
-                <button type="submit" class="btn btn-primary fw-bold px-4 py-2 rounded-3 shadow-sm" :disabled="isProcessing">
+                <button type="submit" class="btn btn-warning text-dark fw-bold px-4 py-2 rounded-3 shadow-sm" :disabled="isProcessing">
                   <span v-if="isProcessing" class="spinner-border spinner-border-sm me-2"></span> <i v-else class="fas fa-key me-2"></i> Cập Nhật Mật Khẩu
                 </button>
               </div>
@@ -133,7 +161,7 @@
           </div>
         </div>
 
-        <!-- TAB 3: HIỂN THỊ & GIAO DIỆN -->
+        <!-- TAB HIỂN THỊ & GIAO DIỆN -->
         <div v-if="activeTab === 'preferences'" class="card border-0 shadow-sm rounded-4 bg-body-tertiary">
           <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2">
             <h5 class="fw-bold text-primary mb-0">Hiển thị & Giao diện</h5>
@@ -153,7 +181,7 @@
         </div>
 
         <!-- CÁC TAB ĐANG PHÁT TRIỂN -->
-        <div v-if="['security'].includes(activeTab)" class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
+        <div v-if="['notifications', 'security', 'account_status'].includes(activeTab)" class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
           <div class="card-body d-flex flex-column align-items-center justify-content-center py-5 text-muted">
             <div class="bg-body border border-secondary-subtle rounded-circle d-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 80px; height: 80px;">
               <i class="fas fa-tools fs-1 text-primary"></i>
@@ -176,7 +204,7 @@ import api from '../../utils/axios'
 
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
-const activeTab = ref('profile')
+const activeTab = ref('preferences')
 const isLoading = ref(true)
 const isProcessing = ref(false)
 const notification = ref({ type: '', message: '' })
@@ -280,12 +308,23 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* KHÓA NAV CỨNG */
+/* KHÓA CỨNG THANH MENU BÊN TRÁI */
 @media (min-width: 992px) {
   .settings-sidebar {
     position: sticky;
     top: 90px;
     z-index: 10;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+  
+  /* Làm gọn thanh cuộn của Menu (nếu màn hình bị lùn) */
+  .settings-sidebar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .settings-sidebar::-webkit-scrollbar-thumb {
+    background-color: var(--bs-secondary-bg);
+    border-radius: 4px;
   }
 }
 
@@ -309,5 +348,8 @@ onMounted(() => {
 /* Fix CSS Hover trong Dark Mode */
 [data-bs-theme="dark"] .nav-pills .nav-link:hover:not(.active) {
   background-color: rgba(255,255,255,0.05);
+}
+.object-fit-cover {
+  object-fit: cover;
 }
 </style>

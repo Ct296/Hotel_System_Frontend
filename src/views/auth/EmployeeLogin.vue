@@ -1,28 +1,28 @@
 <template>
   <div class="d-flex align-items-center justify-content-center min-vh-100" style="background: linear-gradient(135deg, #16043e 0%, #2a0d68 100%);">
-    <div class="card shadow-lg p-4" style="width: 100%; max-width: 400px; border-radius: 1rem; border: none;">
+    <div class="card shadow-lg p-4 bg-body" style="width: 100%; max-width: 400px; border-radius: 1.2rem; border: none;">
       <div class="text-center mb-4">
-        <div class="bg-primary text-white d-inline-flex justify-content-center align-items-center rounded-circle mb-3" style="width: 60px; height: 60px;">
+        <div class="bg-primary text-white d-inline-flex justify-content-center align-items-center rounded-circle mb-3 shadow-sm" style="width: 65px; height: 65px;">
           <i class="fas fa-user-tie fs-3"></i>
         </div>
-        <h3 class="fw-bold text-dark">Cổng Nội Bộ</h3>
-        <p class="text-muted small">Dành cho Staff, Manager & Admin</p>
+        <h3 class="fw-bold text-body-emphasis mb-1">Cổng Nội Bộ</h3>
+        <p class="text-body-secondary small">Dành cho Staff, Manager & Admin</p>
       </div>
 
-      <div v-if="errorMsg" class="alert alert-danger py-2">{{ errorMsg }}</div>
+      <div v-if="errorMsg" class="alert alert-danger py-2 fw-semibold text-center small shadow-sm">{{ errorMsg }}</div>
 
       <form @submit.prevent="handleLogin">
         <div class="mb-3">
-          <label class="form-label fw-semibold text-secondary">Email làm việc</label>
-          <input v-model="email" type="email" class="form-control bg-light" placeholder="admin@ithotel.vn" required />
+          <label class="form-label fw-semibold text-body-secondary small">Email làm việc</label>
+          <input v-model="email" type="email" class="form-control form-control-lg bg-body-tertiary text-body-emphasis" placeholder="admin@ithotel.vn" required />
         </div>
         
         <div class="mb-4">
-          <label class="form-label fw-semibold text-secondary">Mật khẩu</label>
-          <input v-model="password" type="password" class="form-control bg-light" placeholder="Nhập mật khẩu..." required />
+          <label class="form-label fw-semibold text-body-secondary small">Mật khẩu</label>
+          <input v-model="password" type="password" class="form-control form-control-lg bg-body-tertiary text-body-emphasis" placeholder="Nhập mật khẩu..." required />
         </div>
 
-        <button type="submit" class="btn btn-dark w-100 fw-bold py-2" :disabled="isLoading">
+        <button type="submit" class="btn btn-primary w-100 fw-bold py-3 rounded-pill shadow-sm" :disabled="isLoading">
           <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
           ĐĂNG NHẬP HỆ THỐNG
         </button>
@@ -49,7 +49,6 @@ const handleLogin = async () => {
   errorMsg.value = ''
   isLoading.value = true
   try {
-    // 1. CHỈNH LẠI API KHỚP VỚI BACKEND
     const response = await api.post('/api/auth/login', {
       email: email.value,
       password: password.value,
@@ -59,7 +58,6 @@ const handleLogin = async () => {
     authStore.setAuth(response.data)
     const role = response.data.role
 
-    // 2. ĐƯỜNG DẪN ROUTER CHUYỂN HƯỚNG
     if (role === 'ADMIN') {
       router.push('/employee/admin')
     } else if (role === 'MANAGER') {
@@ -72,7 +70,7 @@ const handleLogin = async () => {
         router.push('/employee/manager/dashboard') 
       }
     } else if (role === 'STAFF') {
-      router.push('/employee/staff')
+      router.push('/employee/staff/overview')
     } else {
       router.push('/')
     }

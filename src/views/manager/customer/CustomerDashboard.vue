@@ -1,6 +1,6 @@
 <template>
   <div class="position-relative pb-4">
-    <h3 class="fw-bold text-dark mb-4">Tổng quan Khách hàng & Đánh giá</h3>
+    <h3 class="fw-bold text-body-emphasis mb-4">Tổng quan Khách hàng & Đánh giá</h3>
     
     <!-- KPI -->
     <div class="row g-3 mb-4">
@@ -12,26 +12,29 @@
 
     <!-- AI CHARTS -->
     <div class="row g-4 mb-4">
+      <!-- Biểu đồ tròn -->
       <div class="col-lg-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-          <div class="card-header bg-white border-0 pt-4 pb-0"><h6 class="fw-bold"><i class="fas fa-chart-pie text-primary me-2"></i>Tỷ lệ Hài lòng Tổng thể</h6></div>
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
+          <div class="card-header bg-transparent border-0 pt-4 pb-0"><h6 class="fw-bold text-body-emphasis"><i class="fas fa-chart-pie text-primary me-2"></i>Tỷ lệ Hài lòng Tổng thể</h6></div>
           <div class="card-body d-flex justify-content-center align-items-center">
             <div style="width: 100%; height: 250px;" v-if="pieChartData"><Pie :data="pieChartData" :options="pieOptions" /></div>
-            <div v-else class="text-muted">Chưa có dữ liệu</div>
+            <div v-else class="text-body-secondary">Chưa có dữ liệu</div>
           </div>
         </div>
       </div>
+      
+      <!-- Biểu đồ cột -->
       <div class="col-lg-8">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-          <div class="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
-            <h6 class="fw-bold"><i class="fas fa-chart-bar text-warning me-2"></i>Chi tiết Tích cực / Tiêu cực</h6>
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
+          <div class="card-header bg-transparent border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold text-body-emphasis"><i class="fas fa-chart-bar text-warning me-2"></i>Chi tiết Tích cực / Tiêu cực</h6>
             <button @click="exportAiAnalysis" class="btn btn-sm btn-outline-primary fw-bold" :disabled="isExporting">
               <span v-if="isExporting" class="spinner-border spinner-border-sm me-1"></span> Cập nhật Dữ liệu
             </button>
           </div>
           <div class="card-body">
             <div style="height: 250px;" v-if="barChartData"><Bar :data="barChartData" :options="barOptions" /></div>
-            <div v-else class="text-muted text-center mt-5">Chưa có dữ liệu</div>
+            <div v-else class="text-body-secondary text-center mt-5">Chưa có dữ liệu</div>
           </div>
         </div>
       </div>
@@ -40,15 +43,21 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import api from '../../../utils/axios'
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement } from 'chart.js'
 import { Pie, Bar } from 'vue-chartjs'
+import { useThemeStore } from '../../../stores/themeStore'
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement)
 
 const dashboardData = ref({})
 const isExporting = ref(false)
+const themeStore = useThemeStore()
+
+// --- Hỗ trợ Dark Mode cho Chart.js ---
+const getChartTextColor = computed(() => themeStore.isDarkMode ? '#e9ecef' : '#212529')
+const getGridColor = computed(() => themeStore.isDarkMode ? '#495057' : '#e9ecef')
 
 const fetchDashboard = async () => {
   try {
@@ -65,6 +74,7 @@ const exportAiAnalysis = async () => {
   } catch (error) { console.error(error) } finally { isExporting.value = false }
 }
 
+// Cấu hình Biểu đồ Tròn (Pie)
 const pieChartData = computed(() => {
   const summary = dashboardData.value.aiSummary
   if (!summary) return null
@@ -73,8 +83,12 @@ const pieChartData = computed(() => {
     datasets: [{ backgroundColor: ['#198754', '#dc3545', '#6c757d'], data: [summary.positiveCount, summary.negativeCount, summary.neutralCount] }]
   }
 })
-const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+const pieOptions = ref({
+  responsive: true, maintainAspectRatio: false, 
+  plugins: { legend: { position: 'bottom', labels: { color: getChartTextColor.value } } }
+})
 
+// Cấu hình Biểu đồ Cột (Bar)
 const barChartData = computed(() => {
   const summary = dashboardData.value.aiSummary
   if (!summary) return null
@@ -88,7 +102,20 @@ const barChartData = computed(() => {
     ]
   }
 })
-const barOptions = { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+const barOptions = ref({ 
+  responsive: true, maintainAspectRatio: false, 
+  plugins: { legend: { labels: { color: getChartTextColor.value } } },
+  scales: { 
+    x: { ticks: { color: getChartTextColor.value }, grid: { color: getGridColor.value } },
+    y: { beginAtZero: true, ticks: { color: getChartTextColor.value }, grid: { color: getGridColor.value } } 
+  } 
+})
+
+// Cập nhật lại màu Chart khi Theme thay đổi
+watch(() => themeStore.isDarkMode, () => {
+  pieOptions.value = { ...pieOptions.value, plugins: { legend: { position: 'bottom', labels: { color: getChartTextColor.value } } } }
+  barOptions.value = { ...barOptions.value, plugins: { legend: { labels: { color: getChartTextColor.value } } }, scales: { x: { ticks: { color: getChartTextColor.value }, grid: { color: getGridColor.value } }, y: { beginAtZero: true, ticks: { color: getChartTextColor.value }, grid: { color: getGridColor.value } } } }
+})
 
 onMounted(() => fetchDashboard())
 </script>

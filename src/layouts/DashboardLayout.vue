@@ -1,10 +1,9 @@
 <template>
-  <!-- Đã thêm class min-vh-100 vào đây -->
-  <div class="d-flex min-vh-100" style="background-color: #f8f9fa;">
+  <div class="d-flex min-vh-100 bg-body">
     
-    <!-- Đã thêm class sidebar-container và bỏ width cứng -->
-    <div class="sidebar-container bg-dark text-white p-3">
-      <h4 class="text-center mb-4 fw-bold text-uppercase border-bottom pb-3 mt-2">IT Hotel</h4>
+    <!-- THANH MENU TRÁI (SIDEBAR) ĐÃ ĐƯỢC KHÓA ĐỨNG YÊN -->
+    <div class="sidebar-container bg-dark text-white p-3 shadow-lg">
+      <h4 class="text-center mb-4 fw-bold text-uppercase border-bottom border-secondary pb-3 mt-2">IT Hotel</h4>
       <ul class="nav flex-column gap-2">
         
         <!-- MENU CHỈ DÀNH CHO ADMIN -->
@@ -139,22 +138,23 @@
       </ul>
     </div>
 
-    <!-- Đã thêm class content-area vào thẻ Main Content -->
-    <div class="content-area d-flex flex-column">
-      <header class="bg-white shadow-sm py-3 px-4 d-flex justify-content-end align-items-center">
+    <!-- NỘI DUNG BÊN PHẢI (CHUYỂN SANG DARK MODE) -->
+    <div class="content-area d-flex flex-column bg-body-tertiary">
+      
+      <!-- HEADER (TOPBAR) -->
+      <header class="bg-body border-bottom border-secondary-subtle py-3 px-4 d-flex justify-content-end align-items-center shadow-sm sticky-top z-1">
         <div class="d-flex align-items-center gap-3">
-          <span class="fw-semibold text-secondary">Xin chào, {{ authStore.user?.fullName || 'Nhân sự' }}</span>
+          <span class="fw-semibold text-body-emphasis">Xin chào, {{ authStore.user?.fullName || 'Nhân sự' }}</span>
           
-          <!-- HIỂN THỊ AVATAR ĐÃ ĐƯỢC ĐỒNG BỘ -->
-          <div class="rounded-circle d-flex justify-content-center align-items-center shadow-sm border border-2 border-white bg-primary text-white overflow-hidden" style="width: 40px; height: 40px;">
-            <img v-if="authStore.user?.avatar" :src="getImageUrl(authStore.user.avatar)" class="w-100 h-100" style="object-fit: cover;" @error="handleImageError" alt="Avatar">
+          <div class="rounded-circle d-flex justify-content-center align-items-center shadow-sm border border-2 border-primary bg-primary text-white overflow-hidden" style="width: 40px; height: 40px;">
+            <img v-if="authStore.user?.avatar" :src="getImageUrl(authStore.user.avatar)" class="w-100 h-100 object-fit-cover" @error="handleImageError" alt="Avatar">
             <i v-else class="fas fa-user"></i>
           </div>
         </div>
       </header>
       
-      <main class="p-4">
-        <!-- Nơi các trang con hiển thị -->
+      <!-- MAIN RENDER VIEW -->
+      <main class="p-4 flex-grow-1">
         <router-view></router-view>
       </main>
     </div>
@@ -175,75 +175,54 @@ const getImageUrl = (path) => {
 }
 
 const handleImageError = (e) => {
-  e.target.style.display = 'none' // Ẩn ảnh lỗi, hiện icon default
+  e.target.style.display = 'none' 
 }
 
 const handleLogout = async () => {
   try {
     await api.post('/api/auth/logout')
-  } catch (e) {} // Bỏ qua lỗi mạng nếu có
-  
-  // Xóa trắng thông tin đăng nhập
+  } catch (e) {} 
   authStore.clearAuth() 
   router.push('/employee/login')
 }
 </script>
 
 <style scoped>
-/* Reset cấu trúc cho trang Dashboard */
+/* Khóa cuộn trang tổng thể */
 .d-flex.min-vh-100 {
   height: 100vh !important;
-  overflow: hidden; /* Cắt đứt thanh cuộn mặc định của toàn trang */
+  overflow: hidden; 
 }
 
-/* Ép thanh Menu bên trái (Sidebar) đứng im và giữ nguyên độ rộng */
+/* ÉP THANH MENU TRÁI ĐỨNG YÊN */
 .sidebar-container {
-  width: 250px; 
-  min-width: 250px;
+  width: 260px; 
+  min-width: 260px;
   height: 100vh;
   position: sticky;
   top: 0;
-  overflow-y: auto; /* Chỉ menu cuộn nếu nội dung menu quá dài */
-  background-color: #212529;
+  overflow-y: auto; 
 }
 
-/* Làm đẹp thanh cuộn cho Menu */
-.sidebar-container::-webkit-scrollbar {
-  width: 4px;
-}
-.sidebar-container::-webkit-scrollbar-thumb {
-  background-color: rgba(255,255,255,0.2);
-  border-radius: 4px;
-}
+.sidebar-container::-webkit-scrollbar { width: 4px; }
+.sidebar-container::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,0.2); border-radius: 4px; }
 
-/* Phần nội dung bên phải (Content Area) sẽ cuộn độc lập */
+/* VÙNG NỘI DUNG PHẢI TỰ CUỘN ĐỘC LẬP */
 .content-area {
   flex-grow: 1;
   height: 100vh;
-  overflow-y: auto; /* Trả thanh cuộn lại cho riêng nội dung bên phải */
-  width: calc(100% - 250px);
+  overflow-y: auto; 
+  width: calc(100% - 260px);
 }
 
-/* (Tùy chọn) Làm đẹp thanh cuộn cho phần nội dung */
-.content-area::-webkit-scrollbar {
-  width: 6px;
-}
-.content-area::-webkit-scrollbar-thumb {
-  background-color: #dee2e6;
-  border-radius: 4px;
-}
-.content-area::-webkit-scrollbar-thumb:hover {
-  background-color: #adb5bd;
-}
+.content-area::-webkit-scrollbar { width: 8px; }
+.content-area::-webkit-scrollbar-thumb { background-color: var(--bs-secondary-bg); border-radius: 4px; }
+.content-area::-webkit-scrollbar-thumb:hover { background-color: #adb5bd; }
 
-.menu-item {
-  transition: all 0.2s;
-}
-.menu-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-.menu-item.router-link-active {
-  background-color: #0d6efd;
-  color: white !important;
-}
+/* HOVER MENU ITEM */
+.menu-item { transition: all 0.2s; opacity: 0.85; }
+.menu-item:hover { background-color: rgba(255, 255, 255, 0.1); opacity: 1; }
+.menu-item.router-link-active { background-color: #6610f2; color: white !important; opacity: 1; box-shadow: 0 4px 6px rgba(102, 16, 242, 0.3); }
+
+.object-fit-cover { object-fit: cover; }
 </style>

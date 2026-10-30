@@ -2,8 +2,8 @@
   <div class="position-relative pb-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h3 class="fw-bold text-dark mb-1">Tổng quan Vận hành</h3>
-        <p class="text-muted small mb-0">Theo dõi doanh thu 12 tháng và hoạt động trong ngày.</p>
+        <h3 class="fw-bold text-body-emphasis mb-1">Tổng quan Vận hành</h3>
+        <p class="text-body-secondary small mb-0">Theo dõi doanh thu 12 tháng và hoạt động trong ngày.</p>
       </div>
     </div>
 
@@ -32,13 +32,13 @@
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 h-100 bg-warning">
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-warning text-dark">
           <div class="card-body p-4 d-flex justify-content-between align-items-center">
             <div>
-              <h6 class="text-dark-50 fw-semibold mb-1 text-muted">CHECK-IN / OUT (NAY)</h6>
-              <h3 class="fw-bold mb-0 text-dark">{{ kpi.arrivals }} <span class="fs-5 text-muted">/</span> {{ kpi.departures }}</h3>
+              <h6 class="text-dark-50 fw-semibold mb-1 opacity-75">CHECK-IN / OUT (NAY)</h6>
+              <h3 class="fw-bold mb-0">{{ kpi.arrivals }} <span class="fs-5 opacity-50">/</span> {{ kpi.departures }}</h3>
             </div>
-            <div class="fs-1 text-muted opacity-50"><i class="fas fa-exchange-alt"></i></div>
+            <div class="fs-1 opacity-50"><i class="fas fa-exchange-alt"></i></div>
           </div>
         </div>
       </div>
@@ -59,9 +59,9 @@
     <div class="row g-4 mb-4">
       <!-- BIỂU ĐỒ TRÒN TRẠNG THÁI -->
       <div class="col-lg-5">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-          <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-            <h6 class="fw-bold"><i class="fas fa-chart-pie text-primary me-2"></i>Trạng thái phòng hiện tại</h6>
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+            <h6 class="fw-bold text-body-emphasis"><i class="fas fa-chart-pie text-primary me-2"></i>Trạng thái phòng hiện tại</h6>
           </div>
           <div class="card-body d-flex justify-content-center align-items-center p-4">
             <div style="width: 250px; height: 250px;">
@@ -72,17 +72,17 @@
       </div>
       <!-- TOP 5 DỊCH VỤ -->
       <div class="col-lg-7">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-          <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-            <h6 class="fw-bold"><i class="fas fa-concierge-bell text-warning me-2"></i>Top Dịch vụ bán chạy (Tháng)</h6>
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+            <h6 class="fw-bold text-body-emphasis"><i class="fas fa-concierge-bell text-warning me-2"></i>Top Dịch vụ bán chạy (Tháng)</h6>
           </div>
           <div class="card-body p-4">
             <div class="d-flex justify-content-between align-items-center mb-3" v-for="(svc, idx) in topServices" :key="idx">
               <div class="d-flex align-items-center">
-                <div class="bg-light rounded text-center fw-bold me-3" style="width: 35px; height: 35px; line-height: 35px;">#{{ idx + 1 }}</div>
+                <div class="bg-body rounded text-center fw-bold me-3 border border-secondary-subtle text-body-emphasis" style="width: 35px; height: 35px; line-height: 35px;">#{{ idx + 1 }}</div>
                 <div>
-                  <h6 class="mb-0 fw-semibold">{{ svc.name }}</h6>
-                  <small class="text-muted">{{ svc.sold }} lượt sử dụng</small>
+                  <h6 class="mb-0 fw-semibold text-body-emphasis">{{ svc.name }}</h6>
+                  <small class="text-body-secondary">{{ svc.sold }} lượt sử dụng</small>
                 </div>
               </div>
               <div class="fw-bold text-success">{{ formatPrice(svc.revenue) }}</div>
@@ -95,11 +95,11 @@
     <!-- HÀNG 3: BIỂU ĐỒ 12 THÁNG (DOANH THU) -->
     <div class="row mb-4">
       <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-          <div class="card-header bg-white border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
-            <h6 class="fw-bold mb-0"><i class="fas fa-chart-bar text-success me-2"></i>Doanh thu 12 Tháng (VNĐ)</h6>
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <h6 class="fw-bold mb-0 text-body-emphasis"><i class="fas fa-chart-bar text-success me-2"></i>Doanh thu 12 Tháng (VNĐ)</h6>
             <div class="d-flex gap-2">
-              <select v-model="filterRevenueYear" class="form-select form-select-sm fw-bold border-success text-success" style="width: 120px;">
+              <select v-model="filterRevenueYear" class="form-select form-select-sm fw-bold border-success text-success bg-body" style="width: 120px;">
                 <option v-for="year in availableYears" :key="year" :value="year">Năm {{ year }}</option>
               </select>
               <button @click="exportRevenueExcel" class="btn btn-sm btn-outline-success fw-bold" title="Xuất báo cáo doanh thu">
@@ -119,16 +119,16 @@
     <!-- HÀNG 4: BIỂU ĐỒ 12 THÁNG (DỊCH VỤ) -->
     <div class="row mb-4">
       <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-          <div class="card-header bg-white border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
-            <h6 class="fw-bold mb-0"><i class="fas fa-chart-line text-primary me-2"></i>Số lượng sử dụng Dịch vụ (12 Tháng)</h6>
-            <div class="d-flex gap-2">
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <h6 class="fw-bold mb-0 text-body-emphasis"><i class="fas fa-chart-line text-primary me-2"></i>Số lượng sử dụng Dịch vụ (12 Tháng)</h6>
+            <div class="d-flex gap-2 flex-wrap">
               <!-- Danh sách Dropdown Dịch Vụ Gọi Từ API -->
-              <select v-model="filterServiceId" class="form-select form-select-sm fw-bold border-primary text-primary" style="width: 200px;">
+              <select v-model="filterServiceId" class="form-select form-select-sm fw-bold border-primary text-primary bg-body" style="width: 200px;">
                 <option value="ALL">-- Tất cả dịch vụ --</option>
                 <option v-for="svc in dbServicesList" :key="svc.id" :value="svc.id">{{ svc.name }}</option>
               </select>
-              <select v-model="filterServiceYear" class="form-select form-select-sm fw-bold border-primary text-primary" style="width: 120px;">
+              <select v-model="filterServiceYear" class="form-select form-select-sm fw-bold border-primary text-primary bg-body" style="width: 120px;">
                 <option v-for="year in availableYears" :key="year" :value="year">Năm {{ year }}</option>
               </select>
               <button @click="exportServiceExcel" class="btn btn-sm btn-outline-primary fw-bold" title="Xuất dữ liệu dịch vụ">
@@ -148,14 +148,14 @@
     <!-- HÀNG 5: BẢNG LỊCH TRÌNH -->
     <div class="row">
       <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-          <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-            <h6 class="fw-bold"><i class="fas fa-clipboard-list text-warning me-2"></i>Lịch trình nhận/trả phòng hôm nay</h6>
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+            <h6 class="fw-bold text-body-emphasis"><i class="fas fa-clipboard-list text-warning me-2"></i>Lịch trình nhận/trả phòng hôm nay</h6>
           </div>
           <div class="card-body p-0 mt-3">
             <div class="table-responsive">
               <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+                <thead class="table-secondary">
                   <tr>
                     <th class="px-4 py-3">Khách hàng</th>
                     <th class="py-3">Phòng</th>
@@ -166,10 +166,10 @@
                 </thead>
                 <tbody>
                   <tr v-if="todayTasks.length === 0">
-                    <td colspan="5" class="text-center py-4 text-muted">Không có lịch trình nào hôm nay.</td>
+                    <td colspan="5" class="text-center py-4 text-body-secondary">Không có lịch trình nào hôm nay.</td>
                   </tr>
                   <tr v-else v-for="task in todayTasks" :key="task.id">
-                    <td class="px-4 fw-semibold">{{ task.customerName }}</td>
+                    <td class="px-4 fw-semibold text-body-emphasis">{{ task.customerName }}</td>
                     <td class="fw-bold text-primary">{{ task.roomName }}</td>
                     <td>
                       <span :class="task.type === 'CHECK_IN' ? 'text-success' : 'text-danger'" class="fw-bold">
@@ -177,7 +177,7 @@
                         {{ task.type === 'CHECK_IN' ? 'Check-in' : 'Check-out' }}
                       </span>
                     </td>
-                    <td>{{ task.time }}</td>
+                    <td class="text-body-secondary">{{ task.time }}</td>
                     <td class="px-4 text-end">
                       <span class="badge bg-warning text-dark" v-if="task.status === 'PENDING'">Chờ xử lý</span>
                       <span class="badge bg-success" v-else>Hoàn tất</span>
@@ -204,7 +204,6 @@ ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale,
 
 const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price)
 
-// --- KHỞI TẠO BIẾN TRỐNG ĐỂ HỨNG DỮ LIỆU TỪ API ---
 const kpi = ref({ occupancyRate: 0, todayRevenue: 0, arrivals: 0, departures: 0, maintenanceRooms: 0 })
 const topServices = ref([])
 const todayTasks = ref([])
@@ -262,11 +261,9 @@ const lineOptions = { responsive: true, maintainAspectRatio: false, plugins: { l
 // --- FETCH DATA TỪ BACKEND ---
 const fetchData = async () => {
   try {
-    // 1. Lấy danh sách dịch vụ cho Dropdown
     const resBase = await api.get('/api/manager/operation/dashboard')
     dbServicesList.value = resBase.data.services || []
 
-    // 2. Lấy toàn bộ số liệu thống kê thật từ Database
     const resStats = await api.get('/api/manager/operation/dashboard-stats')
     const stats = resStats.data
 
