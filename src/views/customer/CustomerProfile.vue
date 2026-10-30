@@ -57,7 +57,7 @@
       </aside>
 
       <!-- MAIN CONTENT -->
-      <main class="customer-profile-main bg-light">
+      <main class="customer-profile-main">
         <div class="customer-profile-mobile-topbar">
           <button type="button" class="customer-profile-mobile-toggle" @click="mobileMenuOpen = !mobileMenuOpen">
             <i class="fas fa-bars"></i>
@@ -65,14 +65,9 @@
           <router-link class="customer-profile-mobile-home" to="/home"><i class="fas fa-house me-1"></i>Trang chủ</router-link>
         </div>
 
-        <section class="customer-profile-hero">
-          <h1>Hồ sơ khách hàng</h1>
-          <p>Quản lý tiến trình thành viên, lịch sử booking, và hóa đơn của bạn.</p>
-        </section>
-
         <div v-if="isLoading" class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
 
-        <div v-else>
+        <div v-else class="customer-profile-content-wrapper">
           <!-- Alerts -->
           <div class="customer-profile-alerts">
             <div v-if="notification.message" :class="`alert alert-${notification.type} shadow-sm fw-bold alert-dismissible fade show`">
@@ -82,26 +77,26 @@
             </div>
           </div>
 
-          <!-- TAB 0: HẠNG THÀNH VIÊN (TIẾN TRÌNH) -->
+          <!-- TAB 0: HẠNG THÀNH VIÊN -->
           <section v-if="activeTab === 'membership'" class="customer-profile-pane is-active">
             <!-- Thẻ VIP Banner -->
-            <div class="tier-banner rounded-4 shadow-sm text-white p-4 p-lg-5 mb-4 position-relative overflow-hidden">
+            <div class="tier-banner rounded-4 shadow-sm text-white p-4 mb-4 position-relative overflow-hidden">
               <div class="position-relative z-1">
-                <div class="d-flex align-items-center mb-3">
+                <div class="d-flex align-items-center mb-2">
                   <i class="fas fa-user-shield me-2 opacity-75"></i> 
                   <span class="small fw-semibold text-uppercase tracking-wider opacity-75">Thành viên ITHotel</span>
                 </div>
-                <h1 class="display-4 fw-bold mb-4">{{ nextTierProgress.currentTierName }}</h1>
-                <p class="mb-4 opacity-75">Chu kỳ tính điểm tự động bắt đầu từ hóa đơn đầu tiên của bạn.</p>
+                <h2 class="fw-bold mb-3">{{ nextTierProgress.currentTierName }}</h2>
+                <p class="mb-3 opacity-75 small">Chu kỳ tính điểm tự động bắt đầu từ hóa đơn đầu tiên.</p>
                 
-                <div class="d-flex justify-content-between border-top border-light border-opacity-25 pt-4">
+                <div class="d-flex justify-content-between border-top border-light border-opacity-25 pt-3">
                   <div>
-                    <div class="small opacity-75 mb-1">Chi tiêu tích lũy hiện tại</div>
-                    <h3 class="fw-bold mb-0">{{ formatPrice(nextTierProgress.totalSpending) }}</h3>
+                    <div class="small opacity-75 mb-1">Chi tiêu tích lũy</div>
+                    <h5 class="fw-bold mb-0">{{ formatPrice(nextTierProgress.totalSpending) }}</h5>
                   </div>
                   <div class="text-end">
                     <div class="small opacity-75 mb-1">Trạng thái</div>
-                    <h5 class="fw-bold mb-0 text-uppercase text-warning">Active</h5>
+                    <h6 class="fw-bold mb-0 text-uppercase text-warning">Active</h6>
                   </div>
                 </div>
               </div>
@@ -109,48 +104,45 @@
             </div>
 
             <!-- Thanh tiến trình -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-              <div class="card-body p-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-4 bg-body-tertiary">
+              <div class="card-body p-3">
                 <div class="d-flex justify-content-between mb-2">
-                  <h6 class="fw-bold text-dark mb-0">Hành trình đến hạng <span class="text-primary">{{ nextTierProgress.nextTierName || 'Tối đa' }}</span></h6>
-                  <span class="fw-bold text-primary">{{ nextTierProgress.percent }}%</span>
+                  <span class="fw-bold text-body-emphasis small">Hành trình đến hạng <span class="text-primary">{{ nextTierProgress.nextTierName || 'Tối đa' }}</span></span>
+                  <span class="fw-bold text-primary small">{{ nextTierProgress.percent }}%</span>
                 </div>
-                <div class="progress mb-3" style="height: 12px; background-color: #f1f5f9;">
+                <div class="progress mb-2 bg-secondary-subtle" style="height: 10px;">
                   <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary rounded-pill" role="progressbar" :style="{ width: nextTierProgress.percent + '%' }"></div>
                 </div>
-                <p v-if="nextTierProgress.nextTier" class="text-muted small mb-0">
+                <p v-if="nextTierProgress.nextTier" class="text-body-secondary small mb-0" style="font-size: 0.8rem;">
                   Cần tích lũy thêm <strong>{{ formatPrice(nextTierProgress.neededAmount) }}</strong> để thăng hạng <strong>{{ nextTierProgress.nextTierName }}</strong>.
                 </p>
-                <p v-else class="text-success fw-bold small mb-0"><i class="fas fa-medal me-1"></i> Bạn đã đạt mức hạng thẻ cao nhất!</p>
+                <p v-else class="text-success fw-bold small mb-0"><i class="fas fa-medal me-1"></i> Đã đạt hạng cao nhất!</p>
               </div>
             </div>
 
             <!-- Khám phá hạng thẻ -->
-            <h4 class="fw-bold text-dark mb-3 mt-5">Khám phá các hạng thành viên</h4>
+            <h6 class="fw-bold text-body-emphasis mb-3 mt-4">Khám phá các hạng thành viên</h6>
             <div class="row g-3">
               <div v-for="tier in allTiers" :key="tier.id" class="col-md-6 col-xl-4">
-                <div class="card border-0 shadow-sm rounded-4 h-100 tier-info-card" :class="{'border-primary border-2 shadow': nextTierProgress.currentTierName === tier.name}">
-                  <div class="card-body p-4">
-                    <i class="fas fa-gem fs-3 mb-3" :class="getTierColor(tier.name)"></i>
-                    <h5 class="fw-bold mb-1">{{ tier.name }}</h5>
-                    <p class="small text-muted mb-3">{{ tier.condition === 0 ? 'Khi đăng ký tài khoản' : 'Từ ' + formatPrice(tier.condition) }}</p>
-                    <ul class="list-unstyled small mb-0">
-                      <li class="mb-2"><i class="fas fa-check text-success me-2"></i> {{ tier.benefit }}</li>
-                      <li class="mb-2" v-if="tier.discount > 0"><i class="fas fa-check text-success me-2"></i> Giảm {{ tier.discount }}% giá phòng</li>
+                <div class="card border-0 shadow-sm rounded-4 h-100 tier-info-card bg-body-tertiary" :class="{'border-primary border-2 shadow': nextTierProgress.currentTierName === tier.name}">
+                  <div class="card-body p-3">
+                    <i class="fas fa-gem fs-4 mb-2" :class="getTierColor(tier.name)"></i>
+                    <h6 class="fw-bold mb-1 text-body-emphasis">{{ tier.name }}</h6>
+                    <p class="small text-body-secondary mb-2" style="font-size: 0.8rem;">{{ tier.condition === 0 ? 'Mặc định' : 'Từ ' + formatPrice(tier.condition) }}</p>
+                    <ul class="list-unstyled mb-0 text-body-secondary" style="font-size: 0.8rem;">
+                      <li class="mb-1"><i class="fas fa-check text-success me-1"></i> {{ tier.benefit }}</li>
+                      <li v-if="tier.discount > 0"><i class="fas fa-check text-success me-1"></i> Giảm {{ tier.discount }}% giá phòng</li>
                     </ul>
-                    <div v-if="nextTierProgress.currentTierName === tier.name" class="mt-3 text-primary fw-bold small">
-                      <i class="fas fa-arrow-right me-1"></i> Hạng hiện tại
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </section>
 
-          <!-- TAB 1: THÔNG TIN TÀI KHOẢN -->
+          <!-- TAB 1: THÔNG TIN CÁ NHÂN -->
           <section v-if="activeTab === 'overview'" class="customer-profile-pane is-active">
-            <div class="customer-profile-card">
-              <h2 class="customer-profile-card-title">Thông tin cá nhân</h2>
+            <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary p-3 p-md-4">
+              <h5 class="fw-bold mb-4 text-body-emphasis border-bottom pb-2">Thông tin cá nhân</h5>
               <div class="row g-3">
                 <div class="col-md-6"><label class="customer-profile-field-label">Họ và tên</label><div class="customer-profile-readonly">{{ currentUser.lastName }} {{ currentUser.firstName }}</div></div>
                 <div class="col-md-6"><label class="customer-profile-field-label">Email</label><div class="customer-profile-readonly">{{ currentUser.email }}</div></div>
@@ -163,27 +155,27 @@
             </div>
           </section>
 
-          <!-- TAB 3: BOOKING -->
+          <!-- TAB 2: BOOKING -->
           <section v-if="activeTab === 'bookings'" class="customer-profile-pane is-active">
-            <div class="customer-profile-card">
-              <h2 class="customer-profile-card-title">Booking / Thuê phòng</h2>
-              <div v-if="rentals.length === 0" class="customer-profile-empty text-center py-4">Bạn chưa có lượt đặt phòng hoặc thuê phòng nào.</div>
+            <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary p-3 p-md-4">
+              <h5 class="fw-bold mb-4 text-body-emphasis border-bottom pb-2">Booking / Thuê phòng</h5>
+              <div v-if="rentals.length === 0" class="customer-profile-empty text-center py-4">Chưa có lượt đặt phòng hoặc thuê phòng nào.</div>
               <div v-else class="customer-profile-table-wrap">
-                <table class="table table-bordered table-hover align-middle customer-profile-table">
-                  <thead><tr><th>Mã đơn</th><th>Thông tin phòng</th><th>Thời gian nhận/trả</th><th>Số khách</th><th>Hình thức</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
-                  <tbody>
+                <table class="table table-bordered table-hover align-middle customer-profile-table mb-0">
+                  <thead class="table-secondary"><tr><th>Mã đơn</th><th>Phòng</th><th>Thời gian</th><th>Khách</th><th>Hình thức</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                  <tbody class="small">
                     <tr v-for="r in rentals" :key="r.id">
                       <td class="fw-bold">{{ r.id }}</td>
                       <td>
                         <div v-if="r.rentalDetails && r.rentalDetails.length > 0">
-                          <span class="badge bg-secondary me-1 mb-1" v-for="(d, i) in r.rentalDetails" :key="i">P.{{ d.room?.name || 'N/A' }}</span>
-                          <div class="small text-muted mt-1">{{ r.rentalDetails[0]?.room?.roomType?.name }}</div>
+                          <span class="badge bg-secondary me-1" v-for="(d, i) in r.rentalDetails" :key="i">P.{{ d.room?.name || 'N/A' }}</span>
+                          <div class="text-body-secondary mt-1" style="font-size: 0.75rem;">{{ r.rentalDetails[0]?.room?.roomType?.name }}</div>
                         </div>
                       </td>
                       <td>
                         <div v-if="r.rentalDetails && r.rentalDetails.length > 0">
-                          <div class="small mb-1"><i class="fas fa-sign-in-alt text-success me-1"></i> {{ formatDateTime(r.rentalDetails[0]?.checkinDate) }}</div>
-                          <div class="badge bg-light text-dark border mt-1"><i class="fas fa-clock me-1"></i> {{ r.rentalDetails[0]?.lengthOfStay || 0 }} giờ</div>
+                          <div class="mb-1"><i class="fas fa-sign-in-alt text-success me-1"></i> {{ formatDateTime(r.rentalDetails[0]?.checkinDate) }}</div>
+                          <div class="badge bg-body-secondary text-body-emphasis border mt-1"><i class="fas fa-clock me-1"></i> {{ r.rentalDetails[0]?.lengthOfStay || 0 }} giờ</div>
                         </div>
                       </td>
                       <td class="fw-bold text-center">{{ r.rentalDetails[0]?.adultCount || 0 }} NL, {{ r.rentalDetails[0]?.childrenCount || 0 }} TE</td>
@@ -191,10 +183,10 @@
                       <td><span class="badge" :class="getRentalStatusClass(r)">{{ getRentalStatusText(r) }}</span></td>
                       <td class="text-end">
                         <div v-if="r.isBooking && (r.status === 'PENDING' || r.status === 'CONFIRMED')">
-                          <button v-if="r.status === 'PENDING'" @click="payVnPay(r.id)" class="btn btn-sm btn-outline-primary mb-2 w-100 fw-bold" :disabled="isProcessing">Thanh toán cọc</button>
-                          <button @click="confirmCancelBooking(r.id, r.status)" class="btn btn-sm btn-outline-danger w-100 fw-bold" :disabled="isProcessing">Hủy booking</button>
+                          <button v-if="r.status === 'PENDING'" @click="payVnPay(r.id)" class="btn btn-sm btn-primary mb-1 w-100 fw-bold" :disabled="isProcessing">Thanh toán cọc</button>
+                          <button @click="confirmCancelBooking(r.id, r.status)" class="btn btn-sm btn-danger w-100 fw-bold" :disabled="isProcessing">Hủy</button>
                         </div>
-                        <span v-else class="text-muted small">Không khả dụng</span>
+                        <span v-else class="text-body-secondary" style="font-size: 0.75rem;">Không khả dụng</span>
                       </td>
                     </tr>
                   </tbody>
@@ -203,20 +195,20 @@
             </div>
           </section>
 
-          <!-- TAB 4: BILLING -->
+          <!-- TAB 3: BILLING -->
           <section v-if="activeTab === 'billing'" class="customer-profile-pane is-active">
-            <div class="customer-profile-card">
-              <h2 class="customer-profile-card-title">Thanh toán / Hóa đơn</h2>
+            <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary p-3 p-md-4">
+              <h5 class="fw-bold mb-4 text-body-emphasis border-bottom pb-2">Thanh toán / Hóa đơn</h5>
               <div class="mb-4">
-                <p class="customer-profile-section-subtitle text-primary">Danh sách hóa đơn</p>
-                <div v-if="bills.length === 0" class="customer-profile-empty">Chưa có hóa đơn nào.</div>
+                <h6 class="text-primary fw-bold mb-3">Danh sách hóa đơn</h6>
+                <div v-if="bills.length === 0" class="customer-profile-empty py-3">Chưa có hóa đơn nào.</div>
                 <div v-else class="customer-profile-table-wrap">
-                  <table class="table table-bordered table-hover align-middle customer-profile-table">
-                    <thead><tr><th>Mã hóa đơn</th><th>Mã thuê</th><th>Loại</th><th>Ngày tạo</th><th class="text-end">Tổng tiền</th></tr></thead>
-                    <tbody>
+                  <table class="table table-bordered table-hover align-middle customer-profile-table mb-0">
+                    <thead class="table-secondary"><tr><th>Mã HĐ</th><th>Mã Thuê</th><th>Loại</th><th>Ngày tạo</th><th class="text-end">Tổng tiền</th></tr></thead>
+                    <tbody class="small">
                       <tr v-for="b in bills" :key="b.id">
                         <td class="fw-bold">{{ b.id }}</td>
-                        <td class="text-muted">{{ b.rental?.id }}</td>
+                        <td class="text-body-secondary">{{ b.rental?.id }}</td>
                         <td><span class="badge" :class="b.type === 'DEPOSIT' ? 'text-bg-primary' : 'text-bg-danger'">{{ b.type === 'DEPOSIT' ? 'Tiền cọc' : 'Thanh toán' }}</span></td>
                         <td>{{ formatDateTime(b.createDate) }}</td>
                         <td class="text-end fw-bold text-danger">{{ formatPrice(b.totalAmount) }}</td>
@@ -227,12 +219,12 @@
               </div>
               
               <div>
-                <p class="customer-profile-section-subtitle text-success">Danh sách thanh toán</p>
-                <div v-if="payments.length === 0" class="customer-profile-empty">Chưa có thanh toán nào.</div>
+                <h6 class="text-success fw-bold mb-3">Danh sách thanh toán</h6>
+                <div v-if="payments.length === 0" class="customer-profile-empty py-3">Chưa có thanh toán nào.</div>
                 <div v-else class="customer-profile-table-wrap">
-                  <table class="table table-bordered table-hover align-middle customer-profile-table">
-                    <thead><tr><th>Mã giao dịch</th><th>Mã hóa đơn</th><th>Phương thức</th><th>Ngày thanh toán</th></tr></thead>
-                    <tbody>
+                  <table class="table table-bordered table-hover align-middle customer-profile-table mb-0">
+                    <thead class="table-secondary"><tr><th>Mã giao dịch</th><th>Mã HĐ</th><th>Phương thức</th><th>Ngày thanh toán</th></tr></thead>
+                    <tbody class="small">
                       <tr v-for="p in payments" :key="p.id">
                         <td class="fw-bold text-success">{{ p.transaction }}</td>
                         <td>{{ p.bill?.id }}</td>
@@ -253,17 +245,17 @@
     <!-- CUSTOM CONFIRM MODAL CHO HỦY BOOKING -->
     <div class="customer-profile-confirm-modal" :class="{ 'show': showConfirmModal }" :aria-hidden="!showConfirmModal">
       <div class="customer-profile-confirm-backdrop" @click="showConfirmModal = false"></div>
-      <div class="customer-profile-confirm-dialog">
-        <button type="button" class="customer-profile-confirm-close" @click="showConfirmModal = false"><i class="fas fa-xmark"></i></button>
+      <div class="customer-profile-confirm-dialog bg-body-tertiary">
+        <button type="button" class="customer-profile-confirm-close bg-body" @click="showConfirmModal = false"><i class="fas fa-xmark text-body-emphasis"></i></button>
         <div class="customer-profile-confirm-icon"><i class="fas fa-triangle-exclamation"></i></div>
-        <h3 class="customer-profile-confirm-title">{{ confirmConfig.title }}</h3>
-        <p class="customer-profile-confirm-text">{{ confirmConfig.message }}</p>
-        <div class="customer-profile-confirm-note">
+        <h4 class="customer-profile-confirm-title text-body-emphasis">{{ confirmConfig.title }}</h4>
+        <p class="customer-profile-confirm-text text-body-secondary small">{{ confirmConfig.message }}</p>
+        <div class="customer-profile-confirm-note small">
           <i class="fas fa-circle-info"></i> {{ confirmConfig.note }}
         </div>
-        <div class="customer-profile-confirm-actions">
-          <button type="button" class="btn btn-light customer-profile-confirm-cancel" @click="showConfirmModal = false">Đóng</button>
-          <button type="button" class="btn btn-danger customer-profile-confirm-ok" @click="executeCancelBooking"><i class="fas fa-check me-2"></i>Xác nhận Hủy</button>
+        <div class="customer-profile-confirm-actions mt-3">
+          <button type="button" class="btn btn-secondary customer-profile-confirm-cancel py-2" @click="showConfirmModal = false">Đóng</button>
+          <button type="button" class="btn btn-danger customer-profile-confirm-ok py-2" @click="executeCancelBooking"><i class="fas fa-check me-2"></i>Xác nhận Hủy</button>
         </div>
       </div>
     </div>
@@ -298,7 +290,6 @@ const urlSuccess = ref(route.query.status === 'success')
 const showConfirmModal = ref(false)
 const confirmConfig = ref({ rentalId: null, title: '', message: '', note: '' })
 
-// === LOGIC HẠNG THẺ THÀNH VIÊN ===
 const allTiers = ref([
   { id: 1, name: 'Đồng', condition: 0, discount: 0, benefit: 'Tích lũy chi tiêu, hỗ trợ cơ bản' },
   { id: 2, name: 'Bạc', condition: 5000000, discount: 5, benefit: 'Ưu đãi dành cho thành viên' },
@@ -308,7 +299,6 @@ const allTiers = ref([
 ])
 
 const nextTierProgress = computed(() => {
-  // Lấy chi tiêu từ tổng các bill Final & Early_Checkout đã thanh toán (Tính toán giả lập nội bộ)
   const total = bills.value.reduce((sum, b) => sum + (b.totalAmount || 0), 0)
   const currentName = currentTier.value?.name || 'Đồng'
   
@@ -334,7 +324,6 @@ const getTierColor = (tierName) => {
   if (tierName === 'Kim cương') return 'text-primary'
   return 'text-muted'
 }
-// ===============================
 
 const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price || 0) + ' đ'
 const formatDateTime = (val) => val ? new Date(val).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'
@@ -407,7 +396,7 @@ const confirmCancelBooking = (rentalId, status) => {
     rentalId,
     title: isConfirmed ? 'Hủy booking đã xác nhận' : 'Hủy booking',
     message: 'Bạn có chắc muốn hủy booking này?',
-    note: isConfirmed ? 'Booking đã xác nhận khi hủy sẽ MẤT TOÀN BỘ TIỀN CỌC.' : 'Booking này sẽ được hủy ngay sau khi bạn xác nhận.'
+    note: isConfirmed ? 'Booking đã xác nhận khi hủy sẽ MẤT TOÀN BỘ TIỀN CỌC.' : 'Booking này sẽ được hủy ngay.'
   }
   showConfirmModal.value = true
 }
@@ -451,84 +440,108 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Đồng bộ biến nền theo hệ thống Dark Mode của Bootstrap */
 .customer-profile-page {
-  --cp-bg: #eef2f7;
-  --cp-surface: #ffffff;
-  --cp-text: #0f172a;
-  --cp-muted: #64748b;
-  --cp-border: rgba(15, 23, 42, 0.08);
-  --cp-primary: #5b3df5;
-  --cp-sidebar-bg: linear-gradient(180deg, #16043e 0%, #24005c 55%, #120033 100%);
+  --cp-bg: var(--bs-body-bg);
+  --cp-text: var(--bs-body-color);
+  --cp-border: var(--bs-border-color);
+  --cp-primary: #0d6efd;
+  /* Đổi sidebar sang xanh biển/đen gradient đồng bộ */
+  --cp-sidebar-bg: linear-gradient(180deg, #0a1128 0%, #001f54 100%);
   --cp-sidebar-item-hover: rgba(255,255,255,0.16);
-  --cp-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
   background: var(--cp-bg); 
   color: var(--cp-text); 
 }
 
-.customer-profile-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: 100vh; }
-.customer-profile-sidebar { position: sticky; top: 0; height: 100vh; background: var(--cp-sidebar-bg) !important; color: #fff; padding: 22px 18px 24px; box-shadow: 8px 0 30px rgba(10, 10, 35, 0.18); overflow-y: auto; }
-.customer-profile-brand { display: flex; align-items: center; gap: 12px; padding: 8px 8px 18px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.12); }
-.customer-profile-brand-icon { width: 44px; height: 44px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; background: rgba(91, 61, 245, 0.22); font-size: 1.15rem; color: #fff;}
-.customer-profile-brand-title { font-size: 1.65rem; font-weight: 800; line-height: 1.1; margin: 0; color: #fff;}
-.customer-profile-brand-subtitle { margin: 2px 0 0; color: rgba(255,255,255,0.72); font-size: 0.92rem; font-weight: 500; }
-.customer-profile-user-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.10); border-radius: 24px; padding: 22px 18px; text-align: center; margin: 18px 0 22px; color: #fff;}
-.customer-profile-user-avatar { width: 104px; height: 104px; border-radius: 999px; object-fit: cover; margin: 0 auto 16px; border: 4px solid rgba(255,255,255,0.20); display: block; background: #fff;}
-.customer-profile-user-name { font-size: 1.05rem; font-weight: 800; margin: 0 0 4px; color: #fff;}
-.customer-profile-user-email { font-size: 0.94rem; color: rgba(255,255,255,0.78); margin: 0; }
-.customer-profile-user-tier { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; padding: 9px 16px; border-radius: 999px; background: rgba(255, 199, 0, 0.12); border: 1px solid rgba(255, 199, 0, 0.25); color: #ffd24d; font-weight: 800; }
-.customer-profile-nav { display: flex; flex-direction: column; gap: 10px; }
-.customer-profile-nav-btn, .customer-profile-nav-link, .customer-profile-logout-form button { width: 100%; border: 0; text-decoration: none; display: flex; align-items: center; gap: 14px; border-radius: 20px; padding: 16px 18px; font-weight: 800; transition: all 0.2s; background: transparent; color: rgba(255,255,255,0.92); text-align: left; cursor: pointer; }
+/* Đổi nền sidebar thành đen/xám khi bật Dark Mode */
+[data-bs-theme="dark"] .customer-profile-page {
+  --cp-sidebar-bg: linear-gradient(180deg, #000000 0%, #121212 100%);
+}
+
+/* KHÓA SIDEBAR (BẢN FIX CỨNG) */
+.customer-profile-layout { 
+  display: flex; 
+  min-height: 100vh; 
+}
+.customer-profile-sidebar { 
+  width: 250px; 
+  min-width: 250px;
+  position: fixed; /* Khóa đứng yên không cho trôi */
+  top: 0; 
+  left: 0;
+  height: 100vh; 
+  background: var(--cp-sidebar-bg) !important; 
+  color: #fff; 
+  padding: 20px 14px; 
+  box-shadow: 4px 0 20px rgba(10, 10, 35, 0.15); 
+  overflow-y: auto; 
+  z-index: 1000;
+}
+.customer-profile-main { 
+  flex-grow: 1;
+  margin-left: 250px; /* Bù khoảng trống do sidebar bị khóa (fixed) */
+  padding: 20px; 
+  min-width: 0; 
+  background-color: var(--cp-bg);
+}
+
+.customer-profile-brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 12px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+.customer-profile-brand-icon { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: rgba(13, 110, 253, 0.4); font-size: 1rem; color: #fff;}
+.customer-profile-brand-title { font-size: 1.4rem; font-weight: 800; line-height: 1.1; margin: 0; color: #fff;}
+.customer-profile-brand-subtitle { margin: 0; color: rgba(255,255,255,0.72); font-size: 0.85rem; font-weight: 500; }
+.customer-profile-user-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.10); border-radius: 16px; padding: 16px 12px; text-align: center; margin: 12px 0; color: #fff;}
+.customer-profile-user-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin: 0 auto 10px; border: 3px solid rgba(255,255,255,0.20); display: block; background: #fff;}
+.customer-profile-user-name { font-size: 1rem; font-weight: 800; margin: 0 0 4px; color: #fff;}
+.customer-profile-user-email { font-size: 0.85rem; color: rgba(255,255,255,0.78); margin: 0; }
+.customer-profile-user-tier { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 6px 12px; border-radius: 50px; background: rgba(255, 199, 0, 0.12); border: 1px solid rgba(255, 199, 0, 0.25); color: #ffd24d; font-weight: 800; font-size: 0.85rem;}
+.customer-profile-nav { display: flex; flex-direction: column; gap: 6px; }
+.customer-profile-nav-btn, .customer-profile-nav-link, .customer-profile-logout-form button { width: 100%; border: 0; text-decoration: none; display: flex; align-items: center; gap: 10px; border-radius: 14px; padding: 12px 14px; font-weight: 700; transition: all 0.2s; background: transparent; color: rgba(255,255,255,0.92); text-align: left; cursor: pointer; font-size: 0.9rem;}
 .customer-profile-nav-btn:hover, .customer-profile-nav-link:hover, .customer-profile-logout-form button:hover { background: var(--cp-sidebar-item-hover); color: #fff; }
 .customer-profile-nav-btn.is-active { background: rgba(255,255,255,0.16); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08); }
-.customer-profile-nav-btn i, .customer-profile-nav-link i, .customer-profile-logout-form button i { width: 22px; text-align: center; font-size: 1.05rem; }
+.customer-profile-nav-btn i, .customer-profile-nav-link i, .customer-profile-logout-form button i { width: 20px; text-align: center; font-size: 1rem; }
 .customer-profile-logout-form button { color: #ffab9c; }
-.customer-profile-main { padding: 32px; min-width: 0; background-color: var(--cp-bg);}
-.customer-profile-mobile-topbar { display: none; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.customer-profile-mobile-toggle { border: 0; background: var(--cp-primary); color: #fff; width: 46px; height: 46px; border-radius: 14px; }
+
+/* THU NHỎ CÁC THẺ GIAO DIỆN PHẢI (CARDS) */
+.customer-profile-content-wrapper { max-width: 1100px; margin: 0 auto; }
+.customer-profile-mobile-topbar { display: none; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.customer-profile-mobile-toggle { border: 0; background: var(--cp-primary); color: #fff; width: 40px; height: 40px; border-radius: 10px; }
 .customer-profile-mobile-home { text-decoration: none; color: var(--cp-primary); font-weight: 800; }
-.customer-profile-hero { background: var(--cp-surface); border: 1px solid var(--cp-border); border-radius: 32px; padding: 28px 32px; box-shadow: var(--cp-shadow); margin-bottom: 24px; }
-.customer-profile-hero h1 { margin: 0 0 8px; font-size: clamp(2rem, 3vw, 3.15rem); font-weight: 900; color: #12133f; }
-.customer-profile-hero p { margin: 0; color: var(--cp-muted); }
-.customer-profile-card { background: var(--cp-surface); border: 1px solid var(--cp-border); border-radius: 30px; box-shadow: var(--cp-shadow); padding: 28px; }
-.customer-profile-card-title { margin: 0 0 26px; font-size: clamp(1.6rem, 2.5vw, 2.8rem); font-weight: 900; color: #12133f; }
-.customer-profile-field-label { display: block; margin-bottom: 10px; font-weight: 800; color: #434b61; }
-.customer-profile-readonly, .form-control, .form-select { min-height: 54px; border-radius: 16px; border: 1px solid rgba(15, 23, 42, 0.10); box-shadow: none; }
-.customer-profile-readonly { display: flex; align-items: center; padding: 0 16px; background: #f8fafc; color: #1f2937; }
-.customer-profile-table-wrap { overflow-x: auto; border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 18px; }
-.customer-profile-table { margin: 0; min-width: 980px; }
-.customer-profile-table thead th { background: #f8fafc; color: #44506b; font-weight: 800; white-space: nowrap; }
-.customer-profile-empty { border: 1px dashed rgba(15, 23, 42, 0.12); border-radius: 18px; background: #fbfcfe; color: #64748b; padding: 16px 18px; margin: 0; }
-.customer-profile-section-subtitle { margin: 0 0 14px; font-size: 1.08rem; font-weight: 800; }
+.customer-profile-field-label { display: block; margin-bottom: 6px; font-weight: 700; color: var(--bs-secondary-color); font-size: 0.85rem;}
+.customer-profile-readonly { min-height: 42px; border-radius: 12px; border: 1px solid var(--cp-border); display: flex; align-items: center; padding: 0 14px; background: var(--bs-secondary-bg); color: var(--bs-body-color); font-size: 0.9rem;}
+.customer-profile-table-wrap { overflow-x: auto; border: 1px solid var(--cp-border); border-radius: 14px; }
+.customer-profile-table { margin: 0; min-width: 800px; }
+.customer-profile-table thead th { font-weight: 700; white-space: nowrap; font-size: 0.85rem;}
+.customer-profile-empty { border: 1px dashed var(--cp-border); border-radius: 14px; background: var(--bs-secondary-bg); color: var(--bs-secondary-color); padding: 12px 14px; margin: 0; font-size: 0.9rem;}
 
-/* Modal Hủy Booking */
-.customer-profile-confirm-modal { position: fixed; inset: 0; z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
+/* Modal Hủy Booking Thu nhỏ */
+.customer-profile-confirm-modal { position: fixed; inset: 0; z-index: 2000; display: none; align-items: center; justify-content: center; padding: 16px; }
 .customer-profile-confirm-modal.show { display: flex; animation: fadein 0.2s; }
-.customer-profile-confirm-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(3px); }
-.customer-profile-confirm-dialog { position: relative; z-index: 1; width: 100%; max-width: 480px; background: #fff; border-radius: 24px; padding: 28px 24px 22px; text-align: center; animation: zoomin 0.22s; }
-.customer-profile-confirm-close { position: absolute; top: 14px; right: 14px; width: 38px; height: 38px; border: 0; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
-.customer-profile-confirm-icon { width: 72px; height: 72px; margin: 0 auto 16px; border-radius: 20px; background: linear-gradient(135deg, #fee2e2, #ffedd5); color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 30px; }
-.customer-profile-confirm-title { font-weight: 900; margin-bottom: 10px; }
-.customer-profile-confirm-note { background: #fff7ed; border: 1px solid #fed7aa; color: #7c2d12; border-radius: 16px; padding: 14px; margin-bottom: 22px; font-size: 0.95rem; }
-.customer-profile-confirm-actions { display: flex; gap: 12px; }
-.customer-profile-confirm-actions button { flex: 1; border-radius: 14px; padding: 12px 16px; font-weight: 800; }
+.customer-profile-confirm-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(3px); }
+.customer-profile-confirm-dialog { position: relative; z-index: 1; width: 100%; max-width: 420px; border-radius: 20px; padding: 24px 20px 20px; text-align: center; animation: zoomin 0.22s; }
+.customer-profile-confirm-close { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.customer-profile-confirm-icon { width: 60px; height: 60px; margin: 0 auto 12px; border-radius: 16px; background: linear-gradient(135deg, #fee2e2, #ffedd5); color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+.customer-profile-confirm-title { font-weight: 800; margin-bottom: 8px; font-size: 1.25rem;}
+.customer-profile-confirm-note { background: #fff7ed; border: 1px solid #fed7aa; color: #7c2d12; border-radius: 12px; padding: 10px; margin-bottom: 16px; }
+.customer-profile-confirm-actions { display: flex; gap: 10px; }
+.customer-profile-confirm-actions button { flex: 1; border-radius: 12px; font-weight: 700; }
 
-/* CSS Mới Cho Hạng thẻ */
-.tier-banner { background: linear-gradient(135deg, #ea580c 0%, #d97706 100%); }
-.tier-bg-icon { font-size: 15rem; right: -2rem; bottom: -4rem; transform: rotate(15deg); }
+/* CSS Mới Cho Hạng thẻ - Đổi sang dải Xanh Biển */
+.tier-banner { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); }
+.tier-bg-icon { font-size: 10rem; right: -1rem; bottom: -2rem; transform: rotate(15deg); }
 .tracking-wider { letter-spacing: 2px; }
 .tier-info-card { transition: transform 0.2s; }
-.tier-info-card:hover { transform: translateY(-5px); }
+.tier-info-card:hover { transform: translateY(-4px); }
 
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
 @keyframes zoomin { from { opacity: 0; transform: translateY(10px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 @media (max-width: 991.98px) {
-  .customer-profile-layout { grid-template-columns: 1fr; }
-  .customer-profile-sidebar { position: fixed; top: 0; left: 0; width: min(320px, calc(100vw - 36px)); transform: translateX(-100%); transition: transform 0.25s ease; z-index: 1045; }
+  .customer-profile-layout { display: block; }
+  .customer-profile-sidebar { position: fixed; top: 0; left: 0; width: min(280px, calc(100vw - 36px)); transform: translateX(-100%); transition: transform 0.25s ease; z-index: 1045; }
   .customer-profile-sidebar.is-open { transform: translateX(0); }
   .customer-profile-mobile-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.38); z-index: 1040; display: none; }
   .customer-profile-mobile-backdrop.is-open { display: block; }
-  .customer-profile-main { padding: 18px; }
+  .customer-profile-main { margin-left: 0; width: 100%; padding: 16px; }
   .customer-profile-mobile-topbar { display: flex; }
 }
 </style>

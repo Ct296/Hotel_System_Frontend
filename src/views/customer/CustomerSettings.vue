@@ -1,13 +1,10 @@
 <template>
-  <div class="container-fluid py-4 bg-light min-vh-100">
+  <div class="container-fluid py-4 bg-body min-vh-100">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h3 class="fw-bold text-dark mb-1">Cài đặt hệ thống</h3>
-        <p class="text-muted small mb-0">Tùy chỉnh giao diện, hồ sơ cá nhân và bảo mật tài khoản.</p>
+        <h3 class="fw-bold text-body-emphasis mb-1">Cài đặt hệ thống</h3>
+        <p class="text-body-secondary small mb-0">Tùy chỉnh giao diện, hồ sơ cá nhân và bảo mật tài khoản.</p>
       </div>
-      <router-link to="/customer/profile" class="btn btn-outline-secondary fw-bold rounded-pill shadow-sm">
-        <i class="fas fa-arrow-left me-2"></i> Quay lại Hồ sơ
-      </router-link>
     </div>
 
     <div v-if="notification.message" :class="`alert alert-${notification.type} shadow-sm fw-bold alert-dismissible fade show`">
@@ -16,10 +13,10 @@
       <button type="button" class="btn-close" @click="notification.message = ''"></button>
     </div>
 
-    <div class="row g-4">
-      <!-- Cột Trái: Menu Cài đặt -->
+    <div class="row g-4 align-items-start">
+      <!-- CỘT TRÁI: MENU CÀI ĐẶT (Khóa cứng, không cuộn) -->
       <div class="col-lg-3">
-        <div class="card border-0 shadow-sm rounded-4">
+        <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary settings-sidebar">
           <div class="card-body p-3">
             <div class="nav flex-column nav-pills gap-2">
               
@@ -31,7 +28,7 @@
                 <i class="fas fa-key me-3 text-center" style="width: 20px;"></i>Đổi mật khẩu
               </button>
 
-              <hr class="my-2 text-muted">
+              <hr class="my-2 text-body-secondary opacity-25">
 
               <!-- Nhóm 2: Trải nghiệm & Bảo mật -->
               <button class="nav-link text-start fw-semibold py-3" :class="{ active: activeTab === 'preferences' }" @click="activeTab = 'preferences'">
@@ -40,17 +37,24 @@
               <button class="nav-link text-start fw-semibold py-3" :class="{ active: activeTab === 'security' }" @click="activeTab = 'security'">
                 <i class="fas fa-shield-alt me-3 text-center" style="width: 20px;"></i>Lịch sử đăng nhập
               </button>
+
+              <hr class="my-2 text-body-secondary opacity-25">
+              
+              <!-- Nút Quay Lại Hồ Sơ (Gộp chung vào khối) -->
+              <router-link to="/customer/profile" class="btn btn-outline-danger fw-bold rounded-3 w-100 text-start py-2 d-flex align-items-center mt-2">
+                <i class="fas fa-arrow-left me-3 text-center" style="width: 20px;"></i> Quay lại Hồ sơ
+              </router-link>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Cột Phải: Nội dung Cài đặt -->
+      <!-- CỘT PHẢI: NỘI DUNG CÀI ĐẶT (Phần này sẽ cuộn) -->
       <div class="col-lg-9">
         
         <!-- TAB 1: CẬP NHẬT HỒ SƠ -->
-        <div v-if="activeTab === 'profile'" class="card border-0 shadow-sm rounded-4">
-          <div class="card-header bg-white border-0 pt-4 pb-2">
+        <div v-if="activeTab === 'profile'" class="card border-0 shadow-sm rounded-4 bg-body-tertiary">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2">
             <h5 class="fw-bold text-primary mb-0">Thông tin cá nhân</h5>
           </div>
           <div class="card-body p-4">
@@ -58,40 +62,40 @@
             <form v-else @submit.prevent="submitProfileUpdate">
               <div class="row g-4">
                 
-                <div class="col-12 d-flex align-items-center gap-4 mb-2 border-bottom pb-4">
+                <div class="col-12 d-flex align-items-center gap-4 mb-2 border-bottom border-secondary-subtle pb-4">
                   <img :src="avatarPreview || getImageUrl(currentUser.avatar)" 
-                       class="rounded-circle border border-2 shadow-sm object-fit-cover" 
-                       style="width: 90px; height: 90px; background: #fff;" 
+                       class="rounded-circle border border-2 shadow-sm object-fit-cover bg-white" 
+                       style="width: 90px; height: 90px;" 
                        @error="handleImageError" alt="Avatar">
                   <div class="flex-grow-1">
-                    <label class="fw-semibold mb-2">Ảnh đại diện mới (Không bắt buộc)</label>
-                    <input type="file" @change="handleAvatarUpload" class="form-control bg-light w-75" accept="image/*">
-                    <small class="text-muted mt-1 d-block">Định dạng JPG, PNG. Tối đa 2MB.</small>
+                    <label class="fw-semibold mb-2 text-body-emphasis">Ảnh đại diện mới (Không bắt buộc)</label>
+                    <input type="file" @change="handleAvatarUpload" class="form-control bg-body w-75" accept="image/*">
+                    <small class="text-body-secondary mt-1 d-block">Định dạng JPG, PNG. Tối đa 2MB.</small>
                   </div>
                 </div>
 
-                <div class="col-md-6"><label class="fw-bold mb-1">Họ</label><input v-model="profileForm.lastName" type="text" class="form-control form-control-lg bg-light" required></div>
-                <div class="col-md-6"><label class="fw-bold mb-1">Tên</label><input v-model="profileForm.firstName" type="text" class="form-control form-control-lg bg-light" required></div>
-                <div class="col-md-6"><label class="fw-bold mb-1">Số điện thoại</label><input v-model="profileForm.phoneNumber" type="text" class="form-control form-control-lg bg-light" required></div>
-                <div class="col-md-6"><label class="fw-bold mb-1">CCCD / Hộ chiếu</label><input v-model="profileForm.pid" type="text" class="form-control form-control-lg bg-light" required></div>
+                <div class="col-md-6"><label class="fw-bold mb-1 text-body-secondary">Họ</label><input v-model="profileForm.lastName" type="text" class="form-control form-control-lg bg-body" required></div>
+                <div class="col-md-6"><label class="fw-bold mb-1 text-body-secondary">Tên</label><input v-model="profileForm.firstName" type="text" class="form-control form-control-lg bg-body" required></div>
+                <div class="col-md-6"><label class="fw-bold mb-1 text-body-secondary">Số điện thoại</label><input v-model="profileForm.phoneNumber" type="text" class="form-control form-control-lg bg-body" required></div>
+                <div class="col-md-6"><label class="fw-bold mb-1 text-body-secondary">CCCD / Hộ chiếu</label><input v-model="profileForm.pid" type="text" class="form-control form-control-lg bg-body" required></div>
                 
                 <div class="col-md-4">
-                  <label class="fw-bold mb-1">Quốc tịch</label>
-                  <select v-model="profileForm.nationality" class="form-select form-select-lg bg-light" required>
+                  <label class="fw-bold mb-1 text-body-secondary">Quốc tịch</label>
+                  <select v-model="profileForm.nationality" class="form-select form-select-lg bg-body" required>
                     <option v-for="country in countries" :key="country" :value="country">{{ country }}</option>
                   </select>
                 </div>
                 <div class="col-md-4">
-                  <label class="fw-bold mb-1">Giới tính</label>
-                  <select v-model="profileForm.sex" class="form-select form-select-lg bg-light" required>
+                  <label class="fw-bold mb-1 text-body-secondary">Giới tính</label>
+                  <select v-model="profileForm.sex" class="form-select form-select-lg bg-body" required>
                     <option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="UNSPECIFIED">Không xác định</option>
                   </select>
                 </div>
-                <div class="col-md-4"><label class="fw-bold mb-1">Ngày sinh</label><input v-model="profileForm.dateOfBirth" type="date" class="form-control form-control-lg bg-light" required></div>
+                <div class="col-md-4"><label class="fw-bold mb-1 text-body-secondary">Ngày sinh</label><input v-model="profileForm.dateOfBirth" type="date" class="form-control form-control-lg bg-body" required></div>
               </div>
 
-              <div class="text-end mt-4 pt-3 border-top">
-                <button type="submit" class="btn btn-primary fw-bold px-4 py-2 rounded-3" :disabled="isProcessing">
+              <div class="text-end mt-4 pt-3 border-top border-secondary-subtle">
+                <button type="submit" class="btn btn-primary fw-bold px-4 py-2 rounded-3 shadow-sm" :disabled="isProcessing">
                   <span v-if="isProcessing" class="spinner-border spinner-border-sm me-2"></span> <i v-else class="fas fa-save me-2"></i> Lưu Cập Nhật
                 </button>
               </div>
@@ -100,28 +104,28 @@
         </div>
 
         <!-- TAB 2: ĐỔI MẬT KHẨU -->
-        <div v-if="activeTab === 'password'" class="card border-0 shadow-sm rounded-4">
-          <div class="card-header bg-white border-0 pt-4 pb-2">
+        <div v-if="activeTab === 'password'" class="card border-0 shadow-sm rounded-4 bg-body-tertiary">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2">
             <h5 class="fw-bold text-primary mb-0">Đổi mật khẩu</h5>
           </div>
           <div class="card-body p-4">
             <form @submit.prevent="submitPasswordChange">
               <div class="mb-3">
-                <label class="fw-bold mb-1">Mật khẩu hiện tại</label>
-                <input v-model="passwordForm.oldPass" type="password" class="form-control form-control-lg bg-light" required>
+                <label class="fw-bold mb-1 text-body-secondary">Mật khẩu hiện tại</label>
+                <input v-model="passwordForm.oldPass" type="password" class="form-control form-control-lg bg-body" required>
               </div>
               <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                  <label class="fw-bold mb-1">Mật khẩu mới</label>
-                  <input v-model="passwordForm.newPass" type="password" class="form-control form-control-lg bg-light" minlength="8" required>
+                  <label class="fw-bold mb-1 text-body-secondary">Mật khẩu mới</label>
+                  <input v-model="passwordForm.newPass" type="password" class="form-control form-control-lg bg-body" minlength="8" required>
                 </div>
                 <div class="col-md-6">
-                  <label class="fw-bold mb-1">Xác nhận mật khẩu mới</label>
-                  <input v-model="passwordForm.confirmPass" type="password" class="form-control form-control-lg bg-light" minlength="8" required>
+                  <label class="fw-bold mb-1 text-body-secondary">Xác nhận mật khẩu mới</label>
+                  <input v-model="passwordForm.confirmPass" type="password" class="form-control form-control-lg bg-body" minlength="8" required>
                 </div>
               </div>
-              <div class="text-end">
-                <button type="submit" class="btn btn-warning text-dark fw-bold px-4 py-2 rounded-3" :disabled="isProcessing">
+              <div class="text-end border-top border-secondary-subtle pt-3">
+                <button type="submit" class="btn btn-primary fw-bold px-4 py-2 rounded-3 shadow-sm" :disabled="isProcessing">
                   <span v-if="isProcessing" class="spinner-border spinner-border-sm me-2"></span> <i v-else class="fas fa-key me-2"></i> Cập Nhật Mật Khẩu
                 </button>
               </div>
@@ -129,14 +133,33 @@
           </div>
         </div>
 
+        <!-- TAB 3: HIỂN THỊ & GIAO DIỆN -->
+        <div v-if="activeTab === 'preferences'" class="card border-0 shadow-sm rounded-4 bg-body-tertiary">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2">
+            <h5 class="fw-bold text-primary mb-0">Hiển thị & Giao diện</h5>
+          </div>
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4 p-4 border border-secondary-subtle rounded-4 bg-body">
+              <div>
+                <h6 class="fw-bold mb-1 text-body-emphasis"><i class="fas fa-moon me-2 text-warning"></i>Chế độ Tối (Dark Mode)</h6>
+                <p class="text-body-secondary small mb-0">Chuyển toàn bộ hệ thống sang nền tối giúp dịu mắt hơn.</p>
+              </div>
+              <div class="form-check form-switch mb-0" style="transform: scale(1.3); margin-right: 10px;">
+                <input class="form-check-input cursor-pointer shadow-sm" type="checkbox" role="switch"
+                       :checked="themeStore.isDarkMode" @change="themeStore.toggleTheme()">
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- CÁC TAB ĐANG PHÁT TRIỂN -->
-        <div v-if="['preferences', 'security'].includes(activeTab)" class="card border-0 shadow-sm rounded-4 h-100">
+        <div v-if="['security'].includes(activeTab)" class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
           <div class="card-body d-flex flex-column align-items-center justify-content-center py-5 text-muted">
-            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 80px; height: 80px;">
+            <div class="bg-body border border-secondary-subtle rounded-circle d-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 80px; height: 80px;">
               <i class="fas fa-tools fs-1 text-primary"></i>
             </div>
-            <h4 class="fw-bold text-dark">Tính năng đang phát triển</h4>
-            <p>Phần cài đặt tùy chỉnh này sẽ được ra mắt trong các phiên bản cập nhật tiếp theo.</p>
+            <h4 class="fw-bold text-body-emphasis">Tính năng đang phát triển</h4>
+            <p class="text-body-secondary">Phần cài đặt tùy chỉnh này sẽ được ra mắt trong các phiên bản cập nhật tiếp theo.</p>
           </div>
         </div>
 
@@ -148,9 +171,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../../stores/authStore'
+import { useThemeStore } from '../../stores/themeStore'
 import api from '../../utils/axios'
 
 const authStore = useAuthStore()
+const themeStore = useThemeStore()
 const activeTab = ref('profile')
 const isLoading = ref(true)
 const isProcessing = ref(false)
@@ -255,17 +280,34 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* KHÓA NAV CỨNG */
+@media (min-width: 992px) {
+  .settings-sidebar {
+    position: sticky;
+    top: 90px;
+    z-index: 10;
+  }
+}
+
 .nav-pills .nav-link {
-  color: #495057;
+  color: var(--bs-body-color);
   border-radius: 8px;
   transition: all 0.2s ease;
 }
 .nav-pills .nav-link:hover:not(.active) {
-  background-color: #e9ecef;
+  background-color: var(--bs-secondary-bg);
 }
 .nav-pills .nav-link.active {
-  background-color: #5b3df5;
+  background-color: #0d6efd;
   color: white;
-  box-shadow: 0 4px 6px rgba(91, 61, 245, 0.2);
+  box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2);
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Fix CSS Hover trong Dark Mode */
+[data-bs-theme="dark"] .nav-pills .nav-link:hover:not(.active) {
+  background-color: rgba(255,255,255,0.05);
 }
 </style>

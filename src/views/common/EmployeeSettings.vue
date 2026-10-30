@@ -59,7 +59,7 @@
         <!-- TAB HỒ SƠ CÁ NHÂN -->
         <div v-if="activeTab === 'profile'" class="card border-0 shadow-sm rounded-4">
           <div class="card-header bg-white border-0 pt-4 pb-2">
-            <h5 class="fw-bold text-primary mb-0">Thông tin cá nhân</h5>
+            <h5 class="fw-bold text-primary mb-0">Thông hiện cá nhân</h5>
           </div>
           <div class="card-body p-4">
             <div v-if="isLoading" class="text-center py-4"><div class="spinner-border text-primary"></div></div>
@@ -139,8 +139,27 @@
           </div>
         </div>
 
+        <!-- TAB HIỂN THỊ & GIAO DIỆN -->
+        <div v-if="activeTab === 'preferences'" class="card border-0 shadow-sm rounded-4">
+          <div class="card-header bg-transparent border-0 pt-4 pb-2">
+            <h5 class="fw-bold text-primary mb-0">Hiển thị & Giao diện</h5>
+          </div>
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center p-4 border rounded-4 bg-body-tertiary">
+              <div>
+                <h6 class="fw-bold mb-2"><i class="fas fa-adjust me-2 text-primary"></i>Giao diện Không gian làm việc</h6>
+                <p class="text-muted small mb-0">Kích hoạt chế độ Dark Mode cho bảng điều khiển, sơ đồ phòng và báo cáo.</p>
+              </div>
+              <div class="form-check form-switch" style="transform: scale(1.5); margin-right: 10px;">
+                <input class="form-check-input cursor-pointer" type="checkbox" role="switch"
+                       :checked="themeStore.isDarkMode" @change="themeStore.toggleTheme()">
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- CÁC TAB ĐANG PHÁT TRIỂN -->
-        <div v-if="['preferences', 'notifications', 'security', 'account_status'].includes(activeTab)" class="card border-0 shadow-sm rounded-4 h-100">
+        <div v-if="['notifications', 'security', 'account_status'].includes(activeTab)" class="card border-0 shadow-sm rounded-4 h-100">
           <div class="card-body d-flex flex-column align-items-center justify-content-center py-5 text-muted">
             <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
               <i class="fas fa-tools fs-1 text-secondary"></i>
@@ -158,9 +177,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../../stores/authStore'
+import { useThemeStore } from '../../stores/themeStore'
 import api from '../../utils/axios'
 
 const authStore = useAuthStore()
+const themeStore = useThemeStore()
 const activeTab = ref('preferences') // Để hiển thị mục đầu tiên mặc định
 const isLoading = ref(true)
 const isProcessing = ref(false)
@@ -296,5 +317,8 @@ onMounted(() => {
   background-color: #0d6efd;
   color: white;
   box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2);
+}
+.cursor-pointer {
+  cursor: pointer;
 }
 </style>
