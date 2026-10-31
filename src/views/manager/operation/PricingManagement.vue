@@ -97,12 +97,17 @@
                           {{ Math.abs(pr.surchargeAmount) }} %
                         </td>
                         <td class="text-end px-4">
-                          <button @click="editPriceRate(pr)" class="btn btn-sm btn-outline-primary shadow-sm me-2" title="Chỉnh sửa">
-                            <i class="fas fa-edit"></i>
-                          </button>
-                          <button @click="deletePriceRate(pr.id)" class="btn btn-sm btn-outline-danger shadow-sm" title="Xóa">
-                            <i class="fas fa-trash"></i>
-                          </button>
+                          <template v-if="canEditOrDeletePR(pr.id)">
+                            <button @click="editPriceRate(pr)" class="btn btn-sm btn-outline-primary shadow-sm me-2" title="Chỉnh sửa">
+                              <i class="fas fa-edit"></i>
+                            </button>
+                            <button @click="deletePriceRate(pr.id)" class="btn btn-sm btn-outline-danger shadow-sm" title="Xóa">
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          </template>
+                          <template v-else>
+                            <span class="badge bg-secondary" title="Sự kiện đã kết thúc, không thể thay đổi lịch sử">Đã khóa</span>
+                          </template>
                         </td>
                       </tr>
                     </tbody>
@@ -120,8 +125,12 @@
           <!-- Form tạo kỳ áp dụng -->
           <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary">
-              <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
-                <h5 class="fw-bold text-success"><i class="fas fa-clock me-2"></i> Áp dụng Chương trình</h5>
+              <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0" :class="isEditModeAP ? 'text-primary' : 'text-success'">
+                  <i :class="isEditModeAP ? 'fas fa-edit' : 'fas fa-clock'" class="me-2"></i> 
+                  {{ isEditModeAP ? 'Cập nhật Áp dụng' : 'Áp dụng Chương trình' }}
+                </h5>
+                <button v-if="isEditModeAP" @click="cancelEditAP" class="btn btn-sm btn-outline-secondary rounded-circle" title="Hủy sửa"><i class="fas fa-times"></i></button>
               </div>
               <div class="card-body p-4">
                 <form @submit.prevent="submitAppliedPeriod">
@@ -147,8 +156,9 @@
                     <label class="form-label fw-semibold text-body-secondary">Kết thúc vào <span class="text-danger">*</span></label>
                     <input v-model="apForm.endDate" type="datetime-local" class="form-control bg-body" required>
                   </div>
-                  <button type="submit" class="btn btn-success w-100 fw-bold rounded-3 shadow-sm" :disabled="isProcessing">
-                    <span v-if="isProcessing" class="spinner-border spinner-border-sm me-1"></span> Kích hoạt
+                  <button type="submit" class="btn w-100 fw-bold rounded-3 shadow-sm" :class="isEditModeAP ? 'btn-primary' : 'btn-success'" :disabled="isProcessing">
+                    <span v-if="isProcessing" class="spinner-border spinner-border-sm me-1"></span> 
+                    {{ isEditModeAP ? 'Lưu Thay Đổi' : 'Kích hoạt' }}
                   </button>
                 </form>
               </div>
@@ -186,20 +196,30 @@
                         <th class="py-3">Hạng phòng</th>
                         <th class="py-3">Từ ngày</th>
                         <th class="py-3">Đến ngày</th>
-                        <th class="py-3 text-end px-4">Hủy bỏ</th>
+                        <th class="py-3 text-end px-4">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr v-if="filteredAppliedPeriods.length === 0"><td colspan="5" class="text-center py-5 text-body-secondary">Không có dữ liệu phù hợp.</td></tr>
-                      <tr v-else v-for="ap in filteredAppliedPeriods" :key="ap.id">
+                      <tr v-else v-for="ap in filteredAppliedPeriods" :key="ap.id" :class="{'table-active': apForm.appliedPeriodId === ap.id}">
                         <td class="px-4 fw-bold text-primary">{{ ap.priceRate?.eventName }}</td>
                         <td class="fw-semibold text-body-emphasis">{{ ap.roomType?.name }}</td>
                         <td class="text-body-secondary small">{{ formatDate(ap.startDate) }}</td>
                         <td class="text-body-secondary small">{{ formatDate(ap.endDate) }}</td>
                         <td class="text-end px-4">
-                          <button @click="deleteAppliedPeriod(ap.id)" class="btn btn-sm btn-outline-danger shadow-sm">
-                            <i class="fas fa-times"></i>
-                          </button>
+                          <!-- Kiểm tra: Nếu ngày kết thúc vẫn lớn hơn hiện tại (Đang hoặc Sắp diễn ra) thì cho phép Sửa/Xóa -->
+                          <template v-if="new Date(ap.endDate).getTime() >= new Date().getTime()">
+                            <button @click="editAppliedPeriod(ap)" class="btn btn-sm btn-outline-primary shadow-sm me-2" title="Chỉnh sửa">
+                              <i class="fas fa-edit"></i>
+                            </button>
+                            <button @click="deleteAppliedPeriod(ap.id)" class="btn btn-sm btn-outline-danger shadow-sm" title="Hủy bỏ">
+                              <i class="fas fa-times"></i>
+                            </button>
+                          </template>
+                          <!-- Nếu đã kết thúc (Nằm trong quá khứ) thì khóa lại -->
+                          <template v-else>
+                            <span class="badge bg-secondary" title="Kỳ áp dụng đã kết thúc">Đã khóa</span>
+                          </template>
                         </td>
                       </tr>
                     </tbody>
@@ -252,7 +272,8 @@ const isEditModePR = ref(false)
 const prForm = ref({ priceRateId: '', eventName: '', type: 'DISCOUNT', amount: 0 })
 
 // Form 2: Tạo kỳ áp dụng
-const apForm = ref({ priceRateId: '', roomTypeId: '', startDate: '', endDate: '' })
+const isEditModeAP = ref(false)
+const apForm = ref({ appliedPeriodId: '', priceRateId: '', roomTypeId: '', startDate: '', endDate: '' })
 
 // Tính năng Filter cho Kỳ áp dụng
 const periodFilter = ref('ACTIVE') // ACTIVE, UPCOMING, EXPIRED
@@ -263,14 +284,12 @@ const filteredAppliedPeriods = computed(() => {
   const q = periodSearchQuery.value.toLowerCase().trim()
   
   return appliedPeriods.value.filter(ap => {
-    // Tìm kiếm theo tên chiến dịch hoặc tên hạng phòng
     const eventName = ap.priceRate?.eventName || ''
     const roomName = ap.roomType?.name || ''
     const matchSearch = eventName.toLowerCase().includes(q) || roomName.toLowerCase().includes(q)
     
     if (!matchSearch) return false
 
-    // Lọc theo trạng thái thời gian
     const start = new Date(ap.startDate).getTime()
     const end = new Date(ap.endDate).getTime()
 
@@ -285,6 +304,16 @@ const filteredAppliedPeriods = computed(() => {
     return true
   })
 })
+
+// Kiểm tra xem sự kiện có thể sửa/xóa không (Nếu có áp dụng đã qua thì khóa)
+const canEditOrDeletePR = (prId) => {
+  const now = new Date().getTime()
+  const periods = appliedPeriods.value.filter(ap => ap.priceRate?.id === prId)
+  if (periods.length === 0) return true
+  
+  const hasExpired = periods.some(ap => new Date(ap.endDate).getTime() < now)
+  return !hasExpired 
+}
 
 // Biến quản lý Custom Confirm Modal
 const showConfirmModal = ref(false)
@@ -402,22 +431,39 @@ const deletePriceRate = (id) => {
 }
 
 // --- LOGIC TAB 2: KỲ ÁP DỤNG ---
+const editAppliedPeriod = (ap) => {
+  isEditModeAP.value = true
+  apForm.value = {
+    appliedPeriodId: ap.id,
+    priceRateId: ap.priceRate?.id || '',
+    roomTypeId: ap.roomType?.id || '',
+    startDate: ap.startDate.substring(0, 16),
+    endDate: ap.endDate.substring(0, 16)
+  }
+}
+
+const cancelEditAP = () => {
+  isEditModeAP.value = false
+  apForm.value = { appliedPeriodId: '', priceRateId: '', roomTypeId: '', startDate: '', endDate: '' }
+}
+
 const submitAppliedPeriod = async () => {
   isProcessing.value = true
   try {
     const payload = {
+      appliedPeriodId: apForm.value.appliedPeriodId,
       priceRateId: apForm.value.priceRateId,
       roomTypeId: apForm.value.roomTypeId,
-      startDate: apForm.value.startDate + ':00',
-      endDate: apForm.value.endDate + ':00'
+      startDate: apForm.value.startDate + (apForm.value.startDate.length === 16 ? ':00' : ''),
+      endDate: apForm.value.endDate + (apForm.value.endDate.length === 16 ? ':00' : '')
     }
     
     await api.post('/api/manager/operation/applied-periods', payload)
-    showNotification('success', 'Đã kích hoạt áp dụng thành công!')
-    apForm.value = { priceRateId: '', roomTypeId: '', startDate: '', endDate: '' }
+    showNotification('success', isEditModeAP.value ? 'Cập nhật thành công!' : 'Đã kích hoạt áp dụng thành công!')
+    cancelEditAP()
     fetchData()
   } catch (error) {
-    showNotification('danger', error.response?.data?.error || 'Ngày kết thúc phải sau ngày bắt đầu.')
+    showNotification('danger', error.response?.data?.error || 'Lỗi áp dụng chương trình.')
   } finally {
     isProcessing.value = false
   }

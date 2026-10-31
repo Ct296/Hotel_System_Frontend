@@ -59,11 +59,12 @@
             <div class="row mb-3 g-3">
               <div class="col-md-6">
                 <label class="form-label fw-bold small text-body-secondary">Giờ nhận phòng</label>
-                <input type="datetime-local" class="form-control bg-body" :value="formatForInput(bookingData.checkIn)" readonly>
+                <!-- Đã cho phép sửa thời gian và tự động trigger hàm check qua @change -->
+                <input type="datetime-local" class="form-control bg-body" v-model="form.checkIn" @change="handleDateChange" required>
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-bold small text-body-secondary">Giờ trả phòng</label>
-                <input type="datetime-local" class="form-control bg-body" :value="formatForInput(bookingData.checkOut)" readonly>
+                <input type="datetime-local" class="form-control bg-body" v-model="form.checkOut" @change="handleDateChange" required>
               </div>
             </div>
 
@@ -146,6 +147,7 @@ const isLoading = ref(true)
 const isSubmitting = ref(false)
 const errorMsg = ref('')
 const bookingData = ref({})
+let isInitialLoad = true // Cờ đánh dấu lần load đầu tiên từ trang danh sách phòng
 
 const form = ref({
   roomId: [],
@@ -161,8 +163,25 @@ const formatForInput = (isoString) => isoString ? isoString.substring(0, 16) : '
 const getRoomImage = (room) => (room.images && room.images.length > 0) ? `https://api.ct296.id.vn${room.images[0].imagePath}` : 'https://placehold.co/100x100?text=No+Image'
 const handleImageError = (e) => { e.target.src = 'https://placehold.co/100x100?text=Error' }
 
+// Hàm tự động gọi lại API check trùng lịch và tính tiền khi khách đổi giờ nhận/trả
+const handleDateChange = () => {
+  if (form.value.checkIn && form.value.checkOut) {
+    const ci = new Date(form.value.checkIn)
+    const co = new Date(form.value.checkOut)
+    
+    if (co <= ci) {
+      errorMsg.value = ''
+      bookingData.value.conflictMessage = 'Giờ trả phòng phải sau giờ nhận phòng!'
+      bookingData.value.bookingAvailable = false
+      return
+    }
+    
+    fetchCalculation()
+  }
+}
+
 const fetchCalculation = async () => {
-  isLoading.value = true
+  isLoading.value = isInitialLoad // Chỉ hiện spinner toàn trang ở lần đầu
   errorMsg.value = ''
   
   let roomIds = route.query.roomId
@@ -174,22 +193,30 @@ const fetchCalculation = async () => {
   if (!Array.isArray(roomIds)) roomIds = [roomIds] 
 
   form.value.roomId = roomIds
-  form.value.checkIn = route.query.checkIn || ''
-  form.value.checkOut = route.query.checkOut || ''
+
+  // Lấy dữ liệu giờ từ URL vào lần load đầu tiên, các lần sau lấy trực tiếp từ input form người dùng sửa
+  if (isInitialLoad) {
+    form.value.checkIn = formatForInput(route.query.checkIn)
+    form.value.checkOut = formatForInput(route.query.checkOut)
+    isInitialLoad = false
+  }
 
   try {
     const res = await api.post('/api/customer/booking/calculate', {
       roomId: form.value.roomId,
-      checkIn: form.value.checkIn,
-      checkOut: form.value.checkOut
+      checkIn: form.value.checkIn.length === 16 ? form.value.checkIn + ':00' : form.value.checkIn,
+      checkOut: form.value.checkOut.length === 16 ? form.value.checkOut + ':00' : form.value.checkOut
     })
     
     bookingData.value = res.data
-    form.value.checkIn = res.data.checkIn
-    form.value.checkOut = res.data.checkOut
+    form.value.checkIn = formatForInput(res.data.checkIn)
+    form.value.checkOut = formatForInput(res.data.checkOut)
     
-    form.value.adultCounts = res.data.rooms.map(r => 1)
-    form.value.childrenCounts = res.data.rooms.map(r => 0)
+    // Giữ lại số lượng khách nếu đã nhập trước đó, nếu lần đầu thì mặc định 1 lớn 0 nhỏ
+    if (form.value.adultCounts.length === 0) {
+      form.value.adultCounts = res.data.rooms.map(r => 1)
+      form.value.childrenCounts = res.data.rooms.map(r => 0)
+    }
     
   } catch (error) {
     errorMsg.value = error.response?.data?.error || 'Lỗi hệ thống khi tính toán đặt phòng.'
@@ -199,11 +226,20 @@ const fetchCalculation = async () => {
 }
 
 const submitBooking = async () => {
-  if (!bookingData.value.bookingAvailable) return alert('Phòng đang bị trùng lịch!')
+  // Check cận chiến lần cuối trước khi gửi request lên server để tránh trùng lịch hoàn toàn
+  if (!bookingData.value.bookingAvailable) {
+    alert('Phòng đang bị kẹt lịch ở khung giờ này, vui lòng chọn thời gian khác!')
+    return
+  }
   
   isSubmitting.value = true
   try {
-    const res = await api.post('/api/customer/booking/confirm', form.value)
+    const payload = {
+      ...form.value,
+      checkIn: form.value.checkIn.length === 16 ? form.value.checkIn + ':00' : form.value.checkIn,
+      checkOut: form.value.checkOut.length === 16 ? form.value.checkOut + ':00' : form.value.checkOut
+    }
+    const res = await api.post('/api/customer/booking/confirm', payload)
     router.push({ path: '/customer/booking/payment', query: { rentalId: res.data.rentalId } })
   } catch (error) {
     alert(error.response?.data?.error || 'Lỗi xác nhận đặt phòng.')
@@ -216,5 +252,5 @@ onMounted(() => fetchCalculation())
 </script>
 
 <style scoped>
-.object-fit-cover { object-fit: cover; }
+.object-fit-cover { object-object-fit: cover; }
 </style>

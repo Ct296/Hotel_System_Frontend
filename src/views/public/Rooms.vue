@@ -100,9 +100,27 @@
                   <!-- Giá & Nút chọn -->
                   <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top border-secondary-subtle">
                     <div>
-                      <span class="text-primary fw-bold fs-5">{{ formatPrice(item.displayPrice || 0) }}</span>
-                      <small class="text-body-secondary"> / giờ</small>
+                      <!-- Hiển thị khi CÓ SỰ KIỆN áp dụng -->
+                      <div v-if="item.surchargeAmount && item.surchargeAmount !== 0">
+                        <span class="badge mb-1" :class="item.surchargeAmount < 0 ? 'bg-success' : 'bg-warning text-dark'">
+                          <i class="fas fa-tag me-1"></i> {{ item.eventName }}
+                        </span>
+                        <div class="d-flex align-items-center flex-wrap mt-1">
+                          <span class="text-danger text-decoration-line-through me-2 fw-semibold" style="font-size: 0.95rem;">
+                            {{ formatPrice(item.basePrice) }}
+                          </span>
+                          <span class="text-body-emphasis fw-bold fs-5">{{ formatPrice(item.displayPrice) }}</span>
+                          <small class="text-body-secondary ms-1"> / giờ</small>
+                        </div>
+                      </div>
+                      
+                      <!-- Hiển thị Giá bình thường -->
+                      <div v-else>
+                        <span class="text-primary fw-bold fs-5">{{ formatPrice(item.displayPrice || 0) }}</span>
+                        <small class="text-body-secondary"> / giờ</small>
+                      </div>
                     </div>
+                    
                     <button @click="toggleSelect(item)" 
                              class="btn btn-sm rounded-pill fw-bold px-3 shadow-sm transition-all"
                             :class="isSelected(item.id) ? 'btn-danger' : 'btn-outline-primary'">
