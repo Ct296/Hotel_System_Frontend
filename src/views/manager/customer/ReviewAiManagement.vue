@@ -52,15 +52,17 @@
             <div v-else-if="aiResult" class="row g-4">
               <div class="col-12">
                 <div class="p-3 bg-body-tertiary rounded-3 border border-secondary-subtle shadow-sm fst-italic text-body-emphasis">
-                  "{{ aiResult.original_text }}"
+                  <!-- SỬA: Đổi original_text thành raw_text -->
+                  "{{ aiResult.raw_text }}"
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="card border-0 shadow-sm h-100 text-center bg-body-tertiary">
                   <div class="card-body">
                     <h6 class="fw-bold text-body-secondary small">SẮC THÁI CHUNG</h6>
-                    <h4 class="fw-bold mt-3 text-uppercase" :class="aiResult.overall_sentiment === 'positive' ? 'text-success' : (aiResult.overall_sentiment === 'negative' ? 'text-danger' : 'text-body-emphasis')">
-                      {{ aiResult.overall_sentiment === 'positive' ? 'Tích Cực (Khen)' : (aiResult.overall_sentiment === 'negative' ? 'Tiêu Cực (Chê)' : 'Trung Lập') }}
+                    <!-- SỬA: Đổi overall_sentiment thành final_label -->
+                    <h4 class="fw-bold mt-3 text-uppercase" :class="aiResult.final_label === 'positive' ? 'text-success' : (aiResult.final_label === 'negative' ? 'text-danger' : 'text-body-emphasis')">
+                      {{ aiResult.final_label === 'positive' ? 'Tích Cực (Khen)' : (aiResult.final_label === 'negative' ? 'Tiêu Cực (Chê)' : 'Trung Lập') }}
                     </h4>
                   </div>
                 </div>
@@ -73,7 +75,7 @@
                       <span class="fw-bold text-body-emphasis">{{ detail.aspect }}</span>
                       <span class="badge" :class="detail.sentiment === 'positive' ? 'bg-success' : (detail.sentiment === 'negative' ? 'bg-danger' : 'bg-secondary')">
                         {{ detail.sentiment === 'positive' ? 'Khen' : (detail.sentiment === 'negative' ? 'Chê' : 'Bình thường') }} 
-                        ({{ (detail.confidence * 100).toFixed(1) }}%)
+                        <!-- ĐÃ XÓA % CONFIDENCE VÌ API KHÔNG TRẢ VỀ -->
                       </span>
                     </div>
                   </div>
@@ -113,9 +115,23 @@ const analyzeReview = async (review) => {
   isAiProcessing.value = true
   aiResult.value = null
   try { 
-    // GỌI THÔNG QUA JAVA (Bắc cầu) THAY VÌ GỌI THẲNG PYTHON
     const res = await api.post('/api/manager/customer/ai/analyze-single', { text: review.description })
-    aiResult.value = res.data 
+    
+    // TÁCH VÀ XỬ LÝ DỮ LIỆU ASPECT_LABELS TRƯỚC KHI GÁN
+    const data = res.data;
+    const parsedDetails = data.aspect_labels.map(labelStr => {
+      // labelStr có dạng: "HOTEL#COMFORT__positive"
+      const parts = labelStr.split('__');
+      return {
+        aspect: parts[0].replace('#', ' - '), // Thay dấu # thành dấu - cho UI đẹp hơn (VD: HOTEL - COMFORT)
+        sentiment: parts[1]
+      };
+    });
+
+    aiResult.value = {
+      ...data,
+      details: parsedDetails // Bổ sung mảng details đã parse cho template UI dễ lặp
+    }
   } catch (error) { 
     console.error(error) 
   } finally { 

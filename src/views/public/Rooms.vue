@@ -7,6 +7,22 @@
         <div class="mx-auto bg-warning mt-2" style="height: 3px; width: 60px;"></div>
       </div>
       
+      <!-- THANH CHỌN THỜI GIAN NHẬN/TRẢ PHÒNG -->
+      <div class="row mb-3 align-items-end bg-body p-3 rounded-4 shadow-sm border border-secondary-subtle mx-0">
+        <div class="col-md-5 mb-3 mb-md-0">
+          <label class="form-label fw-bold small text-body-secondary">Giờ nhận phòng dự kiến</label>
+          <input type="datetime-local" v-model="checkInDate" class="form-control bg-body-tertiary border-secondary-subtle text-body">
+        </div>
+        <div class="col-md-5 mb-3 mb-md-0">
+          <label class="form-label fw-bold small text-body-secondary">Giờ trả phòng dự kiến</label>
+          <input type="datetime-local" v-model="checkOutDate" class="form-control bg-body-tertiary border-secondary-subtle text-body">
+        </div>
+        <div class="col-md-2">
+          <button @click="applyTimeFilter" class="btn btn-primary w-100 fw-bold shadow-sm py-2">
+            <i class="fas fa-search me-2"></i> Kiểm tra
+          </button>
+        </div>
+      </div>
       <!-- THANH TÌM KIẾM, LỌC & SẮP XẾP -->
       <div class="row mb-4 align-items-center bg-body p-3 rounded-4 shadow-sm border border-secondary-subtle mx-0">
         <!-- Tìm kiếm -->

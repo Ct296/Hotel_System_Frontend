@@ -29,6 +29,10 @@
           
           <!-- Auth Section -->
           <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
+            
+            <!-- CHÈN WEATHER WIDGET Ở ĐÂY -->
+            <WeatherWidget />
+
             <!-- CHƯA ĐĂNG NHẬP -->
             <template v-if="!authStore.isAuthenticated">
               <router-link to="/login" class="btn btn-outline-light rounded-pill px-4 fw-bold">Đăng nhập</router-link>
@@ -110,6 +114,7 @@ import { computed } from 'vue'
 import { useAuthStore } from '../stores/authStore'
 import { useRouter, useRoute } from 'vue-router'
 import api from '../utils/axios'
+import WeatherWidget from '../components/WeatherWidget.vue' // <--- ĐÃ IMPORT COMPONENT THỜI TIẾT
 
 const authStore = useAuthStore()
 const router = useRouter()

@@ -57,7 +57,27 @@
                 <h5 class="fw-bold text-body-emphasis">{{ type.name }}</h5>
                 <p class="text-body-secondary small mb-3">{{ type.description || 'Không gian sang trọng, đẳng cấp.' }}</p>
                 <div class="d-flex justify-content-between align-items-center">
-                  <span class="text-primary fw-bold fs-5">{{ formatPrice(type.basePrice) }}<small class="text-body-secondary fs-6">/giờ</small></span>
+                  <div>
+                    <!-- Hiển thị khi CÓ SỰ KIỆN áp dụng -->
+                    <div v-if="type.surchargeAmount && type.surchargeAmount !== 0">
+                      <span class="badge mb-1" :class="type.surchargeAmount < 0 ? 'bg-success' : 'bg-warning text-dark'">
+                        <i class="fas fa-tag me-1"></i> {{ type.eventName }}
+                      </span>
+                      <div class="d-flex align-items-center flex-wrap mt-1">
+                        <span class="text-danger text-decoration-line-through me-2 fw-semibold" style="font-size: 0.95rem;">
+                          {{ formatPrice(type.basePrice) }}
+                        </span>
+                        <span class="text-primary fw-bold fs-5">{{ formatPrice(type.displayPrice) }}</span>
+                        <small class="text-body-secondary ms-1"> / giờ</small>
+                      </div>
+                    </div>
+                    
+                    <!-- Hiển thị Giá bình thường -->
+                    <div v-else>
+                      <span class="text-primary fw-bold fs-5">{{ formatPrice(type.displayPrice || type.basePrice) }}</span>
+                      <small class="text-body-secondary"> / giờ</small>
+                    </div>
+                  </div>
                   <div class="d-flex gap-2">
                     <span class="badge bg-body-secondary text-body-emphasis border"><i class="fas fa-user me-1 text-secondary"></i>{{ type.adultMax + type.childrenMax }}</span>
                     <span class="badge bg-body-secondary text-body-emphasis border"><i class="fas fa-vector-square me-1 text-secondary"></i>{{ type.area }}m&sup2;</span>

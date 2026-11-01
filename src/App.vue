@@ -1,18 +1,27 @@
 <template>
   <router-view />
+  
+  <Chatbot v-if="isPublicPage" />
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useThemeStore } from './stores/themeStore'
+import Chatbot from './components/Chatbot.vue'
 
 const themeStore = useThemeStore()
+const route = useRoute()
+
+const isPublicPage = computed(() => {
+  if (!route.path) return false
+  return !route.path.startsWith('/employee') && !route.path.startsWith('/kiosk')
+})
 
 onMounted(() => {
   themeStore.applyTheme()
 })
 </script>
-
 <style>
 html, body {
   margin: 0;

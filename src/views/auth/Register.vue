@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex align-items-center justify-content-center min-vh-100 bg-body-tertiary py-5">
-    <div class="card shadow-lg p-4 p-md-5 bg-body" style="width: 100%; max-width: 550px; border-radius: 1.2rem; border: none;">
+    <div class="card shadow-lg p-4 p-md-5 bg-body" style="width: 100%; max-width: 600px; border-radius: 1.2rem; border: none;">
       <div class="text-center mb-4">
         <h3 class="fw-bold text-primary mb-1">Tạo tài khoản</h3>
         <p class="text-body-secondary small">Đăng ký thành viên ITHotel</p>
@@ -28,13 +28,18 @@
         </div>
 
         <div class="row g-3">
-          <div class="col-md-4 mb-2">
+          <div class="col-md-6 mb-2">
             <label class="form-label fw-semibold text-body-secondary small">Số điện thoại</label>
             <input v-model="form.phoneNumber" type="text" class="form-control bg-body-tertiary text-body-emphasis" required />
           </div>
-          <div class="col-md-4 mb-2">
+          <div class="col-md-6 mb-2">
             <label class="form-label fw-semibold text-body-secondary small">CCCD / Hộ chiếu</label>
             <input v-model="form.pid" type="text" class="form-control bg-body-tertiary text-body-emphasis" required />
+          </div>
+          
+          <div class="col-md-4 mb-2">
+            <label class="form-label fw-semibold text-body-secondary small">Ngày sinh</label>
+            <input v-model="form.dateOfBirth" type="date" class="form-control bg-body-tertiary text-body-emphasis" required />
           </div>
           <div class="col-md-4 mb-2">
             <label class="form-label fw-semibold text-body-secondary small">Giới tính</label>
@@ -44,11 +49,21 @@
               <option value="UNSPECIFIED">Khác</option>
             </select>
           </div>
+          <div class="col-md-4 mb-2">
+            <label class="form-label fw-semibold text-body-secondary small">Quốc tịch</label>
+            <input v-model="form.nationality" type="text" class="form-control bg-body-tertiary text-body-emphasis" required placeholder="Việt Nam" />
+          </div>
         </div>
 
-        <div class="mb-4">
-          <label class="form-label fw-semibold text-body-secondary small">Mật khẩu</label>
-          <input v-model="form.password" type="password" class="form-control bg-body-tertiary text-body-emphasis" minlength="8" required />
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-body-secondary small">Mật khẩu</label>
+            <input v-model="form.password" type="password" class="form-control bg-body-tertiary text-body-emphasis" minlength="8" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-body-secondary small">Xác nhận mật khẩu</label>
+            <input v-model="form.confirmPassword" type="password" class="form-control bg-body-tertiary text-body-emphasis" minlength="8" required />
+          </div>
         </div>
 
         <button type="submit" class="btn btn-primary w-100 fw-bold py-3 rounded-pill shadow-sm" :disabled="isLoading">
@@ -104,7 +119,6 @@ const errorMsg = ref('')
 const successMsg = ref('')
 const otp = ref('')
 
-// Đã bổ sung biến sex mặc định là MALE
 const form = reactive({
   lastName: '',
   firstName: '',
@@ -112,7 +126,10 @@ const form = reactive({
   phoneNumber: '',
   pid: '',
   sex: 'MALE', 
-  password: ''
+  dateOfBirth: '',
+  nationality: 'Việt Nam',
+  password: '',
+  confirmPassword: ''
 })
 
 const handleRegister = async () => {
