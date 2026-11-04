@@ -79,7 +79,6 @@
 
           <!-- TAB 0: HẠNG THÀNH VIÊN -->
           <section v-if="activeTab === 'membership'" class="customer-profile-pane is-active">
-            <!-- Thẻ VIP Banner -->
             <div class="tier-banner rounded-4 shadow-sm text-white p-4 mb-4 position-relative overflow-hidden">
               <div class="position-relative z-1">
                 <div class="d-flex align-items-center mb-2">
@@ -103,7 +102,6 @@
               <i class="fas fa-gem position-absolute text-white opacity-10 tier-bg-icon"></i>
             </div>
 
-            <!-- Thanh tiến trình -->
             <div class="card border-0 shadow-sm rounded-4 mb-4 bg-body-tertiary">
               <div class="card-body p-3">
                 <div class="d-flex justify-content-between mb-2">
@@ -120,7 +118,6 @@
               </div>
             </div>
 
-            <!-- Khám phá hạng thẻ -->
             <h6 class="fw-bold text-body-emphasis mb-3 mt-4">Khám phá các hạng thành viên</h6>
             <div class="row g-3">
               <div v-for="tier in allTiers" :key="tier.id" class="col-md-6 col-xl-4">
@@ -163,7 +160,7 @@
               <div v-else class="customer-profile-table-wrap">
                 <table class="table table-bordered table-hover align-middle customer-profile-table mb-0">
                   <thead class="table-secondary"><tr><th>Mã đơn</th><th>Phòng</th><th>Thời gian</th><th>Khách</th><th>Hình thức</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
-                  <tbody class="small">
+                  <tbody class="small bg-body">
                     <tr v-for="r in rentals" :key="r.id">
                       <td class="fw-bold">{{ r.id }}</td>
                       <td>
@@ -204,13 +201,28 @@
                 <div v-if="bills.length === 0" class="customer-profile-empty py-3">Chưa có hóa đơn nào.</div>
                 <div v-else class="customer-profile-table-wrap">
                   <table class="table table-bordered table-hover align-middle customer-profile-table mb-0">
-                    <thead class="table-secondary"><tr><th>Mã HĐ</th><th>Mã Thuê</th><th>Loại</th><th>Ngày tạo</th><th class="text-end">Tổng tiền</th></tr></thead>
-                    <tbody class="small">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Mã HĐ</th>
+                            <th>Ngày lập</th>
+                            <th>Loại</th>
+                            <!-- CHỖ MỚI: Hiển thị tiền phụ thu để minh bạch với khách -->
+                            <th class="text-end">Phụ thu H.Động</th>
+                            <th class="text-end">Tổng tiền (VNĐ)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small bg-body">
                       <tr v-for="b in bills" :key="b.id">
-                        <td class="fw-bold">{{ b.id }}</td>
-                        <td class="text-body-secondary">{{ b.rental?.id }}</td>
-                        <td><span class="badge" :class="b.type === 'DEPOSIT' ? 'text-bg-primary' : 'text-bg-danger'">{{ b.type === 'DEPOSIT' ? 'Tiền cọc' : 'Thanh toán' }}</span></td>
+                        <td class="fw-bold text-body-emphasis">{{ b.id }} <br><span class="fw-normal text-body-secondary" style="font-size: 0.7rem;">Mã thuê: {{ b.rental?.id }}</span></td>
                         <td>{{ formatDateTime(b.createDate) }}</td>
+                        <td><span class="badge" :class="b.type === 'DEPOSIT' ? 'text-bg-primary' : 'text-bg-danger'">{{ b.type === 'DEPOSIT' ? 'Tiền cọc' : 'Thanh toán' }}</span></td>
+                        <td class="text-end">
+                             <div v-if="(b.earlyCheckinSurcharge && b.earlyCheckinSurcharge > 0) || (b.lateCheckoutSurcharge && b.lateCheckoutSurcharge > 0)">
+                                 <div v-if="b.earlyCheckinSurcharge > 0" class="text-warning-emphasis" style="font-size: 0.75rem;">+ Vô sớm: {{ formatPrice(b.earlyCheckinSurcharge) }}</div>
+                                 <div v-if="b.lateCheckoutSurcharge > 0" class="text-danger-emphasis" style="font-size: 0.75rem;">+ Ra trễ: {{ formatPrice(b.lateCheckoutSurcharge) }}</div>
+                             </div>
+                             <span v-else class="text-body-secondary fst-italic">-</span>
+                        </td>
                         <td class="text-end fw-bold text-danger">{{ formatPrice(b.totalAmount) }}</td>
                       </tr>
                     </tbody>
@@ -219,12 +231,12 @@
               </div>
               
               <div>
-                <h6 class="text-success fw-bold mb-3">Danh sách thanh toán</h6>
+                <h6 class="text-success fw-bold mb-3">Lịch sử giao dịch</h6>
                 <div v-if="payments.length === 0" class="customer-profile-empty py-3">Chưa có thanh toán nào.</div>
                 <div v-else class="customer-profile-table-wrap">
                   <table class="table table-bordered table-hover align-middle customer-profile-table mb-0">
                     <thead class="table-secondary"><tr><th>Mã giao dịch</th><th>Mã HĐ</th><th>Phương thức</th><th>Ngày thanh toán</th></tr></thead>
-                    <tbody class="small">
+                    <tbody class="small bg-body">
                       <tr v-for="p in payments" :key="p.id">
                         <td class="fw-bold text-success">{{ p.transaction }}</td>
                         <td>{{ p.bill?.id }}</td>
@@ -326,8 +338,11 @@ const getTierColor = (tierName) => {
 }
 
 const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price || 0) + ' đ'
-const formatDateTime = (val) => val ? new Date(val).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'
+
+// Fix định dạng 24h
+const formatDateTime = (val) => val ? new Date(val).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : 'N/A'
 const formatDateOnly = (val) => val ? new Date(val).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Chưa cập nhật'
+
 const getGenderLabel = (val) => val === 'MALE' ? 'Nam' : (val === 'FEMALE' ? 'Nữ' : 'Không xác định')
 
 const backendBaseUrl = 'https://api.ct296.id.vn'

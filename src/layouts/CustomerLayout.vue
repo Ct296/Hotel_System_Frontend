@@ -114,7 +114,7 @@ import { computed } from 'vue'
 import { useAuthStore } from '../stores/authStore'
 import { useRouter, useRoute } from 'vue-router'
 import api from '../utils/axios'
-import WeatherWidget from '../components/WeatherWidget.vue' // <--- ĐÃ IMPORT COMPONENT THỜI TIẾT
+import WeatherWidget from '../components/WeatherWidget.vue' 
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -150,18 +150,45 @@ const handleLogout = async () => {
 </script>
 
 <style scoped>
+/* Tăng cỡ chữ Header (Navbar) */
 .navbar-nav .nav-link {
+  font-size: 0,95rem; 
+  padding-left: 0,75rem !important;
+  padding-right: 0,75rem !important;
   transition: all 0.2s ease-in-out;
 }
+
+.navbar-brand {
+  font-size: 1.5rem; 
+}
+
 .navbar-nav .nav-link:hover {
   background-color: rgba(255, 255, 255, 0.1);
   color: #fff !important;
 }
 
-.router-link-active {
+/* KHẮC PHỤC LỖI LOGO BỊ ĐEN: Chỉ bôi đen các link nằm trong menu navbar-nav */
+.navbar-nav .nav-link.router-link-active {
   font-weight: bold;
   background-color: rgba(255, 255, 255, 0.2);
   color: #fff !important;
+}
+
+/* Tăng cỡ chữ Footer */
+footer p, 
+footer a, 
+footer li, 
+footer span,
+footer .small {
+  font-size: 1.1rem !important;
+  line-height: 1.8;
+}
+
+footer h4, 
+footer h5, 
+footer .fw-bold {
+  font-size: 1.35rem !important; 
+  margin-bottom: 1.25rem !important;
 }
 
 .custom-hover:hover {

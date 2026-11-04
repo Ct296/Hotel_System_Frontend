@@ -144,7 +144,8 @@ const incidentForm = ref({ rentalDetailId: '', name: '', occurTime: '', descript
 
 const allActiveRentals = computed(() => [...overdueRentals.value, ...checkedInRentals.value])
 
-const formatTime = (val) => val ? new Date(val).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''
+// Ép giờ 24h
+const formatTime = (val) => val ? new Date(val).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false }) : ''
 const isOverdue = (r) => r.rentalDetails[0]?.status === 'OVERDUE'
 const isSettled = (rentalId) => false // Logic thực tế phụ thuộc Backend
 const getBillingSummary = (id) => billingSummaries.value[id]

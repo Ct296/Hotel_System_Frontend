@@ -4,10 +4,10 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
         <h3 class="fw-bold text-body-emphasis mb-1">Quản lý Loại Phòng</h3>
-        <p class="text-body-secondary small mb-0">Thiết lập thông số, giá cả và sức chứa cho các hạng phòng.</p>
+        <p class="text-body-secondary small mb-0">Thiết lập thông số, giá và sức chứa cho các hạng phòng.</p>
       </div>
       <button @click="openCreateModal" class="btn btn-primary shadow-sm fw-bold">
-        <i class="fas fa-plus me-2"></i> Thêm Loại Phòng
+        <i class="fas fa-plus me-2"></i> Thêm Loại Phóng
       </button>
     </div>
 
@@ -23,11 +23,11 @@
       <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <h5 class="fw-bold text-body-emphasis mb-0"><i class="fas fa-list-ul me-2 text-primary"></i>Danh sách Hạng Phòng</h5>
         
-        <!-- Thanh Công cụ: Tìm kiếm, Lọc & Sắp xếp -->
+        <!-- Thanh Công cụ (Tìm kiếm, Lọc & Sắp xếp) -->
         <div class="d-flex flex-wrap gap-2">
           <div class="input-group input-group-sm" style="min-width: 200px; max-width: 250px;">
             <span class="input-group-text bg-body border-secondary-subtle"><i class="fas fa-search text-body-secondary"></i></span>
-            <input type="text" v-model="searchQuery" class="form-control bg-body border-secondary-subtle text-body-emphasis" placeholder="Tìm tên loại phòng...">
+            <input type="text" v-model="searchQuery" class="form-control bg-body border-secondary-subtle text-body-emphasis" placeholder="Tên loại phòng...">
           </div>
           <select v-model="filterCapacity" class="form-select form-select-sm bg-body border-secondary-subtle text-body-emphasis" style="width: 150px;">
             <option value="ALL">Mọi sức chứa</option>
@@ -53,7 +53,7 @@
                 <th class="px-4 py-3">Loại phòng</th>
                 <th class="py-3 text-center">Sức chứa</th>
                 <th class="py-3 text-end">Diện tích</th>
-                <th class="py-3 text-end">Giá gốc</th>
+                <th class="py-3 text-end">Giá Giờ / Ngày</th>
                 <th class="py-3 text-end px-4">Hành động</th>
               </tr>
             </thead>
@@ -77,7 +77,10 @@
                   <span class="badge bg-body-secondary text-body-emphasis border border-secondary-subtle" title="Trẻ em"><i class="fas fa-child text-secondary"></i> {{ rt.childrenMax }}</span>
                 </td>
                 <td class="text-end text-body-emphasis small">{{ rt.area }} m&sup2;</td>
-                <td class="text-end fw-semibold text-success">{{ formatPrice(rt.basePrice) }}</td>
+                <td class="text-end">
+                  <div class="fw-semibold text-success">{{ formatPrice(rt.basePrice) }}/h</div>
+                  <div class="small text-primary fw-bold">{{ formatPrice(rt.dailyPrice || (rt.basePrice * 22)) }}/đêm</div>
+                </td>
                 <td class="text-end px-4">
                   <button @click="openEditModal(rt)" class="btn btn-sm btn-outline-primary shadow-sm me-2" title="Sửa">
                     <i class="fas fa-edit"></i> Sửa
@@ -93,7 +96,7 @@
       </div>
     </div>
 
-    <!-- ==================== MODAL THÊM/SỬA LOẠI PHÒNG ==================== -->
+    <!-- ==================== MODAL THÊM / SỬA LOẠI PHÒNG ==================== -->
     <div v-if="showModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5); z-index: 1050;">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4 bg-body-tertiary">
@@ -104,6 +107,7 @@
             </h5>
             <button type="button" class="btn-close btn-close-white" @click="closeModal"></button>
           </div>
+          
           <form @submit.prevent="submitForm">
             <div class="modal-body p-4" style="max-height: 75vh; overflow-y: auto;">
               <div class="row g-3">
@@ -113,9 +117,8 @@
                 </div>
                 <div class="col-md-4">
                   <label class="form-label fw-semibold text-body-secondary small">Loại giường <span class="text-danger">*</span></label>
-                  <input v-model="form.bed" type="text" class="form-control bg-body text-body-emphasis" required placeholder="VD: 1 Giường Đôi">
+                  <input v-model="form.bed" type="text" class="form-control bg-body text-body-emphasis" required placeholder="VD: 1 Giường đôi lớn">
                 </div>
-
                 <div class="col-md-3">
                   <label class="form-label fw-semibold text-body-secondary small">Người lớn tối đa <span class="text-danger">*</span></label>
                   <input v-model="form.adultMax" type="number" min="1" class="form-control bg-body text-body-emphasis" required>
@@ -129,18 +132,23 @@
                   <input v-model="form.area" type="number" step="0.1" min="1" class="form-control bg-body text-body-emphasis" required>
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label fw-semibold text-body-secondary small">Tỷ lệ cọc (%) <span class="text-danger">*</span></label>
+                  <label class="form-label fw-semibold text-body-secondary small">Tỉ lệ cọc (%) <span class="text-danger">*</span></label>
                   <input v-model="form.depositPercent" type="number" min="0" max="100" class="form-control bg-body text-body-emphasis" required>
                 </div>
 
-                <div class="col-md-12">
-                  <label class="form-label fw-semibold text-success small">Giá gốc (VNĐ) <span class="text-danger">*</span></label>
+                <!-- Đã tách làm 2 cột Giá -->
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold text-success small">Giá theo giờ (VNĐ) <span class="text-danger">*</span></label>
                   <input v-model="form.basePrice" type="number" min="0" class="form-control bg-body border-success fw-bold text-body-emphasis" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold text-primary small">Giá qua đêm / Theo ngày (VNĐ) <span class="text-danger">*</span></label>
+                  <input v-model="form.dailyPrice" type="number" min="0" class="form-control bg-body border-primary fw-bold text-body-emphasis" required>
                 </div>
 
                 <div class="col-md-12">
                   <label class="form-label fw-semibold text-body-secondary small">Mô tả phòng</label>
-                  <textarea v-model="form.description" class="form-control bg-body text-body-emphasis" rows="3" placeholder="Nhập mô tả chi tiết về loại phòng này..."></textarea>
+                  <textarea v-model="form.description" class="form-control bg-body text-body-emphasis" rows="3" placeholder="Nhập chi tiết về loại phòng này..."></textarea>
                 </div>
 
                 <!-- DANH SÁCH TIỆN ÍCH -->
@@ -162,11 +170,11 @@
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
+            
             <div class="modal-footer bg-body border-0 rounded-bottom-4">
-              <button type="button" class="btn btn-secondary fw-semibold" @click="closeModal">Hủy bỏ</button>
+              <button type="button" class="btn btn-secondary fw-semibold" @click="closeModal">Hủy</button>
               <button type="submit" class="btn btn-primary fw-bold" :disabled="isProcessing">
                 <span v-if="isProcessing" class="spinner-border spinner-border-sm me-1"></span> 
                 {{ isEditMode ? 'Lưu thay đổi' : 'Xác nhận Thêm' }}
@@ -188,16 +196,15 @@
           </div>
           <div class="modal-body text-center pt-2 pb-4 px-4">
             <h5 class="fw-bold mb-3 text-body-emphasis">Xác nhận xóa</h5>
-            <p class="text-body-secondary mb-0" style="font-size: 0.95rem;">Bạn chắc chắn muốn xóa hạng phòng này? Nếu đã có phòng vật lý hoặc lịch sử đặt phòng gắn với hạng này, hệ thống sẽ từ chối.</p>
+            <p class="text-body-secondary mb-0" style="font-size: 0.95rem;">Bạn chắc chắn muốn xóa hạng phòng này? Nếu đang có phòng vật lý thuộc hạng này, hệ thống sẽ báo lỗi.</p>
           </div>
           <div class="modal-footer bg-body border-0 d-flex justify-content-center rounded-bottom-4 py-3 gap-2">
             <button type="button" class="btn btn-secondary px-4 fw-semibold" @click="closeConfirm">Hủy</button>
-            <button type="button" class="btn px-4 fw-bold btn-danger" @click="executeConfirm">Đồng ý</button>
+            <button type="button" class="btn px-4 fw-bold btn-danger" @click="executeConfirm">Xóa</button>
           </div>
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -216,13 +223,13 @@ const notification = ref({ type: '', message: '' })
 // Quản lý Form Thêm/Sửa
 const form = ref({
   id: null, name: '', bed: '', adultMax: 2, childrenMax: 1, 
-  area: 25.0, basePrice: 200000, depositPercent: 30, description: '',
+  area: 25.0, basePrice: 200000, dailyPrice: 500000, depositPercent: 30, description: '',
   amenityIds: []
 })
 
 // Tính năng Lọc, Tìm kiếm, Sắp xếp
 const searchQuery = ref('')
-const filterCapacity = ref('ALL') // Số lượng người lớn tối thiểu
+const filterCapacity = ref('ALL') // Số người lớn tối thiểu
 const sortOption = ref('DEFAULT')
 
 const filteredAndSortedRoomTypes = computed(() => {
@@ -250,7 +257,6 @@ const filteredAndSortedRoomTypes = computed(() => {
   } else if (sortOption.value === 'CAP_DESC') {
     result = result.slice().sort((a, b) => (b.adultMax || 0) - (a.adultMax || 0))
   }
-
   return result
 })
 
@@ -278,7 +284,7 @@ const executeConfirm = () => {
   closeConfirm()
 }
 
-const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price)
+const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price || 0) + 'đ'
 
 const fetchData = async () => {
   isLoading.value = true
@@ -291,19 +297,19 @@ const fetchData = async () => {
     amenities.value = dashRes.data.allAmenities || []
   } catch (error) {
     console.error('Lỗi fetch dữ liệu:', error)
-    showNotification('danger', 'Không thể tải dữ liệu từ máy chủ!')
+    showNotification('danger', 'Không thể lấy dữ liệu hạng phòng.')
   } finally {
     isLoading.value = false
   }
 }
 
-// Mở Modal Tạo mới
+// Mở Modal Thêm mới
 const openCreateModal = () => {
   isEditMode.value = false
   form.value = { 
     id: null, name: '', bed: '', adultMax: 2, childrenMax: 1, 
-    area: 25.0, basePrice: 200000, depositPercent: 30, description: '', 
-    amenityIds: [] 
+    area: 25.0, basePrice: 200000, dailyPrice: 500000, depositPercent: 30, description: '',
+    amenityIds: [] // <-- BẮT BUỘC PHẢI CÓ DÒNG NÀY ĐỂ KÍCH HOẠT CHECKBOX
   }
   showModal.value = true
 }
@@ -311,9 +317,21 @@ const openCreateModal = () => {
 // Mở Modal Sửa
 const openEditModal = (rt) => {
   isEditMode.value = true
-  form.value = { ...rt }
-  // Lấy danh sách ID tiện ích đã có của phòng này để tick sẵn trên giao diện
-  form.value.amenityIds = rt.roomAmenities ? rt.roomAmenities.map(ra => ra.amenity?.id).filter(id => id != null) : []
+  
+  form.value = {
+    id: rt.id,
+    name: rt.name,
+    bed: rt.bed || '',
+    adultMax: rt.adultMax,
+    childrenMax: rt.childrenMax,
+    area: rt.area,
+    basePrice: rt.basePrice,
+    dailyPrice: rt.dailyPrice || (rt.basePrice * 22),
+    depositPercent: rt.depositPercent,
+    description: rt.description || '',
+    amenityIds: rt.roomAmenities ? rt.roomAmenities.map(ra => ra.amenity?.id).filter(id => id != null) : []
+  }
+  
   showModal.value = true
 }
 
@@ -342,15 +360,15 @@ const submitForm = async () => {
   }
 }
 
-// Xử lý Xóa
+// Xóa loại phòng
 const deleteRoomType = (id) => {
   openConfirm(async () => {
     try {
       await api.delete(`/api/manager/operation/room-types/${id}`)
-      showNotification('success', 'Đã xóa hạng phòng thành công.')
+      showNotification('success', 'Đã xóa loại phòng thành công.')
       fetchData()
     } catch (error) {
-      showNotification('danger', error.response?.data?.error || 'Không thể xóa loại phòng này vì có thể đã được sử dụng.')
+      showNotification('danger', error.response?.data?.error || 'Không thể xóa loại phòng này do đang có dữ liệu sử dụng.')
     }
   })
 }

@@ -41,9 +41,8 @@
                     <span class="badge bg-secondary me-1" v-for="(d, i) in b.rentalDetails" :key="i">{{ d.room?.name }}</span>
                   </td>
                   <td class="small">{{ formatDateTime(b.rentalDetails[0]?.checkinDate) }}</td>
-                  <td><span class="badge bg-warning text-dark">Chờ cọc (Hủy sau 30p)</span></td>
+                  <td><span class="badge bg-warning text-dark">Chờ cọc (Hủy sau 15p)</span></td>
                   <td class="text-end px-3">
-                    <!-- BỔ SUNG NÚT THU TIỀN MẶT -->
                     <button @click="payDeposit(b.id)" class="btn btn-sm btn-success py-0 px-2 me-2" title="Thu tiền mặt">
                       <i class="fas fa-money-bill-wave me-1"></i>Thu cọc
                     </button>
@@ -101,13 +100,14 @@ const pendingBookings = ref([])
 const todayArrivals = ref([])
 const isLoading = ref(true)
 
+// Ép giờ 24h
 const formatDateTime = (val) => {
   if (!val) return ''
-  return new Date(val).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })
+  return new Date(val).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
 }
 const formatTimeOnly = (val) => {
   if (!val) return ''
-  return new Date(val).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+  return new Date(val).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
 const fetchBookings = async () => {
@@ -120,13 +120,12 @@ const fetchBookings = async () => {
   finally { isLoading.value = false }
 }
 
-// BỔ SUNG HÀM GỌI API THU TIỀN CỌC
 const payDeposit = async (rentalId) => {
   if (!confirm('Xác nhận thu tiền cọc bằng TIỀN MẶT cho đơn này?')) return
   try {
     const res = await api.post(`/api/staff/bookings/${rentalId}/pay-deposit`)
     alert(res.data.message)
-    fetchBookings() // Render lại list
+    fetchBookings() 
   } catch (error) { 
     alert(error.response?.data?.error || 'Lỗi khi thu tiền cọc') 
   }
@@ -147,7 +146,6 @@ const checkIn = async (rentalId) => {
     await api.post(`/api/staff/rentals/${rentalId}/check-in`)
     alert('Check-in thành công!')
     fetchBookings()
-    // Chuyển sang tab quản lý Khách đang ở
     router.push('/employee/staff/stay')
   } catch (error) { alert(error.response?.data?.error || 'Phòng hiện tại chưa dọn dẹp xong.') }
 }

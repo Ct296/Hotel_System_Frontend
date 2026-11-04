@@ -22,13 +22,18 @@ onMounted(() => {
   themeStore.applyTheme()
 })
 </script>
+
 <style>
+/* Import phông chữ Playfair Display - Bản nâng cấp sang trọng của Times New Roman */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
   min-height: 100vh;
-  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Đổi phông chữ chính toàn hệ thống sang Serif */
+  font-family: 'Playfair Display', 'Times New Roman', Times, serif;
   background-color: var(--bs-body-bg);
   color: var(--bs-body-color);
   -webkit-font-smoothing: antialiased;
@@ -43,12 +48,26 @@ html, body {
 }
 
 :root {
-  --bs-primary: #0d6efd; 
-  --bs-primary-rgb: 13, 110, 253;
+  /* Đổi màu chủ đạo (Primary) sang tone Xám Than (Charcoal Gray) */
+  --bs-primary: #545b62; 
+  --bs-primary-rgb: 84, 91, 98;
 }
 
+/* Tùy chỉnh hiệu ứng cho các nút bấm */
 .btn {
   transition: all 0.2s ease-in-out;
+}
+
+/* Nút Primary (Màu chủ đạo mới) */
+.btn-primary {
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:hover {
+  background-color: #43494e !important; /* Xám đậm hơn khi hover */
+  border-color: #43494e !important;
 }
 
 .btn-success {

@@ -5,7 +5,6 @@
     </div>
     
     <div class="card-body">
-      <!-- Dùng Vue State cho Tabs thay vì data-bs-target của Bootstrap -->
       <ul class="nav nav-tabs mb-3">
         <li class="nav-item">
           <button class="nav-link fw-bold" :class="{ 'active text-dark': activeTab === 'bill' }" @click="activeTab = 'bill'">
@@ -59,13 +58,14 @@
 import { ref, onMounted } from 'vue'
 import api from '../../utils/axios'
 
-const activeTab = ref('bill') // Quản lý Tab bằng Vue
+const activeTab = ref('bill') 
 const bills = ref([])
 const payments = ref([])
 const serviceUsages = ref([])
 const isLoading = ref(true)
 
-const formatDate = (val) => val ? new Date(val).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''
+// Fix định dạng 24h
+const formatDate = (val) => val ? new Date(val).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : ''
 const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price || 0) + ' đ'
 
 const fetchData = async () => {
