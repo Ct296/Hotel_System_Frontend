@@ -24,21 +24,26 @@ onMounted(() => {
 </script>
 
 <style>
-/* Import phông chữ Playfair Display - Bản nâng cấp sang trọng của Times New Roman */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+/* Import phông chữ Inter (Sans-serif cho thân bài) và Playfair Display (Serif cho Tiêu đề) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
   min-height: 100vh;
-  /* Đổi phông chữ chính toàn hệ thống sang Serif */
-  font-family: 'Playfair Display', 'Times New Roman', Times, serif;
+  /* Đổi phông chữ chính toàn hệ thống sang Inter (Sans-serif) cho dễ đọc */
+  font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background-color: var(--bs-body-bg);
   color: var(--bs-body-color);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Định nghĩa lại class font-serif để áp dụng cho các Tiêu đề (Banner, H1, H2) */
+.font-serif {
+  font-family: 'Playfair Display', 'Times New Roman', Times, serif !important;
 }
 
 #app {

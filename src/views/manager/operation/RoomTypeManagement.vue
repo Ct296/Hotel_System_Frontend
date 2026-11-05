@@ -6,8 +6,8 @@
         <h3 class="fw-bold text-body-emphasis mb-1">Quản lý Loại Phòng</h3>
         <p class="text-body-secondary small mb-0">Thiết lập thông số, giá và sức chứa cho các hạng phòng.</p>
       </div>
-      <button @click="openCreateModal" class="btn btn-primary shadow-sm fw-bold">
-        <i class="fas fa-plus me-2"></i> Thêm Loại Phóng
+      <button @click="openCreateModal" class="btn fw-bold px-4 shadow-sm" style="background-color: #6366f1; color: white; border: none; height: 38px;">
+        <i class="fas fa-plus me-2"></i> THÊM LOẠI PHÒNG
       </button>
     </div>
 
@@ -21,73 +21,124 @@
     <!-- BẢNG DANH SÁCH LOẠI PHÒNG (Full width) -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-body-tertiary">
       <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <h5 class="fw-bold text-body-emphasis mb-0"><i class="fas fa-list-ul me-2 text-primary"></i>Danh sách Hạng Phòng</h5>
         
-        <!-- Thanh Công cụ (Tìm kiếm, Lọc & Sắp xếp) -->
-        <div class="d-flex flex-wrap gap-2">
-          <div class="input-group input-group-sm" style="min-width: 200px; max-width: 250px;">
-            <span class="input-group-text bg-body border-secondary-subtle"><i class="fas fa-search text-body-secondary"></i></span>
-            <input type="text" v-model="searchQuery" class="form-control bg-body border-secondary-subtle text-body-emphasis" placeholder="Tên loại phòng...">
+        <div class="d-flex align-items-center gap-2 flex-wrap flex-grow-1">
+          <!-- Nút Lọc Mở Rộng -->
+          <div class="dropdown">
+            <button class="btn btn-outline-secondary bg-body text-body-emphasis border-secondary-subtle px-3 shadow-sm d-flex align-items-center justify-content-center" style="height: 38px;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-filter text-secondary"></i>
+            </button>
+            <div class="dropdown-menu shadow-lg border-0 p-3 rounded-4" style="width: 280px;">
+              <h6 class="dropdown-header fw-bold text-body-emphasis px-0 mb-2">Bộ lọc loại phòng</h6>
+              <div class="mb-3">
+                <label class="form-label small fw-semibold text-body-secondary mb-1">Sức chứa</label>
+                <select v-model="filterCapacity" class="form-select form-select-sm bg-body">
+                  <option value="ALL">Mọi sức chứa</option>
+                  <option value="1">Từ 1 Người lớn</option>
+                  <option value="2">Từ 2 Người lớn</option>
+                  <option value="4">Từ 4 Người lớn</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label small fw-semibold text-body-secondary mb-1">Sắp xếp theo</label>
+                <select v-model="sortOption" class="form-select form-select-sm bg-body">
+                  <option value="DEFAULT">Sắp xếp mặc định</option>
+                  <option value="PRICE_ASC">Giá: Thấp -> Cao</option>
+                  <option value="PRICE_DESC">Giá: Cao -> Thấp</option>
+                  <option value="AREA_DESC">Diện tích: Lớn nhất</option>
+                  <option value="CAP_DESC">Sức chứa: Lớn nhất</option>
+                </select>
+              </div>
+            </div>
           </div>
-          <select v-model="filterCapacity" class="form-select form-select-sm bg-body border-secondary-subtle text-body-emphasis" style="width: 150px;">
-            <option value="ALL">Mọi sức chứa</option>
-            <option value="1">Từ 1 Người lớn</option>
-            <option value="2">Từ 2 Người lớn</option>
-            <option value="4">Từ 4 Người lớn</option>
-          </select>
-          <select v-model="sortOption" class="form-select form-select-sm bg-body border-secondary-subtle text-body-emphasis" style="width: 170px;">
-            <option value="DEFAULT">Sắp xếp mặc định</option>
-            <option value="PRICE_ASC">Giá: Thấp -> Cao</option>
-            <option value="PRICE_DESC">Giá: Cao -> Thấp</option>
-            <option value="AREA_DESC">Diện tích: Lớn nhất</option>
-            <option value="CAP_DESC">Sức chứa: Lớn nhất</option>
-          </select>
+
+          <!-- Thanh tìm kiếm & Nút Làm Mới -->
+          <div class="input-group shadow-sm" style="max-width: 320px;">
+            <span class="input-group-text bg-body border-secondary-subtle text-secondary bg-transparent">
+              <i class="fas fa-search"></i>
+            </span>
+            <input type="text" v-model="searchQuery" class="form-control bg-body border-secondary-subtle border-start-0 ps-0 shadow-none text-body-emphasis" placeholder="Tên loại phòng...">
+            <button @click="resetFilters" class="btn btn-outline-secondary bg-body border-secondary-subtle text-body-emphasis" type="button" title="Làm mới bộ lọc & tìm kiếm">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="d-flex align-items-center">
+            <h5 class="fw-bold text-body-emphasis mb-0 d-none d-md-block"><i class="fas fa-list-ul me-2 text-primary"></i>Danh sách Hạng Phòng</h5>
         </div>
       </div>
       
       <div class="card-body p-0 mt-2">
         <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="table-secondary">
+          <table class="table align-middle mb-0 custom-table">
+            <thead class="table-light text-body-secondary" style="font-size: 0.75rem;">
               <tr>
-                <th class="px-4 py-3">Loại phòng</th>
-                <th class="py-3 text-center">Sức chứa</th>
-                <th class="py-3 text-end">Diện tích</th>
-                <th class="py-3 text-end">Giá Giờ / Ngày</th>
-                <th class="py-3 text-end px-4">Hành động</th>
+                <th class="px-4 py-3 fw-bold border-0 text-uppercase">Loại phòng</th>
+                <th class="py-3 fw-bold border-0 text-uppercase text-center">Sức chứa</th>
+                <th class="py-3 fw-bold border-0 text-uppercase text-end">Diện tích</th>
+                <!-- THÊM CỘT TIỆN ÍCH Ở ĐÂY -->
+                <th class="py-3 fw-bold border-0 text-uppercase">Tiện ích</th>
+                <th class="py-3 fw-bold border-0 text-uppercase text-end">Giá Giờ / Ngày</th>
+                <th class="py-3 fw-bold border-0 text-end px-4"></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="bg-body border-top-0">
               <tr v-if="isLoading">
-                <td colspan="5" class="text-center py-5">
+                <td colspan="6" class="text-center py-5">
                   <div class="spinner-border text-primary" role="status"></div>
                   <div class="mt-2 text-body-secondary">Đang tải dữ liệu...</div>
                 </td>
               </tr>
               <tr v-else-if="filteredAndSortedRoomTypes.length === 0">
-                <td colspan="5" class="text-center py-5 text-body-secondary">
+                <td colspan="6" class="text-center py-5 text-body-secondary">
                   <i class="fas fa-search-minus fs-2 mb-3 opacity-50"></i>
                   <p class="mb-0">Không tìm thấy loại phòng phù hợp.</p>
                 </td>
               </tr>
-              <tr v-else v-for="rt in filteredAndSortedRoomTypes" :key="rt.id">
+              <tr v-else v-for="rt in filteredAndSortedRoomTypes" :key="rt.id" class="table-row-hover border-bottom border-secondary-subtle">
                 <td class="px-4 fw-bold text-primary">{{ rt.name }}<br><small class="text-body-secondary fw-normal">{{ rt.bed }}</small></td>
                 <td class="text-center">
                   <span class="badge bg-body-secondary text-body-emphasis border border-secondary-subtle me-1" title="Người lớn"><i class="fas fa-user text-secondary"></i> {{ rt.adultMax }}</span>
                   <span class="badge bg-body-secondary text-body-emphasis border border-secondary-subtle" title="Trẻ em"><i class="fas fa-child text-secondary"></i> {{ rt.childrenMax }}</span>
                 </td>
                 <td class="text-end text-body-emphasis small">{{ rt.area }} m&sup2;</td>
+                
+                <td>
+                   <div v-if="rt.roomAmenities && rt.roomAmenities.length > 0" class="d-flex flex-wrap gap-1" style="max-width: 250px;">
+                      <span v-for="ra in rt.roomAmenities.slice(0, 3)" :key="ra.amenity?.id" class="badge bg-light text-dark border">
+                        {{ ra.amenity?.name }}
+                      </span>
+                      <span v-if="rt.roomAmenities.length > 3" class="badge bg-light text-secondary border">
+                        +{{ rt.roomAmenities.length - 3 }}
+                      </span>
+                   </div>
+                   <span v-else class="text-muted small fst-italic">Chưa có</span>
+                </td>
+
                 <td class="text-end">
                   <div class="fw-semibold text-success">{{ formatPrice(rt.basePrice) }}/h</div>
                   <div class="small text-primary fw-bold">{{ formatPrice(rt.dailyPrice || (rt.basePrice * 22)) }}/đêm</div>
                 </td>
                 <td class="text-end px-4">
-                  <button @click="openEditModal(rt)" class="btn btn-sm btn-outline-primary shadow-sm me-2" title="Sửa">
-                    <i class="fas fa-edit"></i> Sửa
-                  </button>
-                  <button @click="deleteRoomType(rt.id)" class="btn btn-sm btn-outline-danger shadow-sm" title="Xóa">
-                    <i class="fas fa-trash"></i> Xóa
-                  </button>
+                   <!-- Nút hành động dạng Dropdown -->
+                  <div class="dropdown">
+                    <button class="btn btn-link text-body-secondary p-0 shadow-none fs-5" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="fas fa-list"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-secondary-subtle rounded-3">
+                      <li>
+                        <button class="dropdown-item fw-semibold text-info py-2" @click="openEditModal(rt)">
+                          <i class="fas fa-edit me-2"></i> Chỉnh sửa
+                        </button>
+                      </li>
+                      <li>
+                        <button class="dropdown-item fw-semibold text-danger py-2" @click="deleteRoomType(rt.id)">
+                          <i class="fas fa-trash me-2"></i> Xóa loại phòng
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -136,7 +187,6 @@
                   <input v-model="form.depositPercent" type="number" min="0" max="100" class="form-control bg-body text-body-emphasis" required>
                 </div>
 
-                <!-- Đã tách làm 2 cột Giá -->
                 <div class="col-md-6">
                   <label class="form-label fw-semibold text-success small">Giá theo giờ (VNĐ) <span class="text-danger">*</span></label>
                   <input v-model="form.basePrice" type="number" min="0" class="form-control bg-body border-success fw-bold text-body-emphasis" required>
@@ -156,13 +206,20 @@
                   <label class="form-label fw-semibold text-primary pb-2 w-100">
                     <i class="fas fa-wifi me-2"></i>Tiện ích đi kèm
                   </label>
+                  
                   <div class="row g-2 mt-2">
                     <div v-if="amenities.length === 0" class="col-12 text-body-secondary small">
                       Chưa có tiện ích nào trong hệ thống.
                     </div>
                     <div class="col-md-4 col-sm-6" v-for="am in amenities" :key="am.id">
                       <div class="form-check custom-checkbox">
-                        <input class="form-check-input bg-body border-secondary-subtle shadow-sm" type="checkbox" :value="am.id" :id="'am_' + am.id" v-model="form.amenityIds">
+                        <input
+                          class="form-check-input shadow-sm"
+                          type="checkbox"
+                          :value="am.id"
+                          :id="'am_' + am.id"
+                          v-model="selectedAmenities"
+                        >
                         <label class="form-check-label cursor-pointer text-body-emphasis small" :for="'am_' + am.id">
                           {{ am.name }}
                         </label>
@@ -220,34 +277,38 @@ const showModal = ref(false)
 const isEditMode = ref(false)
 const notification = ref({ type: '', message: '' })
 
+const selectedAmenities = ref([])
+
 // Quản lý Form Thêm/Sửa
 const form = ref({
   id: null, name: '', bed: '', adultMax: 2, childrenMax: 1, 
-  area: 25.0, basePrice: 200000, dailyPrice: 500000, depositPercent: 30, description: '',
-  amenityIds: []
+  area: 25.0, basePrice: 200000, dailyPrice: 500000, depositPercent: 30, description: ''
 })
 
 // Tính năng Lọc, Tìm kiếm, Sắp xếp
 const searchQuery = ref('')
-const filterCapacity = ref('ALL') // Số người lớn tối thiểu
+const filterCapacity = ref('ALL')
 const sortOption = ref('DEFAULT')
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  filterCapacity.value = 'ALL'
+  sortOption.value = 'DEFAULT'
+}
 
 const filteredAndSortedRoomTypes = computed(() => {
   let result = roomTypes.value
 
-  // Lọc theo sức chứa người lớn
   if (filterCapacity.value !== 'ALL') {
     const minAdults = parseInt(filterCapacity.value)
     result = result.filter(rt => (rt.adultMax || 0) >= minAdults)
   }
 
-  // Tìm kiếm theo tên loại phòng
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.toLowerCase().trim()
     result = result.filter(rt => rt.name?.toLowerCase().includes(q))
   }
 
-  // Sắp xếp
   if (sortOption.value === 'PRICE_ASC') {
     result = result.slice().sort((a, b) => (a.basePrice || 0) - (b.basePrice || 0))
   } else if (sortOption.value === 'PRICE_DESC') {
@@ -303,18 +364,16 @@ const fetchData = async () => {
   }
 }
 
-// Mở Modal Thêm mới
 const openCreateModal = () => {
   isEditMode.value = false
   form.value = { 
     id: null, name: '', bed: '', adultMax: 2, childrenMax: 1, 
-    area: 25.0, basePrice: 200000, dailyPrice: 500000, depositPercent: 30, description: '',
-    amenityIds: [] // <-- BẮT BUỘC PHẢI CÓ DÒNG NÀY ĐỂ KÍCH HOẠT CHECKBOX
+    area: 25.0, basePrice: 200000, dailyPrice: 500000, depositPercent: 30, description: ''
   }
+  selectedAmenities.value = []
   showModal.value = true
 }
 
-// Mở Modal Sửa
 const openEditModal = (rt) => {
   isEditMode.value = true
   
@@ -328,27 +387,31 @@ const openEditModal = (rt) => {
     basePrice: rt.basePrice,
     dailyPrice: rt.dailyPrice || (rt.basePrice * 22),
     depositPercent: rt.depositPercent,
-    description: rt.description || '',
-    amenityIds: rt.roomAmenities ? rt.roomAmenities.map(ra => ra.amenity?.id).filter(id => id != null) : []
+    description: rt.description || ''
   }
+
+  selectedAmenities.value = rt.roomAmenities ? rt.roomAmenities.map(ra => ra.amenity?.id).filter(id => id != null) : []
   
   showModal.value = true
 }
 
-// Đóng Modal
 const closeModal = () => {
   showModal.value = false
 }
 
-// Xử lý Thêm / Lưu thay đổi
 const submitForm = async () => {
   isProcessing.value = true
   try {
+    const payload = {
+      ...form.value,
+      amenityIds: selectedAmenities.value
+    }
+    
     if (isEditMode.value) {
-      await api.put(`/api/manager/operation/room-types/${form.value.id}`, form.value)
+      await api.put(`/api/manager/operation/room-types/${payload.id}`, payload)
       showNotification('success', 'Cập nhật loại phòng thành công!')
     } else {
-      await api.post('/api/manager/operation/room-types', form.value)
+      await api.post('/api/manager/operation/room-types', payload)
       showNotification('success', 'Thêm loại phòng mới thành công!')
     }
     closeModal()
@@ -360,7 +423,6 @@ const submitForm = async () => {
   }
 }
 
-// Xóa loại phòng
 const deleteRoomType = (id) => {
   openConfirm(async () => {
     try {
@@ -377,9 +439,23 @@ onMounted(() => fetchData())
 </script>
 
 <style scoped>
-.cursor-pointer { cursor: pointer; }
+.custom-table th {
+  background-color: transparent !important;
+  font-weight: 700;
+  color: var(--bs-secondary);
+}
 
-/* Custom Scrollbar cho Modal dài */
+.table-row-hover:hover {
+  background-color: var(--bs-secondary-bg) !important;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:active {
+  background-color: var(--bs-secondary-bg);
+  color: inherit;
+}
+
+.cursor-pointer { cursor: pointer; }
 .modal-body::-webkit-scrollbar { width: 6px; }
 .modal-body::-webkit-scrollbar-thumb { background-color: var(--bs-secondary-bg); border-radius: 4px; }
 </style>

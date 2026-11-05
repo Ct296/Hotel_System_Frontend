@@ -5,58 +5,84 @@
         <h3 class="fw-bold text-body-emphasis mb-1">Quản lý Sự cố</h3>
         <p class="text-body-secondary small mb-0">Ghi nhận hư hỏng, phàn nàn và theo dõi trạng thái xử lý.</p>
       </div>
-      <button @click="openCreateModal" class="btn btn-danger shadow-sm fw-bold">
-        <i class="fas fa-exclamation-triangle me-2"></i> Báo cáo Sự cố
+      <button @click="openCreateModal" class="btn btn-danger shadow-sm fw-bold px-4" style="height: 38px;">
+        <i class="fas fa-exclamation-triangle me-2"></i> BÁO CÁO SỰ CỐ
       </button>
     </div>
 
-    <!-- Thông báo -->
+    <!-- Thông báo Alert -->
     <div v-if="notification.message" :class="`alert alert-${notification.type} alert-dismissible fade show shadow-sm`" role="alert">
-      <i :class="notification.type === 'success' ? 'fas fa-check-circle me-2' : 'fas fa-info-circle me-2'"></i>
+      <i :class="notification.type === 'success' ? 'fas fa-check-circle me-2' : 'fas fa-exclamation-triangle me-2'"></i>
       {{ notification.message }}
       <button type="button" class="btn-close" @click="notification.message = ''"></button>
     </div>
 
     <!-- Bảng danh sách Sự cố (Kèm Bộ lọc & Tìm kiếm) -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-body-tertiary">
-      <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2 d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
-        <h5 class="fw-bold text-body-emphasis mb-0"><i class="fas fa-list-ul me-2 text-primary"></i>Danh sách Sự cố</h5>
-        
-        <!-- Thanh Công cụ (Đã fix lỗi rớt dòng) -->
-        <div class="d-flex gap-2 overflow-x-auto pb-1">
-          <div class="input-group input-group-sm" style="min-width: 220px;">
-            <span class="input-group-text bg-body border-secondary-subtle"><i class="fas fa-search text-body-secondary"></i></span>
-            <input type="text" v-model="searchQuery" class="form-control bg-body border-secondary-subtle text-body-emphasis" placeholder="Tìm tên sự cố, mô tả, phòng...">
+      
+      <!-- HEADER: THANH CÔNG CỤ -->
+      <div class="card-header bg-transparent border-bottom-0 pt-4 pb-3">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+          
+          <div class="d-flex align-items-center gap-2 flex-wrap flex-grow-1">
+            <!-- Nút Lọc Mở Rộng -->
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary bg-body text-body-emphasis border-secondary-subtle px-3 shadow-sm d-flex align-items-center justify-content-center" style="height: 38px;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-filter text-secondary"></i>
+              </button>
+              <div class="dropdown-menu shadow-lg border-0 p-3 rounded-4" style="width: 280px;">
+                <h6 class="dropdown-header fw-bold text-body-emphasis px-0 mb-2">Bộ lọc sự cố</h6>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold text-body-secondary mb-1">Trạng thái xử lý</label>
+                  <select v-model="filterStatus" class="form-select form-select-sm bg-body">
+                    <option value="ALL">Mọi trạng thái</option>
+                    <option value="PENDING">Chờ xử lý</option>
+                    <option value="PROCESSING">Đang xử lý</option>
+                    <option value="RESOLVED">Đã xử lý</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label small fw-semibold text-body-secondary mb-1">Sắp xếp theo</label>
+                  <select v-model="sortOption" class="form-select form-select-sm bg-body">
+                    <option value="NEWEST">Thời gian: Mới nhất</option>
+                    <option value="OLDEST">Thời gian: Cũ nhất</option>
+                    <option value="MONEY_DESC">Đền bù: Cao nhất</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Thanh tìm kiếm & Nút Làm Mới -->
+            <div class="input-group shadow-sm" style="max-width: 320px;">
+              <span class="input-group-text bg-body border-secondary-subtle text-secondary bg-transparent">
+                <i class="fas fa-search"></i>
+              </span>
+              <input type="text" v-model="searchQuery" class="form-control bg-body border-secondary-subtle border-start-0 ps-0 shadow-none text-body-emphasis" placeholder="Tìm tên sự cố, mô tả, phòng...">
+              <button @click="resetFilters" class="btn btn-outline-secondary bg-body border-secondary-subtle text-body-emphasis" type="button" title="Làm mới bộ lọc & tìm kiếm">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+            </div>
           </div>
-          <select v-model="filterStatus" class="form-select form-select-sm bg-body border-secondary-subtle text-body-emphasis" style="min-width: 140px; width: auto;">
-            <option value="ALL">Mọi trạng thái</option>
-            <option value="PENDING">Chờ xử lý</option>
-            <option value="PROCESSING">Đang xử lý</option>
-            <option value="RESOLVED">Đã xử lý</option>
-          </select>
-          <select v-model="sortOption" class="form-select form-select-sm bg-body border-secondary-subtle text-body-emphasis" style="min-width: 170px; width: auto;">
-            <option value="NEWEST">Thời gian: Mới nhất</option>
-            <option value="OLDEST">Thời gian: Cũ nhất</option>
-            <option value="MONEY_DESC">Đền bù: Cao nhất</option>
-          </select>
+          
         </div>
       </div>
 
+      <!-- BODY: BẢNG DỮ LIỆU -->
       <div class="card-body p-0 mt-2">
         <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="table-secondary">
+          <table class="table align-middle mb-0 custom-table">
+            <thead class="table-light text-body-secondary" style="font-size: 0.75rem;">
               <tr>
-                <th class="px-4 py-3">Sự cố</th>
-                <th class="py-3">Phòng</th>
-                <th class="py-3">Thời gian</th>
-                <th class="py-3 text-center">Trách nhiệm</th>
-                <th class="py-3 text-end">Đền bù (VNĐ)</th>
-                <th class="py-3 text-center">Trạng thái</th>
-                <th class="py-3 text-end px-4">Hành động</th>
+                <th class="px-4 py-3 fw-bold border-0 text-uppercase">Sự cố</th>
+                <th class="py-3 fw-bold border-0 text-uppercase">Phòng</th>
+                <th class="py-3 fw-bold border-0 text-uppercase">Thời gian</th>
+                <th class="py-3 fw-bold border-0 text-uppercase text-center">Trách nhiệm</th>
+                <th class="py-3 fw-bold border-0 text-uppercase text-end">Đền bù (VNĐ)</th>
+                <th class="py-3 fw-bold border-0 text-uppercase text-center">Trạng thái</th>
+                <th class="py-3 fw-bold border-0 text-end px-4"></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="bg-body border-top-0">
               <tr v-if="isLoading">
                 <td colspan="7" class="text-center py-5 text-body-secondary">
                   <div class="spinner-border text-danger spinner-border-sm me-2" role="status"></div> Đang tải...
@@ -68,30 +94,43 @@
                   <p class="mb-0">Không tìm thấy sự cố phù hợp.</p>
                 </td>
               </tr>
-              <tr v-else v-for="ic in filteredAndSortedIncidents" :key="ic.id">
+              <tr v-else v-for="ic in filteredAndSortedIncidents" :key="ic.id" class="table-row-hover border-bottom border-secondary-subtle">
                 <td class="px-4">
                   <span class="fw-bold text-body-emphasis d-block">{{ ic.name }}</span>
                   <span class="text-body-secondary small text-truncate d-block" style="max-width: 200px;" :title="ic.description">{{ ic.description || 'Không có mô tả' }}</span>
                 </td>
                 <td class="fw-semibold text-primary">{{ ic.roomName || 'N/A' }}</td>
-                <td class="text-body-secondary small">{{ formatDate(ic.occurTime) }}</td>
+                <td class="text-body-secondary small fw-semibold">{{ formatDate(ic.occurTime) }}</td>
                 <td class="text-center">
-                  <span v-if="ic.responsible === 'CUSTOMER'" class="badge bg-danger">Khách hàng</span>
-                  <span v-else-if="ic.responsible === 'HOTEL'" class="badge bg-primary">Khách sạn</span>
-                  <span v-else class="badge bg-secondary">Khác</span>
+                  <span class="badge rounded-pill fw-bold" :class="getResponsibleBadgeClass(ic.responsible)">
+                    {{ getResponsibleText(ic.responsible) }}
+                  </span>
                 </td>
                 <td class="text-end fw-semibold text-danger">{{ ic.money > 0 ? formatPrice(ic.money) : '-' }}</td>
                 <td class="text-center">
-                  <span :class="getStatusBadgeClass(ic.status)" class="badge">{{ ic.status === 'RESOLVED' ? 'Đã xử lý' : (ic.status === 'PROCESSING' ? 'Đang xử lý' : 'Chờ xử lý') }}</span>
+                  <span class="badge rounded-pill fw-bold" :class="getStatusBadgeClass(ic.status)">
+                    {{ ic.status === 'RESOLVED' ? 'ĐÃ XỬ LÝ' : (ic.status === 'PROCESSING' ? 'ĐANG XỬ LÝ' : 'CHỜ XỬ LÝ') }}
+                  </span>
                 </td>
                 <td class="text-end px-4">
-                  <!-- Nút sửa chỉ hiện khi chưa RESOLVED -->
-                  <button v-if="ic.status !== 'RESOLVED'" @click="openEditModal(ic)" class="btn btn-sm btn-outline-primary shadow-sm me-2" title="Cập nhật tiến độ">
-                    <i class="fas fa-edit"></i> Cập nhật
-                  </button>
-                  <button v-else class="btn btn-sm btn-outline-secondary shadow-sm disabled" title="Phiếu đã đóng, không thể sửa">
-                    <i class="fas fa-lock me-1"></i> Đã đóng
-                  </button>
+                  <!-- Nút hành động dạng Dropdown -->
+                  <div class="dropdown">
+                    <button class="btn btn-link text-body-secondary p-0 shadow-none fs-5" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="fas fa-list"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-secondary-subtle rounded-3">
+                      <li v-if="ic.status !== 'RESOLVED'">
+                        <button class="dropdown-item fw-semibold text-primary py-2" @click="openEditModal(ic)">
+                          <i class="fas fa-edit me-2"></i> Cập nhật tiến độ
+                        </button>
+                      </li>
+                      <li v-else>
+                        <button class="dropdown-item fw-semibold text-secondary py-2" disabled>
+                          <i class="fas fa-lock me-2"></i> Phiếu đã đóng
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -202,6 +241,13 @@ const searchQuery = ref('')
 const filterStatus = ref('ALL') // ALL, PENDING, PROCESSING, RESOLVED
 const sortOption = ref('NEWEST') // NEWEST, OLDEST, MONEY_DESC
 
+// Hàm làm mới bộ lọc (Reset button)
+const resetFilters = () => {
+  searchQuery.value = ''
+  filterStatus.value = 'ALL'
+  sortOption.value = 'NEWEST'
+}
+
 // Computed để lọc và sắp xếp Sự cố
 const filteredAndSortedIncidents = computed(() => {
   let result = incidents.value
@@ -246,15 +292,27 @@ const formatDate = (dateString) => {
 }
 
 const getStatusBadgeClass = (status) => {
-  if (status === 'RESOLVED') return 'bg-success'
-  if (status === 'PROCESSING') return 'bg-warning text-dark'
-  return 'bg-secondary'
+  if (status === 'RESOLVED') return 'bg-success-subtle text-success'
+  if (status === 'PROCESSING') return 'bg-warning-subtle text-warning'
+  return 'bg-secondary-subtle text-secondary'
 }
 
 const getStatusTextClass = (status) => {
   if (status === 'RESOLVED') return 'text-success'
   if (status === 'PROCESSING') return 'text-warning'
   return 'text-body-emphasis'
+}
+
+const getResponsibleBadgeClass = (responsible) => {
+  if (responsible === 'CUSTOMER') return 'bg-danger-subtle text-danger'
+  if (responsible === 'HOTEL') return 'bg-primary-subtle text-primary'
+  return 'bg-secondary-subtle text-secondary'
+}
+
+const getResponsibleText = (responsible) => {
+  if (responsible === 'CUSTOMER') return 'Khách hàng'
+  if (responsible === 'HOTEL') return 'Khách sạn'
+  return 'Khác'
 }
 
 const showNotification = (type, message) => {
@@ -320,7 +378,22 @@ onMounted(() => fetchData())
 </script>
 
 <style scoped>
-/* Custom Scrollbar cho Modal dài */
+.custom-table th {
+  background-color: transparent !important;
+  font-weight: 700;
+  color: var(--bs-secondary);
+}
+
+.table-row-hover:hover {
+  background-color: var(--bs-secondary-bg) !important;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:active {
+  background-color: var(--bs-secondary-bg);
+  color: inherit;
+}
+
 .modal-body::-webkit-scrollbar { width: 6px; }
 .modal-body::-webkit-scrollbar-thumb { background-color: var(--bs-secondary-bg); border-radius: 4px; }
 </style>

@@ -1,14 +1,21 @@
 <template>
-  <div class="bg-body-tertiary min-vh-100 py-5" style="padding-bottom: 100px !important;">
-    <div class="container">
-      <div class="text-center mb-5 mt-4">
-        <span class="badge text-dark rounded-pill px-3 py-2 mb-3 tracking-wider text-uppercase" style="background-color: #f8e5c2;">Lựa chọn</span>
-        <h2 class="fw-bold text-body-emphasis text-uppercase font-serif display-6">Danh sách phòng</h2>
-        <div class="mx-auto mt-3" style="width: 60px; height: 3px; background-color: #212529;"></div>
+  <div class="bg-body-tertiary min-vh-100 pb-5">
+    
+    <!-- BANNER CHÍNH (Đã đồng bộ giao diện như trang Home) -->
+    <div class="position-relative hero-section d-flex align-items-center justify-content-center text-center text-white">
+      <div class="hero-overlay"></div>
+      <div class="container position-relative z-2">
+         <span class="badge text-uppercase tracking-wider mb-4 px-4 py-2 rounded-pill" style="background-color: rgba(255, 215, 0, 0.15); color: #FFD700; border: 1px solid rgba(255, 215, 0, 0.4);">
+          Lựa chọn
+        </span>
+        <h1 class="display-4 fw-bold mb-0 font-serif text-shadow-sm">DANH SÁCH PHÒNG</h1>
       </div>
+    </div>
+
+    <div class="container mt-5">
       
       <!-- THANH CHỌN THỜI GIAN NHẬN/TRẢ PHÒNG & HÌNH THỨC THUÊ -->
-      <div class="bg-body p-4 rounded-4 shadow-sm border border-secondary-subtle mb-4 mx-0">
+      <div class="bg-body p-4 rounded-4 shadow-sm border border-secondary-subtle mb-4 mx-0 mt-n5 position-relative z-3">
         <!-- CHỌN HÌNH THỨC THUÊ (GIAO DIỆN TAB XANH BIỂN) -->
         <div class="d-flex justify-content-center gap-5 mb-4 border-bottom border-secondary-subtle">
           <div 
@@ -41,20 +48,18 @@
             </label>
             
             <!-- Giao diện ghép thêm đuôi 14:00 khi chọn DAILY -->
-            <<div v-if="rentalType === 'DAILY'"
-     class="input-group shadow-none flex-nowrap">
-
-    <input type="date"
-           class="form-control border-0 shadow-none px-2 bg-body-tertiary fw-bold text-primary"
-           style="min-width: 0;"
-           v-model="dailyCheckInDate"
-           @change="handleDailyCheckInChange"
-           required>
-
-    <span class="input-group-text border-0 bg-body-tertiary text-primary fw-bold px-2 flex-shrink-0">
-        14:00
-    </span>
-</div>
+            <div v-if="rentalType === 'DAILY'" class="input-group shadow-none flex-nowrap w-100">
+                <input type="date"
+                       class="form-control border-0 shadow-none px-2 bg-body-tertiary fw-bold text-primary"
+                       style="min-width: 0;"
+                       v-model="dailyCheckInDate"
+                       @change="handleDailyCheckInChange"
+                       required>
+            
+                <span class="input-group-text border-0 bg-body-tertiary text-primary fw-bold px-2 flex-shrink-0">
+                    14:00
+                </span>
+            </div>
 
             <!-- Giao diện bình thường khi chọn HOURLY -->
             <input v-else type="datetime-local" class="form-control border-0 shadow-none px-2 bg-body-tertiary fw-bold text-primary" 
@@ -216,9 +221,9 @@
                   <button @click="toggleSelect(item)" 
                           class="btn btn-sm rounded-pill fw-bold px-4 py-2 shadow-sm transition-all mb-1"
                           :class="isSelected(item.id) ? 'btn-danger' : 'btn-dark'">
-                    <i :class="isSelected(item.id) ? 'fas fa-times' : 'fas fa-plus'"></i> 
-                    {{ isSelected(item.id) ? 'Bỏ chọn' : 'Chọn' }}
-                  </button>
+                        <i :class="isSelected(item.id) ? 'fas fa-times' : 'fas fa-plus'"></i> 
+                        {{ isSelected(item.id) ? 'Bỏ chọn' : 'Chọn' }}
+                      </button>
                 </div>
               </div>
             </div>
@@ -474,6 +479,25 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* CSS ĐỒNG BỘ BANNER */
+.hero-section {
+  min-height: auto;
+  padding: 120px 0;
+  background: url('https://images.unsplash.com/photo-1542314831-c6a4d1409e1c?auto=format&fit=crop&w=1920&q=80') center center / cover no-repeat;
+}
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.75));
+  z-index: 1;
+}
+.text-shadow-sm {
+  text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
 .font-serif {
   font-family: 'Playfair Display', serif;
 }

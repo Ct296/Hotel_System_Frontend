@@ -40,10 +40,7 @@
 
               <hr class="my-2 text-secondary opacity-25">
 
-              <!-- Nhóm 3: Lịch sử & Bảo mật -->
-              <button class="nav-link text-start fw-semibold py-3" :class="{ active: activeTab === 'security' }" @click="activeTab = 'security'">
-                <i class="fas fa-shield-alt me-3 text-center" style="width: 20px;"></i>Lịch sử đăng nhập
-              </button>
+              <!-- Nhóm 3: Lịch sử -->
               <button class="nav-link text-start fw-semibold py-3" :class="{ active: activeTab === 'account_status' }" @click="activeTab = 'account_status'">
                 <i class="fas fa-history me-3 text-center" style="width: 20px;"></i>Lịch sử trạng thái
               </button>
@@ -159,8 +156,46 @@
           </div>
         </div>
 
+        <!-- TAB LỊCH SỬ TRẠNG THÁI -->
+        <div v-if="activeTab === 'account_status'" class="card border-0 shadow-sm rounded-4 bg-body-tertiary">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2">
+            <h5 class="fw-bold text-primary mb-0"><i class="fas fa-history me-2"></i>Lịch sử trạng thái tài khoản</h5>
+          </div>
+          <div class="card-body p-4">
+            <div v-if="isLoadingStatuses" class="text-center py-4"><div class="spinner-border text-primary"></div></div>
+            <div v-else-if="accountStatuses.length === 0" class="text-center text-muted py-4">Chưa có dữ liệu lịch sử trạng thái.</div>
+            <div v-else class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-secondary">
+                  <tr>
+                    <th>Trạng thái</th>
+                    <th>Thời gian bắt đầu</th>
+                    <th>Thời gian kết thúc</th>
+                    <th>Ghi chú / Lý do</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="status in accountStatuses" :key="status.id">
+                    <td>
+                      <span class="badge" :class="status.name === 'ACTIVE' ? 'bg-success' : 'bg-danger'">
+                        {{ status.name === 'ACTIVE' ? 'Đang hoạt động' : 'Bị Khóa' }}
+                      </span>
+                    </td>
+                    <td class="small">{{ formatDateTime(status.startTime) }}</td>
+                    <td class="small">
+                      <span v-if="status.endTime">{{ formatDateTime(status.endTime) }}</span>
+                      <span v-else class="text-success fw-bold">Hiện tại</span>
+                    </td>
+                    <td class="text-body-secondary small">{{ status.reason || 'Không có ghi chú' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <!-- CÁC TAB ĐANG PHÁT TRIỂN -->
-        <div v-if="['notifications', 'security', 'account_status'].includes(activeTab)" class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
+        <div v-if="['notifications'].includes(activeTab)" class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
           <div class="card-body d-flex flex-column align-items-center justify-content-center py-5 text-muted">
             <div class="bg-body border border-secondary-subtle rounded-circle d-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 80px; height: 80px;">
               <i class="fas fa-tools fs-1 text-primary"></i>
@@ -176,7 +211,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useAuthStore } from '../../stores/authStore'
 import { useThemeStore } from '../../stores/themeStore'
 import api from '../../utils/axios'
@@ -197,6 +232,38 @@ const avatarPreview = ref(null)
 
 const passwordForm = ref({
   oldPass: '', newPass: '', confirmPass: ''
+})
+
+// Các biến cho Lịch sử trạng thái
+const accountStatuses = ref([])
+const isLoadingStatuses = ref(false)
+
+// Format ngày giờ
+const formatDateTime = (dateString) => {
+  if (!dateString) return ''
+  return new Date(dateString).toLocaleString('vi-VN', { 
+    day: '2-digit', month: '2-digit', year: 'numeric', 
+    hour: '2-digit', minute: '2-digit', hour12: false 
+  })
+}
+
+const fetchAccountStatuses = async () => {
+  isLoadingStatuses.value = true
+  try {
+    const res = await api.get('/api/profile/account-statuses')
+    accountStatuses.value = res.data || []
+  } catch (error) {
+    showNotification('danger', 'Không thể tải lịch sử trạng thái.')
+  } finally {
+    isLoadingStatuses.value = false
+  }
+}
+
+// Lắng nghe chuyển tab
+watch(activeTab, (newTab) => {
+  if (newTab === 'account_status' && accountStatuses.value.length === 0) {
+    fetchAccountStatuses()
+  }
 })
 
 const getImageUrl = (path) => {
@@ -240,7 +307,7 @@ const fetchProfile = async () => {
       dateOfBirth: user.dateOfBirth || ''
     }
   } catch (error) {
-    showNotification('danger', 'Không thể tải thông tin hồ sơ.')
+    showNotification('danger', 'Lỗi tải dữ liệu.')
   } finally {
     isLoading.value = false
   }
@@ -306,6 +373,26 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* KHÓA CỨNG THANH MENU BÊN TRÁI */
+@media (min-width: 992px) {
+  .settings-sidebar {
+    position: sticky;
+    top: 90px;
+    z-index: 10;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+  
+  /* Làm gọn thanh cuộn của Menu (nếu màn hình bị lùn) */
+  .settings-sidebar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .settings-sidebar::-webkit-scrollbar-thumb {
+    background-color: var(--bs-secondary-bg);
+    border-radius: 4px;
+  }
+}
+
 .nav-pills .nav-link {
   color: var(--bs-body-color);
   border-radius: 8px;

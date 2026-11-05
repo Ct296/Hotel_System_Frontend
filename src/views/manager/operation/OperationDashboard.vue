@@ -3,7 +3,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
         <h3 class="fw-bold text-body-emphasis mb-1">Tổng quan Vận hành</h3>
-        <p class="text-body-secondary small mb-0">Theo dõi doanh thu 12 tháng và hoạt động trong ngày.</p>
+        <p class="text-body-secondary small mb-0">Theo dõi doanh thu, hoạt động trong ngày và các chỉ số kinh doanh.</p>
       </div>
     </div>
 
@@ -55,44 +55,143 @@
       </div>
     </div>
 
-    <!-- HÀNG 2: BÁO CÁO NHANH (Tròn + Danh sách Top 5) -->
+    <!-- HÀNG 2: 3 BIỂU ĐỒ TRÒN -->
     <div class="row g-4 mb-4">
-      <!-- BIỂU ĐỒ TRÒN TRẠNG THÁI -->
-      <div class="col-lg-5">
+      <!-- 1. Trạng thái phòng -->
+      <div class="col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
-          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
-            <h6 class="fw-bold text-body-emphasis"><i class="fas fa-chart-pie text-primary me-2"></i>Trạng thái phòng hiện tại</h6>
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold text-body-emphasis mb-0"><i class="fas fa-chart-pie text-primary me-2"></i>Trạng thái phòng</h6>
+            <button @click="exportRoomStatusExcel" class="btn btn-sm btn-outline-success" title="Xuất Excel"><i class="fas fa-file-excel"></i></button>
           </div>
-          <div class="card-body d-flex justify-content-center align-items-center p-4">
-            <div style="width: 250px; height: 250px;">
-              <Doughnut :data="roomStatusData" :options="pieOptions" />
+          <div class="card-body d-flex justify-content-center align-items-center p-3">
+            <div class="position-relative w-100 d-flex justify-content-center" style="height: 220px;">
+              <Doughnut :data="roomStatusData" :options="donutOptions" />
+              <!-- Text ở giữa biểu đồ -->
+              <div class="position-absolute top-50 start-50 translate-middle text-center" style="pointer-events: none;">
+                <h4 class="fw-bold mb-0 text-body-emphasis">{{ totalRooms }}</h4>
+                <span class="text-body-secondary small">Phòng</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <!-- TOP 5 DỊCH VỤ -->
-      <div class="col-lg-7">
+      
+      <!-- 2. Cơ cấu doanh thu Loại phòng -->
+      <div class="col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
-          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
-            <h6 class="fw-bold text-body-emphasis"><i class="fas fa-concierge-bell text-warning me-2"></i>Top Dịch vụ bán chạy (Tháng)</h6>
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold text-body-emphasis mb-0"><i class="fas fa-bed text-success me-2"></i>Doanh thu loại phòng</h6>
+            <button @click="exportRoomTypeRevExcel" class="btn btn-sm btn-outline-success" title="Xuất Excel"><i class="fas fa-file-excel"></i></button>
           </div>
-          <div class="card-body p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3" v-for="(svc, idx) in topServices" :key="idx">
-              <div class="d-flex align-items-center">
-                <div class="bg-body rounded text-center fw-bold me-3 border border-secondary-subtle text-body-emphasis" style="width: 35px; height: 35px; line-height: 35px;">#{{ idx + 1 }}</div>
-                <div>
-                  <h6 class="mb-0 fw-semibold text-body-emphasis">{{ svc.name }}</h6>
-                  <small class="text-body-secondary">{{ svc.sold }} lượt sử dụng</small>
-                </div>
+          <div class="card-body d-flex justify-content-center align-items-center p-3">
+            <div class="position-relative w-100 d-flex justify-content-center" style="height: 220px;">
+              <Doughnut :data="roomTypeRevenueData" :options="donutOptionsRightLegend" />
+              <div class="position-absolute top-50 translate-middle-y text-center" style="left: 30%; pointer-events: none;">
+                <h5 class="fw-bold mb-0 text-body-emphasis text-truncate" style="max-width: 90px;" :title="formatPrice(totalRoomTypeRev)">{{ formatShortPrice(totalRoomTypeRev) }}</h5>
+                <span class="text-body-secondary" style="font-size: 0.7rem;">VNĐ</span>
               </div>
-              <div class="fw-bold text-success">{{ formatPrice(svc.revenue) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Cơ cấu doanh thu Dịch vụ -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold text-body-emphasis mb-0"><i class="fas fa-concierge-bell text-warning me-2"></i>Doanh thu dịch vụ</h6>
+            <button @click="exportServiceRevExcel" class="btn btn-sm btn-outline-success" title="Xuất Excel"><i class="fas fa-file-excel"></i></button>
+          </div>
+          <div class="card-body d-flex justify-content-center align-items-center p-3">
+            <div class="position-relative w-100 d-flex justify-content-center" style="height: 220px;">
+              <Doughnut :data="serviceRevenueData" :options="donutOptionsRightLegend" />
+              <div class="position-absolute top-50 translate-middle-y text-center" style="left: 30%; pointer-events: none;">
+                <h5 class="fw-bold mb-0 text-body-emphasis text-truncate" style="max-width: 90px;" :title="formatPrice(totalServiceRev)">{{ formatShortPrice(totalServiceRev) }}</h5>
+                <span class="text-body-secondary" style="font-size: 0.7rem;">VNĐ</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- HÀNG 3: BIỂU ĐỒ 12 THÁNG (DOANH THU) -->
+    <!-- HÀNG 3: BẢNG XẾP HẠNG TOP (Chia 2) -->
+    <div class="row g-4 mb-4">
+      <!-- TOP PHÒNG ĐẶT NHIỀU NHẤT -->
+      <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h6 class="fw-bold text-body-emphasis mb-0"><i class="fas fa-door-open text-primary me-2"></i>Top Loại phòng đặt nhiều</h6>
+            <div class="d-flex gap-2">
+              <select v-model="topRoomFilter.month" class="form-select form-select-sm bg-body">
+                <option v-for="m in 12" :key="m" :value="m">T{{ m }}</option>
+              </select>
+              <select v-model="topRoomFilter.year" class="form-select form-select-sm bg-body">
+                <option v-for="y in availableYears" :key="y" :value="y">{{ y }}</option>
+              </select>
+              <button @click="exportTopRoomsTable" class="btn btn-sm btn-outline-success px-2" title="Xuất Excel"><i class="fas fa-file-excel"></i></button>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-secondary small">
+                  <tr><th class="px-4">Hạng</th><th>Loại phòng</th><th class="text-center">Số lượt</th><th class="text-end px-4">Doanh thu</th></tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(room, idx) in topRoomsList" :key="idx">
+                    <td class="px-4 fw-bold" :class="idx < 3 ? 'text-danger' : 'text-body-secondary'">#{{ idx + 1 }}</td>
+                    <td class="fw-semibold text-body-emphasis">{{ room.name }}</td>
+                    <td class="text-center">{{ room.count }}</td>
+                    <td class="text-end px-4 fw-bold text-success">{{ formatPrice(room.revenue) }}</td>
+                  </tr>
+                  <tr v-if="topRoomsList.length === 0"><td colspan="4" class="text-center py-3 text-body-secondary">Chưa có dữ liệu</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOP DỊCH VỤ BÁN CHẠY -->
+      <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h6 class="fw-bold text-body-emphasis mb-0"><i class="fas fa-star text-warning me-2"></i>Top Dịch vụ bán chạy</h6>
+            <div class="d-flex gap-2">
+              <select v-model="topServiceFilter.month" class="form-select form-select-sm bg-body">
+                <option v-for="m in 12" :key="m" :value="m">T{{ m }}</option>
+              </select>
+              <select v-model="topServiceFilter.year" class="form-select form-select-sm bg-body">
+                <option v-for="y in availableYears" :key="y" :value="y">{{ y }}</option>
+              </select>
+              <button @click="exportTopServicesTable" class="btn btn-sm btn-outline-success px-2" title="Xuất Excel"><i class="fas fa-file-excel"></i></button>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-secondary small">
+                  <tr><th class="px-4">Hạng</th><th>Dịch vụ</th><th class="text-center">Số lượng</th><th class="text-end px-4">Doanh thu</th></tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(svc, idx) in topServicesList" :key="idx">
+                    <td class="px-4 fw-bold" :class="idx < 3 ? 'text-warning text-dark' : 'text-body-secondary'">#{{ idx + 1 }}</td>
+                    <td class="fw-semibold text-body-emphasis">{{ svc.name }}</td>
+                    <td class="text-center">{{ svc.count }}</td>
+                    <td class="text-end px-4 fw-bold text-success">{{ formatPrice(svc.revenue) }}</td>
+                  </tr>
+                  <tr v-if="topServicesList.length === 0"><td colspan="4" class="text-center py-3 text-body-secondary">Chưa có dữ liệu</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HÀNG 4: BIỂU ĐỒ 12 THÁNG (DOANH THU) -->
     <div class="row mb-4">
       <div class="col-12">
         <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
@@ -116,14 +215,13 @@
       </div>
     </div>
 
-    <!-- HÀNG 4: BIỂU ĐỒ 12 THÁNG (DỊCH VỤ) -->
+    <!-- HÀNG 5: BIỂU ĐỒ 12 THÁNG (DỊCH VỤ) -->
     <div class="row mb-4">
       <div class="col-12">
         <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
           <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center flex-wrap gap-3">
             <h6 class="fw-bold mb-0 text-body-emphasis"><i class="fas fa-chart-line text-primary me-2"></i>Số lượng sử dụng Dịch vụ (12 Tháng)</h6>
             <div class="d-flex gap-2 flex-wrap">
-              <!-- Danh sách Dropdown Dịch Vụ Gọi Từ API -->
               <select v-model="filterServiceId" class="form-select form-select-sm fw-bold border-primary text-primary bg-body" style="width: 200px;">
                 <option value="ALL">-- Tất cả dịch vụ --</option>
                 <option v-for="svc in dbServicesList" :key="svc.id" :value="svc.id">{{ svc.name }}</option>
@@ -131,7 +229,7 @@
               <select v-model="filterServiceYear" class="form-select form-select-sm fw-bold border-primary text-primary bg-body" style="width: 120px;">
                 <option v-for="year in availableYears" :key="year" :value="year">Năm {{ year }}</option>
               </select>
-              <button @click="exportServiceExcel" class="btn btn-sm btn-outline-primary fw-bold" title="Xuất dữ liệu dịch vụ">
+              <button @click="exportServiceExcel" class="btn btn-sm btn-outline-success fw-bold" title="Xuất dữ liệu dịch vụ">
                 <i class="fas fa-file-excel me-1"></i> Xuất Excel
               </button>
             </div>
@@ -145,14 +243,15 @@
       </div>
     </div>
 
-    <!-- HÀNG 5: BẢNG LỊCH TRÌNH -->
-    <div class="row">
+    <!-- HÀNG 6: BẢNG LỊCH TRÌNH HÔM NAY -->
+    <div class="row mb-4">
       <div class="col-12">
         <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
-          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
-            <h6 class="fw-bold text-body-emphasis"><i class="fas fa-clipboard-list text-warning me-2"></i>Lịch trình nhận/trả phòng hôm nay</h6>
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h6 class="fw-bold text-body-emphasis mb-0"><i class="fas fa-clipboard-list text-warning me-2"></i>Lịch trình nhận/trả phòng hôm nay</h6>
+            <button @click="exportTodayTasksExcel" class="btn btn-sm btn-outline-success fw-bold"><i class="fas fa-file-excel me-1"></i> Xuất Excel</button>
           </div>
-          <div class="card-body p-0 mt-3">
+          <div class="card-body p-0 mt-2">
             <div class="table-responsive">
               <table class="table table-hover align-middle mb-0">
                 <thead class="table-secondary">
@@ -190,6 +289,26 @@
         </div>
       </div>
     </div>
+
+    <!-- HÀNG 7: SỐ LƯỢT THUÊ THEO TUẦN (MỚI) -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <h6 class="fw-bold mb-0 text-body-emphasis"><i class="fas fa-calendar-week text-info me-2"></i>Số lượt thuê theo Tuần</h6>
+            <button @click="exportWeeklyBookingsExcel" class="btn btn-sm btn-outline-success fw-bold">
+              <i class="fas fa-file-excel me-1"></i> Xuất Excel
+            </button>
+          </div>
+          <div class="card-body p-4">
+            <div style="height: 300px;">
+              <Bar :data="weeklyChartData" :options="barOptions" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -199,66 +318,123 @@ import api from '../../../utils/axios'
 import * as XLSX from 'xlsx'
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement, ArcElement, Filler } from 'chart.js'
 import { Bar, Line, Doughnut } from 'vue-chartjs'
+import { useThemeStore } from '../../../stores/themeStore'
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement, ArcElement, Filler)
+const themeStore = useThemeStore()
 
 const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price)
+const formatShortPrice = (price) => {
+  if (price >= 1000000000) return (price / 1000000000).toFixed(1) + ' Tỷ'
+  if (price >= 1000000) return (price / 1000000).toFixed(1) + ' Tr'
+  if (price >= 1000) return (price / 1000).toFixed(1) + ' K'
+  return price
+}
 
+// Data cơ bản
 const kpi = ref({ occupancyRate: 0, todayRevenue: 0, arrivals: 0, departures: 0, maintenanceRooms: 0 })
-const topServices = ref([])
 const todayTasks = ref([])
 const dbServicesList = ref([])
 const dbRevenue = ref({})
 const dbServices = ref({})
 
-// --- CẤU HÌNH BIỂU ĐỒ TRÒN (Trạng thái phòng) ---
+// Data mới cho Row 2 & 3
+const roomTypeRevLabels = ref([])
+const roomTypeRevValues = ref([])
+const serviceRevLabels = ref([])
+const serviceRevValues = ref([])
+
+const topRoomsList = ref([])
+const topServicesList = ref([])
+const weeklyBookingsRaw = ref([0, 0, 0, 0, 0, 0, 0])
+
+const currentMonth = new Date().getMonth() + 1
+const currentYear = new Date().getFullYear()
+
+const topRoomFilter = ref({ month: currentMonth, year: currentYear })
+const topServiceFilter = ref({ month: currentMonth, year: currentYear })
+
+// --- CHART OPTIONS & THEME ---
+const getChartTextColor = computed(() => themeStore.isDarkMode ? '#e9ecef' : '#212529')
+const getGridColor = computed(() => themeStore.isDarkMode ? '#495057' : '#e9ecef')
+
+const donutOptions = computed(() => ({
+  responsive: true, maintainAspectRatio: false, cutout: '75%',
+  plugins: { legend: { position: 'bottom', labels: { color: getChartTextColor.value, boxWidth: 12 } } }
+}))
+
+const donutOptionsRightLegend = computed(() => ({
+  responsive: true, maintainAspectRatio: false, cutout: '75%',
+  plugins: { legend: { position: 'right', labels: { color: getChartTextColor.value, boxWidth: 12, padding: 15 } } }
+}))
+
+const barOptions = computed(() => ({
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { ticks: { color: getChartTextColor.value }, grid: { color: getGridColor.value } },
+    y: { beginAtZero: true, ticks: { color: getChartTextColor.value }, grid: { color: getGridColor.value } }
+  }
+}))
+
+const lineOptions = computed(() => ({
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { position: 'top', labels: { color: getChartTextColor.value } } },
+  scales: {
+    x: { ticks: { color: getChartTextColor.value }, grid: { color: getGridColor.value } },
+    y: { beginAtZero: true, ticks: { color: getChartTextColor.value }, grid: { color: getGridColor.value } }
+  }
+}))
+
+// --- CẤU HÌNH BIỂU ĐỒ TRÒN ---
 const roomStatusCounts = ref([0, 0, 0, 0])
+const totalRooms = computed(() => roomStatusCounts.value.reduce((a,b) => a+b, 0))
 const roomStatusData = computed(() => ({
   labels: ['Trống', 'Đang ở', 'Đang dọn', 'Bảo trì'],
   datasets: [{ backgroundColor: ['#198754', '#dc3545', '#0dcaf0', '#ffc107'], data: roomStatusCounts.value }]
 }))
-const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
 
-// --- CẤU HÌNH BIỂU ĐỒ CỘT (Doanh thu) ---
-const availableYears = ref([2026, 2025, 2024])
+const totalRoomTypeRev = computed(() => roomTypeRevValues.value.reduce((a,b) => a+b, 0))
+const roomTypeRevenueData = computed(() => ({
+  labels: roomTypeRevLabels.value,
+  datasets: [{ backgroundColor: ['#0d6efd', '#20c997', '#ffc107', '#ff8787', '#6f42c1', '#fd7e14'], data: roomTypeRevValues.value }]
+}))
+
+const totalServiceRev = computed(() => serviceRevValues.value.reduce((a,b) => a+b, 0))
+const serviceRevenueData = computed(() => ({
+  labels: serviceRevLabels.value,
+  datasets: [{ backgroundColor: ['#e83e8c', '#17a2b8', '#28a745', '#ffc107', '#6610f2', '#fd7e14'], data: serviceRevValues.value }]
+}))
+
+// --- CẤU HÌNH BIỂU ĐỒ 12 THÁNG ---
+const availableYears = ref([currentYear, currentYear - 1, currentYear - 2])
 const monthsLabel = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12']
 
-const filterRevenueYear = ref(new Date().getFullYear())
-const revenueChartData = computed(() => {
-  const dataArray = dbRevenue.value[filterRevenueYear.value] || Array(12).fill(0)
-  return {
-    labels: monthsLabel,
-    datasets: [{ label: 'Doanh thu (VNĐ)', backgroundColor: '#198754', borderRadius: 4, data: dataArray }]
-  }
-})
-const barOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+const filterRevenueYear = ref(currentYear)
+const revenueChartData = computed(() => ({
+  labels: monthsLabel,
+  datasets: [{ label: 'Doanh thu (VNĐ)', backgroundColor: '#198754', borderRadius: 4, data: dbRevenue.value[filterRevenueYear.value] || Array(12).fill(0) }]
+}))
 
-// --- CẤU HÌNH BIỂU ĐỒ ĐƯỜNG (Dịch vụ) ---
-const filterServiceYear = ref(new Date().getFullYear())
+const filterServiceYear = ref(currentYear)
 const filterServiceId = ref('ALL')
-
 const serviceChartData = computed(() => {
   const yearData = dbServices.value[filterServiceYear.value]
   const dataArray = yearData ? (yearData[filterServiceId.value] || Array(12).fill(0)) : Array(12).fill(0)
-  
-  let chartLabel = 'Tổng lượt sử dụng tất cả dịch vụ'
-  if (filterServiceId.value !== 'ALL') {
-    const svc = dbServicesList.value.find(s => s.id === filterServiceId.value)
-    if (svc) chartLabel = `Lượt sử dụng: ${svc.name}`
-  }
-  
+  let chartLabel = filterServiceId.value !== 'ALL' ? `Lượt sử dụng: ${dbServicesList.value.find(s => s.id === filterServiceId.value)?.name || ''}` : 'Tổng lượt sử dụng tất cả dịch vụ'
   return {
     labels: monthsLabel,
-    datasets: [{
-      label: chartLabel, borderColor: '#0d6efd', backgroundColor: 'rgba(13, 110, 253, 0.1)',
-      borderWidth: 3, pointBackgroundColor: '#fff', pointBorderColor: '#0d6efd', pointRadius: 4,
-      fill: true, tension: 0.3, data: dataArray
-    }]
+    datasets: [{ label: chartLabel, borderColor: '#0d6efd', backgroundColor: 'rgba(13, 110, 253, 0.1)', borderWidth: 3, pointBackgroundColor: '#fff', pointBorderColor: '#0d6efd', pointRadius: 4, fill: true, tension: 0.3, data: dataArray }]
   }
 })
-const lineOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
 
-// --- FETCH DATA TỪ BACKEND ---
+// --- CẤU HÌNH BIỂU ĐỒ THEO TUẦN (MỚI) ---
+const weeklyChartData = computed(() => ({
+  labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+  datasets: [{ label: 'Số lượt thuê', backgroundColor: '#0dcaf0', borderRadius: 4, data: weeklyBookingsRaw.value }]
+}))
+
+// --- FETCH DATA ---
 const fetchData = async () => {
   try {
     const resBase = await api.get('/api/manager/operation/dashboard')
@@ -269,34 +445,98 @@ const fetchData = async () => {
 
     kpi.value = stats.kpi
     roomStatusCounts.value = stats.roomStatusCounts
-    topServices.value = stats.topServices
     todayTasks.value = stats.todayTasks
     dbRevenue.value = stats.monthlyRevenue || {}
     dbServices.value = stats.monthlyServices || {}
+    
+    // Gán dữ liệu cho biểu đồ tròn loại phòng
+    if (stats.roomTypeRevLabels && stats.roomTypeRevValues) {
+      roomTypeRevLabels.value = stats.roomTypeRevLabels
+      roomTypeRevValues.value = stats.roomTypeRevValues
+    }
+
+    // Gán dữ liệu cho biểu đồ tròn dịch vụ
+    if (stats.serviceRevLabels && stats.serviceRevValues) {
+      serviceRevLabels.value = stats.serviceRevLabels
+      serviceRevValues.value = stats.serviceRevValues
+    }
+
+    // Gán dữ liệu cho bảng Top phòng
+    if (stats.topRoomsList) {
+      topRoomsList.value = stats.topRoomsList
+    }
+
+    // Gán dữ liệu cho Top dịch vụ
+    if (stats.topServices) {
+       topServicesList.value = stats.topServices.map(s => ({ name: s.name, count: s.sold, revenue: s.revenue }))
+    }
+
+    // Gán dữ liệu cho biểu đồ tuần
+    if (stats.weeklyBookings) {
+      weeklyBookingsRaw.value = stats.weeklyBookings
+    }
 
   } catch (error) {
     console.error("Lỗi tải dữ liệu", error)
   }
 }
 
-// --- HÀM XUẤT EXCEL ---
+// --- HÀM XUẤT EXCEL DÙNG CHUNG ---
+const executeExcelExport = (data, filename, sheetName) => {
+  if (!data || data.length === 0) return alert('Không có dữ liệu để xuất!')
+  const ws = XLSX.utils.json_to_sheet(data)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, sheetName)
+  XLSX.writeFile(wb, `${filename}.xlsx`)
+}
+
+// --- CÁC HÀM XUẤT EXCEL CỤ THỂ ---
+const exportRoomStatusExcel = () => {
+  const data = roomStatusData.value.labels.map((label, idx) => ({ 'Trạng thái': label, 'Số lượng': roomStatusCounts.value[idx] }))
+  executeExcelExport(data, 'Trang_Thai_Phong', 'Trạng Thái')
+}
+
+const exportRoomTypeRevExcel = () => {
+  const data = roomTypeRevLabels.value.map((label, idx) => ({ 'Loại phòng': label, 'Doanh thu (VNĐ)': roomTypeRevValues.value[idx] }))
+  executeExcelExport(data, 'Doanh_Thu_Loai_Phong', 'DT Loại Phòng')
+}
+
+const exportServiceRevExcel = () => {
+  const data = serviceRevLabels.value.map((label, idx) => ({ 'Dịch vụ': label, 'Doanh thu (VNĐ)': serviceRevValues.value[idx] }))
+  executeExcelExport(data, 'Doanh_Thu_Dich_Vu', 'DT Dịch Vụ')
+}
+
+const exportTopRoomsTable = () => {
+  const data = topRoomsList.value.map((r, idx) => ({ 'Hạng': idx+1, 'Loại phòng': r.name, 'Số lượt': r.count, 'Doanh thu': r.revenue }))
+  executeExcelExport(data, `Top_Loai_Phong_T${topRoomFilter.value.month}_${topRoomFilter.value.year}`, 'Top Phòng')
+}
+
+const exportTopServicesTable = () => {
+  const data = topServicesList.value.map((s, idx) => ({ 'Hạng': idx+1, 'Dịch vụ': s.name, 'Số lượng': s.count, 'Doanh thu': s.revenue }))
+  executeExcelExport(data, `Top_Dich_Vu_T${topServiceFilter.value.month}_${topServiceFilter.value.year}`, 'Top Dịch Vụ')
+}
+
 const exportRevenueExcel = () => {
   const dataArray = dbRevenue.value[filterRevenueYear.value] || Array(12).fill(0)
-  const exportData = monthsLabel.map((month, index) => ({ 'Tháng': month, 'Doanh Thu (VNĐ)': dataArray[index] }))
-  const ws = XLSX.utils.json_to_sheet(exportData)
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, `Doanh Thu ${filterRevenueYear.value}`)
-  XLSX.writeFile(wb, `Bao_Cao_Doanh_Thu_${filterRevenueYear.value}.xlsx`)
+  const data = monthsLabel.map((month, idx) => ({ 'Tháng': month, 'Doanh Thu (VNĐ)': dataArray[idx] }))
+  executeExcelExport(data, `Doanh_Thu_${filterRevenueYear.value}`, 'Doanh Thu')
 }
 
 const exportServiceExcel = () => {
   const dataArray = serviceChartData.value.datasets[0].data
-  const exportData = monthsLabel.map((month, index) => ({ 'Tháng': month, 'Số Lượt Sử Dụng': dataArray[index] }))
-  const ws = XLSX.utils.json_to_sheet(exportData)
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, `Dịch Vụ ${filterServiceYear.value}`)
-  const fileName = filterServiceId.value === 'ALL' ? `Tong_Dich_Vu_${filterServiceYear.value}.xlsx` : `Dich_Vu_${filterServiceId.value}_${filterServiceYear.value}.xlsx`
-  XLSX.writeFile(wb, fileName)
+  const data = monthsLabel.map((month, idx) => ({ 'Tháng': month, 'Số Lượt Sử Dụng': dataArray[idx] }))
+  executeExcelExport(data, `Dich_Vu_${filterServiceYear.value}`, 'Sử Dụng DV')
+}
+
+const exportTodayTasksExcel = () => {
+  const data = todayTasks.value.map(t => ({ 'Khách hàng': t.customerName, 'Phòng': t.roomName, 'Loại': t.type === 'CHECK_IN' ? 'Check-in' : 'Check-out', 'Thời gian': t.time, 'Trạng thái': t.status === 'PENDING' ? 'Chờ xử lý' : 'Hoàn tất' }))
+  executeExcelExport(data, 'Lich_Trinh_Hom_Nay', 'Lịch Trình')
+}
+
+const exportWeeklyBookingsExcel = () => {
+  const labels = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật']
+  const data = labels.map((day, idx) => ({ 'Ngày': day, 'Số lượt thuê': weeklyBookingsRaw.value[idx] }))
+  executeExcelExport(data, 'So_Luot_Thue_Tuan', 'Theo Tuần')
 }
 
 onMounted(() => {

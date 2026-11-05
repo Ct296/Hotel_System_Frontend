@@ -55,20 +55,19 @@
 
       <!-- HÀNG 2: BIỂU ĐỒ CỘT (VAI TRÒ) & TRÒN (KHÁCH HÀNG) -->
       <div class="row g-4 mb-4">
-        <!-- Biểu đồ Cột: Số lượng theo vai trò -->
-        <div class="col-lg-7">
+        <div class="col-lg-8">
           <div class="card border-0 shadow-sm h-100 bg-body-tertiary">
             <div class="card-header bg-transparent border-bottom-0 py-3">
               <h6 class="m-0 fw-bold text-body-emphasis">Phân bổ Tài khoản theo Vai trò</h6>
             </div>
             <div class="card-body d-flex justify-content-center align-items-center">
-              <apexchart type="bar" height="300" width="100%" :options="roleBarOptions" :series="roleBarSeries"></apexchart>
+              <apexchart type="bar" height="300" width="200%" :options="roleBarOptions" :series="roleBarSeries"></apexchart>
             </div>
           </div>
         </div>
 
-        <!-- Biểu đồ Tròn: Trạng thái khách hàng -->
-        <div class="col-lg-5">
+        <!-- Biểu đồ Tròn: Trạng thái khách hàng (Đã thu gọn col-lg-4) -->
+        <div class="col-lg-4">
           <div class="card border-0 shadow-sm h-100 bg-body-tertiary">
             <div class="card-header bg-transparent border-bottom-0 py-3">
               <h6 class="m-0 fw-bold text-body-emphasis">Trạng thái Tài khoản Khách hàng</h6>
@@ -121,9 +120,9 @@ const getGridColor = computed(() => themeStore.isDarkMode ? '#495057' : '#e9ecef
 const roleBarSeries = ref([{ name: 'Số lượng', data: [] }])
 const roleBarOptions = computed(() => ({
   chart: { 
-    background: 'transparent', // Xóa khung xám
-    toolbar: { show: false }, 
-    foreColor: getChartTextColor.value 
+    background: 'transparent',
+    toolbar: { show: false },
+    foreColor: getChartTextColor.value
   },
   colors: ['#dc3545', '#ffc107', '#0dcaf0', '#198754'],
   plotOptions: { bar: { distributed: true, borderRadius: 4, dataLabels: { position: 'top' } } },
@@ -160,7 +159,7 @@ const customerPieOptions = computed(() => ({
 const monthlyLineSeries = ref([{ name: 'Khách hàng mới', data: [] }])
 const monthlyLineOptions = computed(() => ({
   chart: { 
-    background: 'transparent', // Xóa khung xám
+    background: 'transparent',
     toolbar: { show: false }, 
     foreColor: getChartTextColor.value 
   },

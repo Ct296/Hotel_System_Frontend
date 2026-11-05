@@ -1,10 +1,12 @@
 <template>
   <div class="bg-body-tertiary min-vh-100 pb-5">
-    <!-- Header Banner -->
-    <div class="bg-primary text-white py-5" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-      <div class="container py-3">
-        <h1 class="fw-bold mb-2">Chính sách & Điều khoản Dịch vụ</h1>
-        <p class="text-white-50 mb-0">Cập nhật lần cuối: Ngày 04 tháng 10 năm 2026</p>
+    
+    <!-- BANNER CHÍNH ĐÃ ĐỒNG BỘ -->
+    <div class="position-relative hero-section d-flex align-items-center justify-content-center text-center text-white shadow-sm">
+      <div class="hero-overlay"></div>
+      <div class="container py-4 position-relative z-2">
+        <h1 class="fw-bold text-uppercase mb-3 font-serif display-4 text-shadow-sm">Chính sách & Điều khoản Dịch vụ</h1>
+        <p class="lead mb-0 opacity-75 text-shadow-sm">Cập nhật lần cuối: Ngày 04 tháng 10 năm 2026</p>
       </div>
     </div>
 
@@ -16,7 +18,7 @@
           <div class="sticky-top" style="top: 100px; z-index: 10;">
             <div class="card border-0 shadow-sm rounded-4 bg-body">
               <div class="card-body p-4">
-                <h6 class="fw-bold text-uppercase mb-3 text-body-secondary small">Nội dung chính</h6>
+                <h6 class="fw-bold text-uppercase mb-3 text-body-secondary small font-serif">Nội dung chính</h6>
                 <nav class="nav flex-column policy-toc">
                   <a class="nav-link text-body-emphasis fw-semibold px-0 py-2 border-bottom border-secondary-subtle" href="#quy-dinh-chung">1. Quy định chung</a>
                   <a class="nav-link text-body-emphasis fw-semibold px-0 py-2 border-bottom border-secondary-subtle" href="#dat-phong">2. Chính sách đặt & nhận phòng</a>
@@ -39,7 +41,7 @@
 
             <!-- HIGHLIGHT BOX -->
             <div class="alert alert-warning border-warning border-start border-4 rounded-3 p-4 mb-5 shadow-sm">
-              <h5 class="fw-bold mb-3"><i class="fas fa-exclamation-triangle text-warning me-2"></i> Lưu ý quan trọng dành cho Khách hàng</h5>
+              <h5 class="fw-bold mb-3 font-serif"><i class="fas fa-exclamation-triangle text-warning me-2"></i> Lưu ý quan trọng dành cho Khách hàng</h5>
               <ul class="mb-0" style="line-height: 1.8;">
                 <li>Khách hàng bắt buộc xuất trình <strong>CCCD/CMND hoặc Hộ chiếu</strong> khớp với thông tin đặt phòng khi làm thủ tục Check-in.</li>
                 <li>Trường hợp trả phòng trễ so với giờ đặt, hệ thống sẽ tự động <strong>phụ thu 10%</strong> trên giá phòng cho mỗi giờ trễ.</li>
@@ -48,13 +50,13 @@
             </div>
 
             <section id="quy-dinh-chung" class="mb-5 pt-3">
-              <h3 class="fw-bold mb-4 text-primary">1. Quy định chung</h3>
+              <h3 class="fw-bold mb-4 text-primary font-serif">1. Quy định chung</h3>
               <p>Chào mừng quý khách đến với ITHotel. Thỏa thuận này có tính ràng buộc pháp lý giữa quý khách và khách sạn ITHotel. Thỏa thuận này điều chỉnh việc quý khách truy cập trang web trực tuyến và sử dụng dịch vụ lưu trú của chúng tôi.</p>
               <p>Khách sạn có quyền từ chối cung cấp dịch vụ hoặc mời khách rời khỏi khách sạn nếu phát hiện hành vi vi phạm pháp luật Việt Nam (như đánh bạc, mại dâm) hoặc gây mất trật tự công cộng, ảnh hưởng đến khách lưu trú khác.</p>
             </section>
 
             <section id="dat-phong" class="mb-5 pt-3">
-              <h3 class="fw-bold mb-4 text-primary">2. Chính sách đặt & nhận phòng (Check-in)</h3>
+              <h3 class="fw-bold mb-4 text-primary font-serif">2. Chính sách đặt & nhận phòng (Check-in)</h3>
               <p>ITHotel hỗ trợ khách hàng đặt phòng linh hoạt theo giờ. Khung giờ thuê tối thiểu cho một lần đặt là <strong>1 giờ</strong>. Đơn đặt phòng chỉ được giữ chỗ chắc chắn khi quý khách thanh toán tiền cọc thành công thông qua cổng thanh toán VNPay.</p>
               <ul>
                 <li class="mb-2"><strong>Thời gian giữ phòng:</strong> Booking chưa thanh toán cọc sẽ được giữ tối đa <strong>30 phút</strong>. Sau thời gian này, booking tự động bị hủy.</li>
@@ -64,7 +66,7 @@
             </section>
 
             <section id="huy-phong" class="mb-5 pt-3">
-              <h3 class="fw-bold mb-4 text-primary">3. Hủy phòng & Hoàn tiền</h3>
+              <h3 class="fw-bold mb-4 text-primary font-serif">3. Hủy phòng & Hoàn tiền</h3>
               <p>Để đảm bảo quyền lợi cho cả khách hàng và khách sạn, chúng tôi áp dụng chính sách hủy phòng như sau:</p>
               <ul>
                 <li class="mb-2"><strong>Hủy khi chưa thanh toán cọc:</strong> Khách hàng có thể tự do hủy trong phần "Quản lý Booking" mà không chịu bất kỳ khoản phí nào.</li>
@@ -74,7 +76,7 @@
             </section>
 
             <section id="bao-mat" class="mb-5 pt-3">
-              <h3 class="fw-bold mb-4 text-primary">4. Quyền riêng tư & Bảo mật</h3>
+              <h3 class="fw-bold mb-4 text-primary font-serif">4. Quyền riêng tư & Bảo mật</h3>
               <p>Chúng tôi hiểu rằng thông tin cá nhân của quý khách là vô cùng quan trọng. ITHotel cam kết tuyệt đối bảo mật các thông tin bao gồm Họ tên, Số điện thoại, Email và Số CCCD/Hộ chiếu.</p>
               <p>Thông tin của quý khách chỉ được sử dụng cho mục đích:</p>
               <ol>
@@ -86,7 +88,7 @@
             </section>
 
             <section id="lien-he" class="mb-4 pt-3">
-              <h3 class="fw-bold mb-4 text-primary">5. Thông tin liên hệ</h3>
+              <h3 class="fw-bold mb-4 text-primary font-serif">5. Thông tin liên hệ</h3>
               <p>Mọi thắc mắc về chính sách và điều khoản, quý khách vui lòng liên hệ trực tiếp với bộ phận Chăm sóc khách hàng của ITHotel qua các kênh sau:</p>
               
               <div class="bg-body-secondary p-4 rounded-4 mt-3">
@@ -107,6 +109,29 @@
 </script>
 
 <style scoped>
+/* CSS ĐỒNG BỘ BANNER */
+.hero-section {
+  min-height: auto;
+  padding: 120px 0;
+  background: url('https://images.unsplash.com/photo-1542314831-c6a4d1409e1c?auto=format&fit=crop&w=1920&q=80') center center / cover no-repeat;
+}
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.75));
+  z-index: 1;
+}
+.text-shadow-sm {
+  text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.font-serif {
+  font-family: 'Playfair Display', serif !important;
+}
+
 html {
   scroll-behavior: smooth;
 }

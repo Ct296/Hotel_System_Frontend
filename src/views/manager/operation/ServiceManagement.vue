@@ -6,8 +6,8 @@
         <p class="text-body-secondary small mb-0">Thiết lập danh sách và theo dõi lịch sử sử dụng dịch vụ của khách hàng.</p>
       </div>
       <!-- Nút Thêm Dịch vụ chỉ hiện ở Tab Cấu hình -->
-      <button v-if="activeTab === 'services'" @click="openCreateModal" class="btn btn-primary shadow-sm fw-bold">
-        <i class="fas fa-plus me-2"></i> Thêm Dịch vụ
+      <button v-if="activeTab === 'services'" @click="openCreateModal" class="btn fw-bold px-4 shadow-sm" style="background-color: #6366f1; color: white; border: none; height: 38px;">
+        <i class="fas fa-plus me-2"></i> THÊM DỊCH VỤ
       </button>
     </div>
 
@@ -35,29 +35,76 @@
     <div class="tab-content">
       <!-- TAB 1: CẤU HÌNH DANH SÁCH DỊCH VỤ -->
       <div v-if="activeTab === 'services'" class="card border-0 shadow-sm rounded-4 overflow-hidden bg-body-tertiary">
-        <div class="card-body p-0">
+        <div class="card-header bg-transparent border-bottom-0 pt-4 pb-3">
+          <div class="d-flex justify-content-between align-items-center">
+            
+            <div class="d-flex align-items-center gap-2 flex-wrap flex-grow-1">
+              <!-- Nút Lọc Mở Rộng -->
+              <div class="dropdown">
+                <button class="btn btn-outline-secondary bg-body text-body-emphasis border-secondary-subtle px-3 shadow-sm d-flex align-items-center justify-content-center" style="height: 38px;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="fas fa-filter text-secondary"></i>
+                </button>
+                <div class="dropdown-menu shadow-lg border-0 p-3 rounded-4" style="width: 280px;">
+                  <h6 class="dropdown-header fw-bold text-body-emphasis px-0 mb-2">Bộ lọc dịch vụ</h6>
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold text-body-secondary mb-1">Trạng thái</label>
+                    <select v-model="filterStatus" class="form-select form-select-sm bg-body">
+                      <option value="ALL">Tất cả Trạng thái</option>
+                      <option v-for="st in serviceStatuses" :key="st" :value="st">{{ st === 'ACTIVE' ? 'ĐANG BÁN' : 'TẠM NGỪNG' }}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="form-label small fw-semibold text-body-secondary mb-1">Sắp xếp theo</label>
+                    <select v-model="sortOption" class="form-select form-select-sm bg-body">
+                      <option value="NEWEST">Tạo mới nhất</option>
+                      <option value="PRICE_ASC">Giá thấp đến cao</option>
+                      <option value="PRICE_DESC">Giá cao đến thấp</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Thanh tìm kiếm & Nút Làm Mới -->
+              <div class="input-group shadow-sm" style="max-width: 320px;">
+                <span class="input-group-text bg-body border-secondary-subtle text-secondary bg-transparent">
+                  <i class="fas fa-search"></i>
+                </span>
+                <input type="text" v-model="searchQuery" class="form-control bg-body border-secondary-subtle border-start-0 ps-0 shadow-none text-body-emphasis" placeholder="Tìm tên dịch vụ...">
+                <button @click="resetFilters" class="btn btn-outline-secondary bg-body border-secondary-subtle text-body-emphasis" type="button" title="Làm mới bộ lọc & tìm kiếm">
+                  <i class="fas fa-sync-alt"></i>
+                </button>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="card-body p-0 mt-2">
           <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="table-secondary">
+            <table class="table align-middle mb-0 custom-table">
+              <thead class="table-light text-body-secondary" style="font-size: 0.75rem;">
                 <tr>
-                  <th class="px-4 py-3" style="width: 90px;">Ảnh</th>
-                  <th class="py-3">Tên dịch vụ</th>
-                  <th class="py-3 text-end">Đơn giá (VNĐ)</th>
-                  <th class="py-3 text-center">Đơn vị tính</th>
-                  <th class="py-3 text-center">Trạng thái</th>
-                  <th class="py-3 text-end px-4">Hành động</th>
+                  <th class="px-4 py-3 fw-bold border-0 text-uppercase" style="width: 90px;">Ảnh</th>
+                  <th class="py-3 fw-bold border-0 text-uppercase">Tên dịch vụ</th>
+                  <th class="py-3 fw-bold border-0 text-uppercase text-end">Đơn giá (VNĐ)</th>
+                  <th class="py-3 fw-bold border-0 text-uppercase text-center">Đơn vị tính</th>
+                  <th class="py-3 fw-bold border-0 text-uppercase text-center">Trạng thái</th>
+                  <th class="py-3 fw-bold border-0 text-end px-4"></th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody class="bg-body border-top-0">
                 <tr v-if="isLoading">
                   <td colspan="6" class="text-center py-5">
                     <div class="spinner-border text-primary" role="status"></div>
                   </td>
                 </tr>
-                <tr v-else-if="services.length === 0">
-                  <td colspan="6" class="text-center py-5 text-body-secondary">Chưa có dịch vụ nào.</td>
+                <tr v-else-if="filteredAndSortedServices.length === 0">
+                  <td colspan="6" class="text-center py-5 text-body-secondary">
+                    <i class="fas fa-search-minus fs-2 mb-3 opacity-50"></i>
+                    <p class="mb-0">Không tìm thấy dịch vụ phù hợp.</p>
+                  </td>
                 </tr>
-                <tr v-else v-for="s in services" :key="s.id">
+                <tr v-else v-for="s in filteredAndSortedServices" :key="s.id" class="table-row-hover border-bottom border-secondary-subtle">
                   <td class="px-4">
                     <img :src="getImageUrl(s.imagePath)" 
                          class="rounded-3 shadow-sm border border-secondary-subtle bg-white" 
@@ -70,17 +117,28 @@
                   <td class="text-end fw-bold text-success">{{ formatPrice(s.basePrice) }}</td>
                   <td class="text-center"><span class="badge bg-body-secondary text-body-emphasis border border-secondary-subtle">{{ s.unit }}</span></td>
                   <td class="text-center">
-                    <span :class="s.status === 'ACTIVE' ? 'bg-success' : 'bg-secondary'" class="badge">
+                    <span :class="s.status === 'ACTIVE' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'" class="badge rounded-pill fw-bold">
                       {{ s.status === 'ACTIVE' ? 'ĐANG BÁN' : 'TẠM NGỪNG' }}
                     </span>
                   </td>
                   <td class="text-end px-4">
-                    <button @click="openEditModal(s)" class="btn btn-sm btn-outline-primary shadow-sm me-2" title="Chỉnh sửa">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button @click="deleteService(s.id)" class="btn btn-sm btn-outline-danger shadow-sm" title="Xóa">
-                      <i class="fas fa-trash"></i>
-                    </button>
+                    <div class="dropdown">
+                      <button class="btn btn-link text-body-secondary p-0 shadow-none fs-5" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-list"></i>
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-end shadow-sm border-secondary-subtle rounded-3">
+                        <li>
+                          <button class="dropdown-item fw-semibold text-info py-2" @click="openEditModal(s)">
+                            <i class="fas fa-edit me-2"></i> Chỉnh sửa
+                          </button>
+                        </li>
+                        <li>
+                          <button class="dropdown-item fw-semibold text-danger py-2" @click="deleteService(s.id)">
+                            <i class="fas fa-trash me-2"></i> Xóa dịch vụ
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -94,33 +152,38 @@
         <div class="card-header bg-transparent border-bottom-0 pt-4 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
           <h5 class="fw-bold text-primary mb-0"><i class="fas fa-receipt me-2"></i>Lịch sử Phục vụ</h5>
           
-          <!-- Thanh tìm kiếm -->
-          <div class="input-group input-group-sm" style="width: 250px;">
-            <span class="input-group-text bg-body border-secondary-subtle"><i class="fas fa-search text-body-secondary"></i></span>
-            <input type="text" v-model="historySearchQuery" class="form-control bg-body border-secondary-subtle" placeholder="Tìm tên dịch vụ...">
+          <!-- Thanh tìm kiếm Lịch sử -->
+          <div class="input-group shadow-sm" style="max-width: 320px;">
+            <span class="input-group-text bg-body border-secondary-subtle text-secondary bg-transparent">
+              <i class="fas fa-search"></i>
+            </span>
+            <input type="text" v-model="historySearchQuery" class="form-control bg-body border-secondary-subtle border-start-0 ps-0 shadow-none text-body-emphasis" placeholder="Tìm tên dịch vụ, mã đơn...">
           </div>
         </div>
-        <div class="card-body p-0">
+        <div class="card-body p-0 mt-2">
           <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="table-secondary">
+            <table class="table align-middle mb-0 custom-table">
+              <thead class="table-light text-body-secondary" style="font-size: 0.75rem;">
                 <tr>
-                  <th class="px-4 py-3">Thời gian</th>
-                  <th class="py-3">Mã đơn thuê</th>
-                  <th class="py-3">Tên dịch vụ</th>
-                  <th class="py-3 text-center">Số lượng</th>
-                  <th class="py-3 text-end px-4">Thành tiền</th>
+                  <th class="px-4 py-3 fw-bold border-0 text-uppercase">Thời gian</th>
+                  <th class="py-3 fw-bold border-0 text-uppercase">Mã đơn thuê</th>
+                  <th class="py-3 fw-bold border-0 text-uppercase">Tên dịch vụ</th>
+                  <th class="py-3 fw-bold border-0 text-uppercase text-center">Số lượng</th>
+                  <th class="py-3 fw-bold border-0 text-uppercase text-end px-4">Thành tiền</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody class="bg-body border-top-0">
                 <tr v-if="isLoading">
                   <td colspan="5" class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></td>
                 </tr>
                 <tr v-else-if="filteredHistory.length === 0">
-                  <td colspan="5" class="text-center py-5 text-body-secondary">Không tìm thấy lịch sử phù hợp.</td>
+                  <td colspan="5" class="text-center py-5 text-body-secondary">
+                    <i class="fas fa-search-minus fs-2 mb-3 opacity-50"></i>
+                    <p class="mb-0">Không tìm thấy lịch sử phù hợp.</p>
+                  </td>
                 </tr>
-                <tr v-else v-for="h in filteredHistory" :key="h.id">
-                  <td class="px-4 text-body-secondary small">{{ formatDate(h.time) }}</td>
+                <tr v-else v-for="h in filteredHistory" :key="h.id" class="table-row-hover border-bottom border-secondary-subtle">
+                  <td class="px-4 text-body-secondary small fw-semibold">{{ formatDate(h.time) }}</td>
                   <td class="fw-semibold text-body-emphasis">{{ h.rentalDetail?.rental?.id || 'N/A' }}</td>
                   <td class="fw-bold text-primary">{{ h.service?.name }}</td>
                   <td class="text-center fw-bold">{{ h.count }} {{ h.service?.unit }}</td>
@@ -134,7 +197,7 @@
     </div>
 
     <!-- MODAL THÊM/SỬA DỊCH VỤ -->
-    <div v-if="showModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
+    <div v-if="showModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5); z-index: 1050;">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 bg-body-tertiary">
           <div class="modal-header bg-primary text-white">
@@ -149,28 +212,28 @@
               <div class="row g-3">
                 <div class="col-12">
                   <label class="form-label fw-semibold text-body-secondary">Tên dịch vụ <span class="text-danger">*</span></label>
-                  <input v-model="form.name" type="text" class="form-control bg-body" required placeholder="VD: Nước suối Dasani, Giặt ủi...">
+                  <input v-model="form.name" type="text" class="form-control bg-body text-body-emphasis" required placeholder="VD: Nước suối Dasani, Giặt ủi...">
                 </div>
                 
                 <div class="col-md-6">
                   <label class="form-label fw-semibold text-body-secondary">Đơn giá (VNĐ) <span class="text-danger">*</span></label>
-                  <input v-model="form.basePrice" type="number" min="0" class="form-control bg-body fw-bold text-success" required>
+                  <input v-model="form.basePrice" type="number" min="0" class="form-control bg-body fw-bold text-success text-body-emphasis" required>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label fw-semibold text-body-secondary">Đơn vị tính <span class="text-danger">*</span></label>
-                  <input v-model="form.unit" type="text" class="form-control bg-body" required placeholder="VD: Chai, Lon, Kg, Lít...">
+                  <input v-model="form.unit" type="text" class="form-control bg-body text-body-emphasis" required placeholder="VD: Chai, Lon, Kg, Lít...">
                 </div>
 
                 <div class="col-12">
                   <label class="form-label fw-semibold text-body-secondary">Trạng thái <span class="text-danger">*</span></label>
-                  <select v-model="form.status" class="form-select bg-body" required>
+                  <select v-model="form.status" class="form-select bg-body text-body-emphasis" required>
                     <option v-for="st in serviceStatuses" :key="st" :value="st">{{ st === 'ACTIVE' ? 'ĐANG BÁN' : 'TẠM NGỪNG' }}</option>
                   </select>
                 </div>
 
                 <div class="col-12">
                   <label class="form-label fw-semibold text-body-secondary">Mô tả thêm (Không bắt buộc)</label>
-                  <textarea v-model="form.description" class="form-control bg-body" rows="2" placeholder="Ghi chú chi tiết..."></textarea>
+                  <textarea v-model="form.description" class="form-control bg-body text-body-emphasis" rows="2" placeholder="Ghi chú chi tiết..."></textarea>
                 </div>
 
                 <div class="col-12 mt-3">
@@ -180,13 +243,13 @@
                     <img :src="getImageUrl(currentImagePath)" class="rounded shadow-sm bg-white me-3" style="width: 50px; height: 50px; object-fit: cover;">
                     <span class="small text-body-secondary">Ảnh hiện tại trên hệ thống. Trống khung dưới để giữ nguyên.</span>
                   </div>
-                  <input type="file" class="form-control bg-body" accept="image/*" @change="handleImage">
+                  <input type="file" class="form-control bg-body text-body-emphasis" accept="image/*" @change="handleImage">
                   <small class="text-body-secondary">Định dạng JPG, PNG. {{ isEditMode ? 'Chỉ chọn ảnh mới nếu muốn đổi ảnh cũ.' : '' }}</small>
                 </div>
               </div>
             </div>
             <div class="modal-footer bg-body border-0 rounded-bottom-4">
-              <button type="button" class="btn btn-secondary" @click="closeModal">Hủy</button>
+              <button type="button" class="btn btn-secondary fw-semibold" @click="closeModal">Hủy</button>
               <button type="submit" class="btn btn-primary fw-bold" :disabled="isProcessing">
                 <span v-if="isProcessing" class="spinner-border spinner-border-sm me-1"></span> 
                 {{ isEditMode ? 'Lưu thay đổi' : 'Xác nhận Thêm' }}
@@ -225,9 +288,9 @@
 import { ref, computed, onMounted } from 'vue'
 import api from '../../../utils/axios'
 
-const activeTab = ref('services') // Tab điều hướng ngang
+const activeTab = ref('services')
 const services = ref([])
-const serviceUsages = ref([]) // Mảng lưu lịch sử sử dụng dịch vụ
+const serviceUsages = ref([])
 const serviceStatuses = ref([])
 const isLoading = ref(true)
 const isProcessing = ref(false)
@@ -235,14 +298,57 @@ const showModal = ref(false)
 const isEditMode = ref(false)
 const notification = ref({ type: '', message: '' })
 
-// Search bar cho Lịch sử
-const historySearchQuery = ref('')
-
 const form = ref({
   serviceId: '', name: '', description: '', unit: '', basePrice: 0, status: 'ACTIVE'
 })
 const imageFile = ref(null)
 const currentImagePath = ref(null)
+
+// Bộ Lọc & Tìm Kiếm Danh Sách Dịch Vụ
+const searchQuery = ref('')
+const filterStatus = ref('ALL')
+const sortOption = ref('NEWEST')
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  filterStatus.value = 'ALL'
+  sortOption.value = 'NEWEST'
+}
+
+const filteredAndSortedServices = computed(() => {
+  let result = services.value
+
+  if (filterStatus.value !== 'ALL') {
+    result = result.filter(s => s.status === filterStatus.value)
+  }
+
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase().trim()
+    result = result.filter(s => s.name?.toLowerCase().includes(q))
+  }
+
+  if (sortOption.value === 'PRICE_ASC') {
+    result = result.slice().sort((a, b) => (a.basePrice || 0) - (b.basePrice || 0))
+  } else if (sortOption.value === 'PRICE_DESC') {
+    result = result.slice().sort((a, b) => (b.basePrice || 0) - (a.basePrice || 0))
+  } else if (sortOption.value === 'NEWEST') {
+    // Nếu có CreateDate thì sắp xếp theo ngày, ngược lại giữ nguyên (mặc định backend)
+    result = result.slice().sort((a, b) => a.createDate && b.createDate ? new Date(b.createDate) - new Date(a.createDate) : 0)
+  }
+
+  return result
+})
+
+const historySearchQuery = ref('')
+
+const filteredHistory = computed(() => {
+  if (!historySearchQuery.value.trim()) return serviceUsages.value
+  const q = historySearchQuery.value.toLowerCase().trim()
+  return serviceUsages.value.filter(h => 
+    h.service?.name?.toLowerCase().includes(q) || 
+    h.rentalDetail?.rental?.id?.toLowerCase().includes(q)
+  )
+})
 
 // Confirm Modal Logic
 const showConfirmModal = ref(false)
@@ -279,12 +385,6 @@ const getImageUrl = (path) => {
 }
 const handleImageError = (e) => { e.target.src = 'https://placehold.co/100x100?text=Error' }
 
-// Computed filter cho Lịch sử
-const filteredHistory = computed(() => {
-  if (!historySearchQuery.value.trim()) return serviceUsages.value
-  const q = historySearchQuery.value.toLowerCase().trim()
-  return serviceUsages.value.filter(h => h.service?.name?.toLowerCase().includes(q))
-})
 
 const fetchData = async () => {
   isLoading.value = true
@@ -292,8 +392,6 @@ const fetchData = async () => {
     const res = await api.get('/api/manager/operation/dashboard')
     services.value = res.data.services || []
     serviceStatuses.value = res.data.serviceStatuses || []
-    
-    // Nếu API có trả về danh sách sử dụng dịch vụ (serviceUsages)
     serviceUsages.value = res.data.serviceUsages || []
   } catch (error) {
     showNotification('danger', 'Không thể tải dữ liệu dịch vụ.')
@@ -371,7 +469,6 @@ const deleteService = (id) => {
       showNotification('success', 'Đã xóa dịch vụ.')
       fetchData()
     } catch (error) {
-      // Backend sẽ quăng lỗi nếu countByServiceId > 0
       showNotification('danger', error.response?.data?.error || 'Không thể xóa dịch vụ này vì đã được sử dụng.')
     }
   })
@@ -395,9 +492,23 @@ onMounted(() => fetchData())
 .nav-pills .nav-link:hover:not(.active) {
   background-color: var(--bs-secondary-bg);
 }
-
-/* Dark Mode Hover Fix cho Nav */
 [data-bs-theme="dark"] .nav-pills .nav-link:hover:not(.active) {
   background-color: rgba(255,255,255,0.05);
 }
+
+.custom-table th {
+  background-color: transparent !important;
+  font-weight: 700;
+  color: var(--bs-secondary);
+}
+.table-row-hover:hover {
+  background-color: var(--bs-secondary-bg) !important;
+  transition: background-color 0.2s;
+}
+.dropdown-item:active {
+  background-color: var(--bs-secondary-bg);
+  color: inherit;
+}
+.modal-body::-webkit-scrollbar { width: 6px; }
+.modal-body::-webkit-scrollbar-thumb { background-color: var(--bs-secondary-bg); border-radius: 4px; }
 </style>

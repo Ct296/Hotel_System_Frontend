@@ -1,10 +1,12 @@
 <template>
   <div class="bg-body-tertiary min-vh-100 pb-5">
-    <!-- Header Banner -->
-    <div class="bg-primary text-white py-5" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-      <div class="container py-4 text-center">
-        <h1 class="fw-bold mb-3">Đánh giá từ Khách hàng</h1>
-        <p class="lead mb-0 opacity-75">Trải nghiệm thực tế của quý khách là thước đo thành công của ITHotel.</p>
+    
+    <!-- BANNER CHÍNH ĐÃ ĐỒNG BỘ -->
+    <div class="position-relative hero-section d-flex align-items-center justify-content-center text-center text-white shadow-sm">
+      <div class="hero-overlay"></div>
+      <div class="container py-4 position-relative z-2">
+        <h1 class="fw-bold text-uppercase mb-3 font-serif display-4 text-shadow-sm">Đánh giá từ Khách hàng</h1>
+        <p class="lead mb-0 opacity-75 text-shadow-sm">Trải nghiệm thực tế của quý khách là thước đo thành công của ITHotel.</p>
       </div>
     </div>
 
@@ -27,7 +29,7 @@
                   <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                     <i class="fas fa-lock fs-4"></i>
                   </div>
-                  <h5 class="fw-bold text-body-emphasis mb-2">Bạn đã từng lưu trú?</h5>
+                  <h5 class="fw-bold text-body-emphasis mb-2 font-serif">Bạn đã từng lưu trú?</h5>
                   <p class="text-body-secondary small mb-4">Vui lòng đăng nhập để chia sẻ trải nghiệm của bạn với chúng tôi.</p>
                   <router-link to="/login" class="btn btn-primary w-100 fw-bold rounded-pill shadow-sm">Đăng nhập ngay</router-link>
                 </div>
@@ -35,13 +37,13 @@
                 <!-- TH 2: Đã đăng nhập nhưng không phải là Khách hàng (VD: Admin/Staff) -->
                 <div v-else-if="authStore.role !== 'CUSTOMER'" class="text-center py-3">
                   <i class="fas fa-info-circle text-body-secondary fs-1 mb-3"></i>
-                  <h6 class="fw-bold text-body-emphasis">Tính năng dành cho Khách hàng</h6>
+                  <h6 class="fw-bold text-body-emphasis font-serif">Tính năng dành cho Khách hàng</h6>
                   <p class="text-body-secondary small mb-0">Tài khoản nhân viên không thể gửi đánh giá.</p>
                 </div>
 
                 <!-- TH 3: Khách hàng (Đã có đánh giá hoặc chưa có đánh giá) -->
                 <div v-else>
-                  <h5 class="fw-bold text-body-emphasis mb-3 border-bottom border-secondary-subtle pb-2">
+                  <h5 class="fw-bold text-body-emphasis mb-3 border-bottom border-secondary-subtle pb-2 font-serif">
                     <i class="fas fa-pen-nib text-primary me-2"></i> 
                     {{ hasMyReview ? 'Cập nhật đánh giá' : 'Gửi đánh giá' }}
                   </h5>
@@ -89,7 +91,7 @@
           <div v-else-if="reviews.length === 0" class="card border-0 shadow-sm rounded-4 bg-body text-center py-5">
             <div class="card-body">
               <i class="fas fa-comments fs-1 text-body-secondary opacity-50 mb-3"></i>
-              <h5 class="fw-bold text-body-emphasis">Chưa có đánh giá nào</h5>
+              <h5 class="fw-bold text-body-emphasis font-serif">Chưa có đánh giá nào</h5>
               <p class="text-body-secondary mb-0">Hãy là người đầu tiên chia sẻ trải nghiệm tại ITHotel.</p>
             </div>
           </div>
@@ -104,7 +106,7 @@
                          style="width: 50px; height: 50px;" 
                          @error="handleImageError" alt="Avatar">
                     <div>
-                      <h6 class="fw-bold text-body-emphasis mb-1">
+                      <h6 class="fw-bold text-body-emphasis mb-1 font-serif fs-5">
                         {{ review.customer?.user?.lastName }} {{ review.customer?.user?.firstName }}
                       </h6>
                       <div class="text-warning small">
@@ -225,6 +227,28 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* CSS ĐỒNG BỘ BANNER */
+.hero-section {
+  min-height: auto;
+  padding: 120px 0;
+  background: url('https://images.unsplash.com/photo-1542314831-c6a4d1409e1c?auto=format&fit=crop&w=1920&q=80') center center / cover no-repeat;
+}
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.75));
+  z-index: 1;
+}
+.text-shadow-sm {
+  text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.font-serif {
+  font-family: 'Playfair Display', serif !important;
+}
 .cursor-pointer {
   cursor: pointer;
 }

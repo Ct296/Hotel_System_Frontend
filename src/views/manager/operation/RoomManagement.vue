@@ -1,88 +1,121 @@
 <template>
   <div class="position-relative">
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
         <h3 class="fw-bold text-body-emphasis mb-1">Quản lý Phòng Vật Lý</h3>
         <p class="text-body-secondary small mb-0">Thêm phòng thực tế, gán loại phòng và tải ảnh lên.</p>
       </div>
-      <!-- Nút mở Modal Thêm Phòng -->
-      <button @click="openCreateModal" class="btn btn-primary shadow-sm fw-bold">
-        <i class="fas fa-plus me-2"></i> Thêm Phòng
+      <button @click="openCreateModal" class="btn fw-bold px-4 shadow-sm" style="background-color: #6366f1; color: white; border: none; height: 38px;">
+        <i class="fas fa-plus me-2"></i> THÊM PHÒNG
       </button>
     </div>
 
-    <!-- Thông báo Alert -->
     <div v-if="notification.message" :class="`alert alert-${notification.type} alert-dismissible fade show shadow-sm`" role="alert">
       <i :class="notification.type === 'success' ? 'fas fa-check-circle me-2' : 'fas fa-exclamation-triangle me-2'"></i>
       {{ notification.message }}
       <button type="button" class="btn-close" @click="notification.message = ''"></button>
     </div>
 
-    <!-- BẢNG DANH SÁCH PHÒNG (Full width) -->
+    <!-- KHỐI QUẢN LÝ DANH SÁCH -->
     <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary">
-      <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center flex-wrap gap-3">
-        <h5 class="fw-bold text-body-emphasis mb-0"><i class="fas fa-list-ul me-2 text-primary"></i>Danh sách Phòng</h5>
-        
-        <div class="d-flex gap-2">
-          <!-- Dropdown Lọc Trạng thái -->
-          <select v-model="filterStatus" class="form-select form-select-sm bg-body border-secondary-subtle text-body-emphasis" style="width: 150px;">
-            <option value="ALL">Tất cả Trạng thái</option>
-            <option v-for="st in roomStatuses" :key="st" :value="st">{{ st }}</option>
-          </select>
-          <!-- Thanh tìm kiếm -->
-          <div class="input-group input-group-sm" style="width: 250px;">
-            <span class="input-group-text bg-body border-secondary-subtle"><i class="fas fa-search text-body-secondary"></i></span>
-            <input type="text" v-model="searchQuery" class="form-control bg-body border-secondary-subtle text-body-emphasis" placeholder="Tìm tên phòng, loại phòng...">
+      
+      <!-- HEADER: THANH CÔNG CỤ -->
+      <div class="card-header bg-transparent border-bottom-0 pt-4 pb-3">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+          
+          <div class="d-flex align-items-center gap-2 flex-wrap flex-grow-1">
+            <!-- Nút Lọc Mở Rộng -->
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary bg-body text-body-emphasis border-secondary-subtle px-3 shadow-sm d-flex align-items-center justify-content-center" style="height: 38px;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-filter text-secondary"></i>
+              </button>
+              <div class="dropdown-menu shadow-lg border-0 p-3 rounded-4" style="width: 280px;">
+                <h6 class="dropdown-header fw-bold text-body-emphasis px-0 mb-2">Bộ lọc phòng</h6>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold text-body-secondary mb-1">Trạng thái phòng</label>
+                  <select v-model="filterStatus" class="form-select form-select-sm bg-body">
+                    <option value="ALL">Tất cả Trạng thái</option>
+                    <option v-for="st in roomStatuses" :key="st" :value="st">{{ st }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Thanh tìm kiếm & Nút Làm Mới -->
+            <div class="input-group shadow-sm" style="max-width: 320px;">
+              <span class="input-group-text bg-body border-secondary-subtle text-secondary bg-transparent">
+                <i class="fas fa-search"></i>
+              </span>
+              <input type="text" v-model="searchQuery" class="form-control bg-body border-secondary-subtle border-start-0 ps-0 shadow-none text-body-emphasis" placeholder="Tìm tên phòng, loại phòng...">
+              <button @click="resetFilters" class="btn btn-outline-secondary bg-body border-secondary-subtle text-body-emphasis" type="button" title="Làm mới bộ lọc & tìm kiếm">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+            </div>
           </div>
+
         </div>
       </div>
       
       <div class="card-body p-0 mt-2">
         <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="table-secondary">
+          <table class="table align-middle mb-0 custom-table">
+            <thead class="table-light text-body-secondary" style="font-size: 0.75rem;">
               <tr>
-                <th class="px-4 py-3" style="width: 80px;">Ảnh</th>
-                <th class="py-3">Phòng</th>
-                <th class="py-3">Vị trí</th>
-                <th class="py-3">Hạng</th>
-                <th class="py-3 text-center">Trạng thái</th>
-                <th class="py-3 text-end px-4">Hành động</th>
+                <th class="px-4 py-3 fw-bold border-0 text-uppercase">Phòng</th>
+                <th class="py-3 fw-bold border-0 text-uppercase">Vị trí</th>
+                <th class="py-3 fw-bold border-0 text-uppercase">Hạng</th>
+                <th class="py-3 fw-bold border-0 text-uppercase text-center" style="width: 100px;">Ảnh chính</th>
+                <th class="py-3 fw-bold border-0 text-uppercase text-center">SL Ảnh chính</th>
+                <th class="py-3 fw-bold border-0 text-uppercase text-center">SL Ảnh phụ</th>
+                <th class="py-3 fw-bold border-0 text-uppercase text-center">Trạng thái</th>
+                <th class="py-3 fw-bold border-0 text-end px-4"></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="bg-body border-top-0">
               <tr v-if="isLoading">
-                <td colspan="6" class="text-center py-5 text-body-secondary">
+                <td colspan="8" class="text-center py-5 text-body-secondary">
                   <div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div> Đang tải...
                 </td>
               </tr>
               <tr v-else-if="filteredRooms.length === 0">
-                <td colspan="6" class="text-center py-5 text-body-secondary">
+                <td colspan="8" class="text-center py-5 text-body-secondary">
                   <i class="fas fa-search-minus fs-2 mb-3 opacity-50"></i>
                   <p class="mb-0">Không tìm thấy phòng phù hợp.</p>
                 </td>
               </tr>
-              <tr v-else v-for="r in filteredRooms" :key="r.id">
-                <td class="px-4">
+              <tr v-else v-for="r in filteredRooms" :key="r.id" class="table-row-hover border-bottom border-secondary-subtle">
+                <td class="px-4 fw-bold text-primary fs-6">{{ r.name }}</td>
+                <td class="text-body-secondary small"><i class="fas fa-map-marker-alt text-danger me-1"></i>{{ r.location }}</td>
+                <td><span class="badge bg-body-secondary text-body-emphasis border border-secondary-subtle">{{ r.roomType?.name || 'N/A' }}</span></td>
+                <td class="text-center">
                   <img :src="getPrimaryImageSrc(r)" 
                        class="rounded-3 shadow-sm border border-secondary-subtle bg-white" 
                        style="width: 45px; height: 45px; object-fit: cover;"
                        @error="handleImageError" alt="Thumbnail">
                 </td>
-                <td class="fw-bold text-primary fs-6">{{ r.name }}</td>
-                <td class="text-body-secondary small"><i class="fas fa-map-marker-alt text-danger me-1"></i>{{ r.location }}</td>
-                <td><span class="badge bg-body-secondary text-body-emphasis border border-secondary-subtle">{{ r.roomType?.name || 'N/A' }}</span></td>
+                <td class="text-center fw-semibold text-body-secondary">{{ getPrimaryImageCount(r) }}</td>
+                <td class="text-center fw-semibold text-body-secondary">{{ getSecondaryImageCount(r) }}</td>
                 <td class="text-center">
-                  <span :class="getStatusBadgeClass(r.status)" class="badge">{{ r.status }}</span>
+                  <span :class="getStatusBadgeClass(r.status)" class="badge rounded-pill fw-bold">{{ r.status }}</span>
                 </td>
                 <td class="text-end px-4">
-                  <button @click="openEditModal(r)" class="btn btn-sm btn-outline-primary shadow-sm me-2" title="Chỉnh sửa & Quản lý Ảnh">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button @click="deleteRoom(r.id)" class="btn btn-sm btn-outline-danger shadow-sm" title="Xóa phòng">
-                    <i class="fas fa-trash"></i>
-                  </button>
+                  <div class="dropdown">
+                    <button class="btn btn-link text-body-secondary p-0 shadow-none fs-5" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="fas fa-list"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-secondary-subtle rounded-3">
+                      <li>
+                        <button class="dropdown-item fw-semibold text-info py-2" @click="openEditModal(r)">
+                          <i class="fas fa-edit me-2"></i> Chỉnh sửa & Quản lý Ảnh
+                        </button>
+                      </li>
+                      <li>
+                        <button class="dropdown-item fw-semibold text-danger py-2" @click="deleteRoom(r.id)">
+                          <i class="fas fa-trash me-2"></i> Xóa phòng
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -237,6 +270,11 @@ const selectedImagesToDelete = ref([])
 const searchQuery = ref('')
 const filterStatus = ref('ALL')
 
+const resetFilters = () => {
+  searchQuery.value = ''
+  filterStatus.value = 'ALL'
+}
+
 const filteredRooms = computed(() => {
   let result = rooms.value
 
@@ -263,9 +301,9 @@ const showNotification = (type, message) => {
 
 // Xử lý Class Trạng Thái
 const getStatusBadgeClass = (status) => {
-  if (status === 'AVAILABLE') return 'bg-success'
-  if (status === 'OCCUPIED') return 'bg-danger'
-  if (status === 'MAINTENANCE') return 'bg-warning text-dark'
+  if (status === 'AVAILABLE') return 'bg-success-subtle text-success'
+  if (status === 'OCCUPIED') return 'bg-danger-subtle text-danger'
+  if (status === 'MAINTENANCE') return 'bg-warning-subtle text-warning'
   return 'bg-secondary'
 }
 
@@ -276,12 +314,20 @@ const getStatusTextClass = (status) => {
   return 'text-body'
 }
 
-// XỬ LÝ ĐƯỜNG DẪN ẢNH (FIX LỖI MIXED CONTENT HTTPS)
 const getImageUrl = (imgObj) => {
   if (!imgObj) return 'https://placehold.co/100x100?text=No+Image'
   const path = imgObj.imagePath || imgObj.url || imgObj.path
-  // Thay thế localhost thành URL API thật
   return path ? `https://api.ct296.id.vn${path}` : 'https://placehold.co/100x100?text=No+Image'
+}
+
+const getPrimaryImageCount = (room) => {
+  if (!room.images) return 0;
+  return room.images.filter(img => img.isPrimary).length;
+}
+
+const getSecondaryImageCount = (room) => {
+  if (!room.images) return 0;
+  return room.images.filter(img => !img.isPrimary).length;
 }
 
 const getPrimaryImageSrc = (room) => {
@@ -307,7 +353,6 @@ const fetchData = async () => {
   }
 }
 
-// Lấy lại ảnh sau khi xóa (để không cần reload toàn trang)
 const refreshRoomImagesLocal = async (roomId) => {
   try {
     const res = await api.get('/api/manager/operation/dashboard')
@@ -328,7 +373,6 @@ const refreshRoomImagesLocal = async (roomId) => {
 const handlePrimaryImage = (e) => { primaryImageFile.value = e.target.files.length > 0 ? e.target.files[0] : null }
 const handleSecondaryImages = (e) => { secondaryImageFiles.value = Array.from(e.target.files) }
 
-// Kích hoạt Modal Thêm
 const openCreateModal = () => {
   isEditMode.value = false
   form.value = { roomId: '', name: '', location: '', roomTypeId: '', status: 'AVAILABLE' }
@@ -344,7 +388,6 @@ const openCreateModal = () => {
   showModal.value = true
 }
 
-// Kích hoạt Modal Sửa
 const openEditModal = (r) => {
   isEditMode.value = true
   form.value = { roomId: r.id, name: r.name, location: r.location, roomTypeId: r.roomType?.id || '', status: r.status }
@@ -367,12 +410,10 @@ const openEditModal = (r) => {
   showModal.value = true
 }
 
-// Đóng Modal
 const closeModal = () => {
   showModal.value = false
 }
 
-// --- LOGIC XÓA ẢNH (BẮN API DELETE TRỰC TIẾP) ---
 const deleteSingleImage = async (roomId, imageId) => {
   if (!confirm('Bạn có muốn xóa bức ảnh này ngay lúc này? Thao tác không thể hoàn tác.')) return
   try {
@@ -402,7 +443,6 @@ const deleteSelectedImages = async (roomId) => {
   }
 }
 
-// Xử lý Lưu / Thêm mới
 const submitForm = async () => {
   isProcessing.value = true
   try {
@@ -421,7 +461,7 @@ const submitForm = async () => {
     await api.post('/api/manager/operation/rooms', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
     
     showNotification('success', isEditMode.value ? 'Lưu thay đổi phòng & tải ảnh lên thành công!' : 'Thêm phòng mới thành công!')
-    closeModal() // Đóng modal sau khi lưu thành công
+    closeModal()
     fetchData()
   } catch (error) {
     showNotification('danger', error.response?.data?.error || 'Lỗi khi lưu phòng. Vui lòng kiểm tra lại dữ liệu.')
@@ -438,11 +478,24 @@ onMounted(() => fetchData())
 </script>
 
 <style scoped>
+.custom-table th {
+  background-color: transparent !important;
+  font-weight: 700;
+  color: var(--bs-secondary);
+}
+
+.table-row-hover:hover {
+  background-color: var(--bs-secondary-bg) !important;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:active {
+  background-color: var(--bs-secondary-bg);
+  color: inherit;
+}
+
 .cursor-pointer { cursor: pointer; }
 .object-fit-cover { object-fit: cover; }
-.table-active { background-color: var(--bs-secondary-bg) !important; }
-
-/* Custom Scrollbar cho Form dài */
 .modal-body::-webkit-scrollbar { width: 6px; }
 .modal-body::-webkit-scrollbar-thumb { background-color: var(--bs-secondary-bg); border-radius: 4px; }
 </style>

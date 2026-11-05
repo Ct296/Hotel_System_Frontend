@@ -4,7 +4,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top py-3 shadow-sm bg-primary">
       <div class="container">
         <!-- Logo -->
-        <router-link class="navbar-brand fw-bold d-flex align-items-center" to="/home">
+        <router-link class="navbar-brand fw-bold d-flex align-items-center font-serif" to="/home">
           <div class="bg-white text-primary rounded d-flex align-items-center justify-content-center me-2 shadow-sm" style="width: 35px; height: 35px;">
             <i class="fas fa-hotel"></i>
           </div>
@@ -18,7 +18,7 @@
         
         <!-- Navigation Links -->
         <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav mx-auto fw-semibold gap-1">
+          <ul class="navbar-nav mx-auto fw-semibold gap-1 font-serif">
             <li class="nav-item"><router-link class="nav-link px-3 rounded-pill" to="/home">Trang chủ</router-link></li>
             <li class="nav-item"><router-link class="nav-link px-3 rounded-pill" to="/rooms">Phòng nghỉ</router-link></li>
             <li class="nav-item"><router-link class="nav-link px-3 rounded-pill" to="/services">Dịch vụ</router-link></li>
@@ -35,8 +35,8 @@
 
             <!-- CHƯA ĐĂNG NHẬP -->
             <template v-if="!authStore.isAuthenticated">
-              <router-link to="/login" class="btn btn-outline-light rounded-pill px-4 fw-bold">Đăng nhập</router-link>
-              <router-link to="/register" class="btn btn-light text-primary rounded-pill px-4 fw-bold shadow-sm">Đăng ký</router-link>
+              <router-link to="/login" class="btn btn-outline-light rounded-pill px-4 fw-bold font-serif">Đăng nhập</router-link>
+              <router-link to="/register" class="btn btn-light text-primary rounded-pill px-4 fw-bold shadow-sm font-serif">Đăng ký</router-link>
             </template>
             
             <!-- ĐÃ ĐĂNG NHẬP -->
@@ -47,7 +47,7 @@
                     <img v-if="authStore.user?.avatar" :src="getImageUrl(authStore.user.avatar)" alt="Avatar" class="w-100 h-100 object-fit-cover" @error="handleImageError">
                     <i v-else class="fas fa-user"></i>
                   </span>
-                  <span class="fw-bold text-truncate" style="max-width: 120px;">
+                  <span class="fw-bold text-truncate font-serif" style="max-width: 120px;">
                     {{ authStore.user?.fullName || 'Tài khoản' }}
                   </span>
                 </a>
@@ -73,15 +73,15 @@
       <div class="container">
         <div class="row g-4">
           <div class="col-lg-4 col-md-6 text-center text-md-start">
-            <h4 class="text-white fw-bold mb-3"><span class="text-primary">IT</span>Hotel</h4>
-            <p class="text-secondary small">Hệ thống đặt phòng khách sạn đẳng cấp 5 sao.</p>
+            <h4 class="text-white fw-bold mb-3 font-serif"><span class="text-primary">IT</span>Hotel</h4>
+            <p class="text-secondary small font-serif">Hệ thống đặt phòng khách sạn đẳng cấp 5 sao.</p>
             <div class="mt-3">
               <a href="https://www.facebook.com/" target="_blank" class="btn btn-outline-primary btn-sm rounded-circle me-2 shadow-sm"><i class="fab fa-facebook-f"></i></a>
               <a href="#" class="btn btn-outline-primary btn-sm rounded-circle me-2 shadow-sm"><i class="fab fa-tiktok"></i></a>
             </div>
           </div>
 
-          <div class="col-lg-4 col-md-6 text-center text-md-start">
+          <div class="col-lg-4 col-md-6 text-center text-md-start font-serif">
             <h5 class="fw-bold mb-3 text-info">Liên kết</h5>
             <ul class="list-unstyled small">
               <li class="mb-2"><router-link to="/home" class="text-decoration-none text-secondary custom-hover">Trang chủ</router-link></li>
@@ -94,7 +94,7 @@
             </ul>
           </div>
 
-          <div class="col-lg-4 col-md-12 text-center text-md-start">
+          <div class="col-lg-4 col-md-12 text-center text-md-start font-serif">
             <h5 class="fw-bold mb-3 text-info">Liên hệ</h5>
             <p class="small text-secondary mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i> 3/2 Street, Can Tho</p>
             <p class="small text-secondary mb-2"><i class="fas fa-phone me-2 text-primary"></i> (+84) 0909 999 999</p>
@@ -103,7 +103,7 @@
         </div>
 
         <hr class="border-secondary my-4">
-        <div class="text-center small text-secondary">&copy; 2026 ITHotel. Designed by IT Group</div>
+        <div class="text-center small text-secondary font-serif">&copy; 2026 ITHotel. Designed by IT Group</div>
       </div>
     </footer>
   </div>
@@ -150,16 +150,20 @@ const handleLogout = async () => {
 </script>
 
 <style scoped>
-/* Tăng cỡ chữ Header (Navbar) */
+.font-serif {
+  font-family: 'Playfair Display', serif !important;
+}
+
+/* Kích thước chữ Header (Navbar) */
 .navbar-nav .nav-link {
-  font-size: 0,95rem; 
-  padding-left: 0,75rem !important;
-  padding-right: 0,75rem !important;
+  font-size: 1.1rem; 
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
   transition: all 0.2s ease-in-out;
 }
 
 .navbar-brand {
-  font-size: 1.5rem; 
+  font-size: 2rem; 
 }
 
 .navbar-nav .nav-link:hover {
@@ -167,28 +171,27 @@ const handleLogout = async () => {
   color: #fff !important;
 }
 
-/* KHẮC PHỤC LỖI LOGO BỊ ĐEN: Chỉ bôi đen các link nằm trong menu navbar-nav */
 .navbar-nav .nav-link.router-link-active {
   font-weight: bold;
   background-color: rgba(255, 255, 255, 0.2);
   color: #fff !important;
 }
 
-/* Tăng cỡ chữ Footer */
+/* Kích thước chữ Footer (Nhỏ lại) */
 footer p, 
 footer a, 
 footer li, 
 footer span,
 footer .small {
-  font-size: 1.1rem !important;
-  line-height: 1.8;
+  font-size: 0.95rem !important;
+  line-height: 1.6;
 }
 
 footer h4, 
 footer h5, 
 footer .fw-bold {
-  font-size: 1.35rem !important; 
-  margin-bottom: 1.25rem !important;
+  font-size: 1.2rem !important; 
+  margin-bottom: 1rem !important;
 }
 
 .custom-hover:hover {

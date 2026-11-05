@@ -1,10 +1,12 @@
 <template>
   <div class="bg-body-tertiary min-vh-100 pb-5">
-    <!-- Banner -->
-    <div class="bg-primary text-white py-5 text-center shadow-sm" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-      <div class="container py-4">
-        <h1 class="fw-bold text-uppercase mb-3 font-serif">Dịch vụ & Tiện ích</h1>
-        <p class="lead mb-0 opacity-75">Nâng tầm trải nghiệm nghỉ dưỡng của bạn tại IT Hotel</p>
+    
+    <!-- BANNER CHÍNH ĐÃ ĐỒNG BỘ -->
+    <div class="position-relative hero-section d-flex align-items-center justify-content-center text-center text-white shadow-sm">
+      <div class="hero-overlay"></div>
+      <div class="container py-4 position-relative z-2">
+        <h1 class="fw-bold text-uppercase mb-3 font-serif display-4 text-shadow-sm">Dịch vụ & Tiện ích</h1>
+        <p class="lead mb-0 opacity-75 text-shadow-sm">Nâng tầm trải nghiệm nghỉ dưỡng của bạn tại IT Hotel</p>
       </div>
     </div>
 
@@ -53,7 +55,7 @@
 
         <!-- CỘT PHẢI: HƯỚNG DẪN DỊCH VỤ -->
         <div class="col-lg-4">
-          <div class="card border-0 shadow-sm rounded-4 sticky-top bg-body" style="top: 90px;">
+          <div class="card border-0 shadow-sm rounded-4 bg-body">
             <div class="card-body p-4">
               <h5 class="fw-bold text-body-emphasis mb-4 font-serif text-uppercase"><i class="fas fa-info-circle me-2 text-primary"></i>Hướng dẫn</h5>
               
@@ -147,8 +149,27 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* CSS ĐỒNG BỘ BANNER */
+.hero-section {
+  min-height: auto;
+  padding: 120px 0;
+  background: url('https://images.unsplash.com/photo-1542314831-c6a4d1409e1c?auto=format&fit=crop&w=1920&q=80') center center / cover no-repeat;
+}
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.75));
+  z-index: 1;
+}
+.text-shadow-sm {
+  text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
 .font-serif {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Playfair Display', serif !important;
 }
 
 .tracking-wider {

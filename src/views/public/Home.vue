@@ -4,7 +4,7 @@
     <section class="position-relative hero-section d-flex align-items-center justify-content-center">
       <div class="hero-overlay"></div>
       
-      <div class="container position-relative z-2 text-center text-white" style="margin-top: -80px;">
+      <div class="container position-relative z-2 text-center text-white">
         <span class="badge text-uppercase tracking-wider mb-4 px-4 py-2 rounded-pill" style="background-color: rgba(255, 215, 0, 0.15); color: #FFD700; border: 1px solid rgba(255, 215, 0, 0.4);">
           <i class="fas fa-star me-2"></i>Trải nghiệm thượng lưu
         </span>
@@ -185,15 +185,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.font-serif {
-  font-family: 'Playfair Display', serif;
-}
 .tracking-wider {
   letter-spacing: 1.5px;
 }
 /* Background ảnh */
 .hero-section {
-  min-height: 85vh;
+  min-height: auto;
+  padding: 120px 0;
   background: url('https://images.unsplash.com/photo-1542314831-c6a4d1409e1c?auto=format&fit=crop&w=1920&q=80') center center / cover no-repeat;
 }
 .hero-overlay {

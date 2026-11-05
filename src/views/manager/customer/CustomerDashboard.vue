@@ -11,11 +11,15 @@
     </div>
 
     <!-- AI CHARTS -->
+    <!-- AI CHARTS -->
     <div class="row g-4 mb-4">
       <!-- Biểu đồ tròn -->
       <div class="col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
-          <div class="card-header bg-transparent border-0 pt-4 pb-0"><h6 class="fw-bold text-body-emphasis"><i class="fas fa-chart-pie text-primary me-2"></i>Tỷ lệ Hài lòng Tổng thể</h6></div>
+          <div class="card-header bg-transparent border-0 pt-4 pb-0">
+            <h6 class="fw-bold text-body-emphasis mb-1"><i class="fas fa-chart-pie text-primary me-2"></i>Tỷ lệ Hài lòng Tổng thể</h6>
+            <span class="small text-body-secondary fst-italic">Tính trên tổng số lượng bài đánh giá</span>
+          </div>
           <div class="card-body d-flex justify-content-center align-items-center">
             <div style="width: 100%; height: 250px;" v-if="pieChartData"><Pie :data="pieChartData" :options="pieOptions" /></div>
             <div v-else class="text-body-secondary">Chưa có dữ liệu</div>
@@ -26,8 +30,11 @@
       <!-- Biểu đồ cột -->
       <div class="col-lg-8">
         <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
-          <div class="card-header bg-transparent border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
-            <h6 class="fw-bold text-body-emphasis"><i class="fas fa-chart-bar text-warning me-2"></i>Chi tiết Tích cực / Tiêu cực</h6>
+          <div class="card-header bg-transparent border-0 pt-4 pb-0 d-flex justify-content-between align-items-start">
+            <div>
+              <h6 class="fw-bold text-body-emphasis mb-1"><i class="fas fa-chart-bar text-warning me-2"></i>Chi tiết Tích cực / Tiêu cực</h6>
+              <span class="small text-body-secondary fst-italic">Số lượng khía cạnh được AI bóc tách từ các bình luận (Một bài đánh giá có thể có nhiều khía cạnh)</span>
+            </div>
             <button @click="exportAiAnalysis" class="btn btn-sm btn-outline-primary fw-bold" :disabled="isExporting">
               <span v-if="isExporting" class="spinner-border spinner-border-sm me-1"></span> Cập nhật Dữ liệu
             </button>
