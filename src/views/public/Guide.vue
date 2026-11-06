@@ -22,7 +22,7 @@
         <div class="col-12 col-md-6 col-lg-3 position-relative z-1 text-center">
           <div class="bg-body rounded-circle shadow-sm border border-primary d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;"><i class="fas fa-search fs-3 text-primary"></i></div>
           <h5 class="fw-bold text-body-emphasis font-serif">1. Tìm phòng</h5>
-          <p class="text-body-secondary small px-3">Nhập thời gian nhận/trả trên trang chủ để hệ thống lọc các phòng trống.</p>
+          <p class="text-body-secondary small px-3">Nhập thời gian nhận/trả trên trang chủ hoặc trò chuyện trực tiếp với Trợ lý ảo AI để hệ thống lọc các phòng trống.</p>
         </div>
         <div class="col-12 col-md-6 col-lg-3 position-relative z-1 text-center">
           <div class="bg-body rounded-circle shadow-sm border border-info d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;"><i class="fas fa-check-circle fs-3 text-info"></i></div>
@@ -32,7 +32,7 @@
         <div class="col-12 col-md-6 col-lg-3 position-relative z-1 text-center">
           <div class="bg-body rounded-circle shadow-sm border border-warning d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;"><i class="fas fa-credit-card fs-3 text-warning"></i></div>
           <h5 class="fw-bold text-body-emphasis font-serif">3. Thanh toán cọc</h5>
-          <p class="text-body-secondary small px-3">Sử dụng ví VNPay để thanh toán giữ chỗ trong vòng 30 phút.</p>
+          <p class="text-body-secondary small px-3">Sử dụng ví VNPay để thanh toán giữ chỗ trong vòng 15 phút.</p>
         </div>
         <div class="col-12 col-md-6 col-lg-3 position-relative z-1 text-center">
           <div class="bg-body rounded-circle shadow-sm border border-success d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;"><i class="fas fa-door-open fs-3 text-success"></i></div>
@@ -45,6 +45,10 @@
         <div class="col-lg-6">
           <h3 class="fw-bold mb-4 text-body-emphasis font-serif">Trải nghiệm tại ITHotel</h3>
           <ul class="list-unstyled">
+            <li class="d-flex mb-4">
+              <div class="text-info fs-3 me-3"><i class="fas fa-robot"></i></div>
+              <div><h5 class="fw-bold mb-1 text-body-emphasis font-serif">Trợ lý ảo AI thông minh</h5><p class="text-body-secondary">Tư vấn chọn phòng, giải đáp thắc mắc và cung cấp thông tin giá cả 24/7 trực tiếp trên website.</p></div>
+            </li>
             <li class="d-flex mb-4">
               <div class="text-primary fs-3 me-3"><i class="fas fa-concierge-bell"></i></div>
               <div><h5 class="fw-bold mb-1 text-body-emphasis font-serif">Gọi dịch vụ tận phòng</h5><p class="text-body-secondary">Nhân viên sẽ mang đồ ăn, nước uống đến tận cửa phòng bạn.</p></div>

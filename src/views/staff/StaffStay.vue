@@ -43,7 +43,7 @@
                   <div class="badge bg-danger mt-1 px-2" v-if="isOverdue(r)">Quá hạn!</div>
                 </td>
                 <td>
-                  <form @submit.prevent="addService(r.id)" class="d-flex gap-1 align-items-center bg-white p-1 rounded border shadow-sm" style="max-width: 220px;">
+                  <form v-if="serviceForm[r.id]" @submit.prevent="addService(r.id)" class="d-flex gap-1 align-items-center bg-white p-1 rounded border shadow-sm" style="max-width: 220px;">
                     <select v-model="serviceForm[r.id].serviceId" class="form-select form-select-sm border-0 bg-transparent px-1" required>
                       <option value="">-- Dịch vụ --</option>
                       <option v-for="s in activeServices" :key="s.id" :value="s.id">{{ s.name }}</option>

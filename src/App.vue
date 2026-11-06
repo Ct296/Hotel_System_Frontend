@@ -9,12 +9,22 @@ import { onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useThemeStore } from './stores/themeStore'
 import Chatbot from './components/Chatbot.vue'
+import { useAuthStore } from './stores/authStore'
 
 const themeStore = useThemeStore()
 const route = useRoute()
+const authStore = useAuthStore()
 
 const isPublicPage = computed(() => {
   if (!route.path) return false
+
+  if (route.path.startsWith('/employee') || route.path.startsWith('/kiosk')) {
+    return false
+  }
+  if (authStore.isAuthenticated && authStore.role !== 'CUSTOMER') {
+    return false
+  }
+
   return !route.path.startsWith('/employee') && !route.path.startsWith('/kiosk')
 })
 

@@ -108,14 +108,6 @@
                   </div>
                 </div>
                 
-                 <!-- Gợi ý thời gian -->
-                 <div class="d-flex flex-wrap gap-2 mb-2" v-if="walkInForm.rentalType === 'HOURLY'">
-                     <span class="small fw-semibold text-body-secondary d-flex align-items-center me-1">Chọn nhanh:</span>
-                     <button type="button" class="btn btn-sm btn-outline-secondary py-0 text-body" @click="setQuickTime(1)">1 Giờ</button>
-                     <button type="button" class="btn btn-sm btn-outline-secondary py-0 text-body" @click="setQuickTime(2)">2 Giờ</button>
-                     <button type="button" class="btn btn-sm btn-outline-secondary py-0 text-body" @click="setQuickTime(4)">4 Giờ</button>
-                 </div>
-                 
                  <!-- BẢNG THÔNG TIN TẠM TÍNH (GỘP CHUNG) -->
                  <div class="alert alert-warning py-3 px-3 small mt-3 mb-0 shadow-sm border-warning">
                     <h6 class="fw-bold mb-3"><i class="fas fa-clipboard-check me-2"></i> THÔNG TIN TẠM TÍNH</h6>
@@ -148,14 +140,30 @@
                 <div v-else class="table-responsive border rounded" style="max-height: 220px; overflow-y: auto;">
                   <table class="table table-sm table-hover align-middle mb-0">
                     <thead class="table-secondary position-sticky top-0">
-                      <tr><th>Phòng</th><th>Loại</th><th>Sức chứa</th><th>Giá phòng</th><th></th></tr>
+                      <tr>
+                        <th>Phòng</th>
+                        <th>Loại</th>
+                        <th>Sức chứa</th>
+                        <th>Tiện ích</th>
+                        <th>Giá phòng</th>
+                        <th></th>
+                      </tr>
                     </thead>
                     <tbody>
-                      <tr v-if="walkInRooms.length === 0"><td colspan="5" class="text-center text-body-secondary py-2">Hết phòng trống.</td></tr>
+                      <tr v-if="walkInRooms.length === 0"><td colspan="6" class="text-center text-body-secondary py-2">Hết phòng trống.</td></tr>
                       <tr v-else v-for="room in walkInRooms" :key="room.id">
                         <td class="fw-bold text-primary">{{ room.name }}</td>
                         <td>{{ room.roomType?.name }}</td>
                         <td class="small">{{ room.roomType?.adultMax }} NL, {{ room.roomType?.childrenMax }} TE</td>
+                        <td class="small">
+                          <div v-if="room.roomType?.roomAmenities && room.roomType.roomAmenities.length > 0">
+                            <span v-for="ra in room.roomType.roomAmenities.slice(0, 2)" :key="ra.amenity?.id" class="badge bg-light text-dark border border-secondary-subtle me-1 mb-1">
+                              {{ ra.amenity?.name }}
+                            </span>
+                            <span v-if="room.roomType.roomAmenities.length > 2" class="text-muted" style="font-size: 0.7rem;">+{{ room.roomType.roomAmenities.length - 2 }}</span>
+                          </div>
+                          <div v-else class="text-muted fst-italic">-</div>
+                        </td>
                         <td class="text-danger fw-bold small">
                           {{ walkInForm.rentalType === 'HOURLY' ? formatPrice(room.roomType?.basePrice) + '/h' : formatPrice(room.roomType?.dailyPrice || room.roomType?.basePrice * 22) + '/đêm' }}
                         </td>
@@ -193,7 +201,17 @@
                 
                 <div class="mb-3 p-2 bg-body-secondary rounded border border-secondary">
                   <label class="form-label small fw-bold text-body-secondary mb-1">Khách cũ (Nhập CCCD/Hộ chiếu)</label>
-                  <input type="text" v-model="walkInForm.existingCustomerPid" class="form-control form-control-sm bg-body text-body" placeholder="Nhập CCCD để auto điền...">
+                  <div class="input-group input-group-sm">
+                    <input 
+                      type="text" 
+                      v-model="walkInForm.existingCustomerPid" 
+                      @keyup.enter="fetchCustomerInfo"
+                      class="form-control bg-body text-body" 
+                      placeholder="Nhập số CCCD...">
+                    <button class="btn btn-primary fw-bold px-3" type="button" @click="fetchCustomerInfo">
+                      <i class="fas fa-search me-1"></i> Tìm
+                    </button>
+                  </div>
                 </div>
                 <div class="text-center position-relative mb-3">
                   <hr class="text-body-secondary"><span class="bg-body-tertiary px-2 small text-body-secondary position-absolute top-50 start-50 translate-middle">Hoặc Khách Mới</span>
@@ -204,7 +222,7 @@
                   <div class="col-6"><input type="text" v-model="walkInForm.firstName" class="form-control form-control-sm bg-body text-body" placeholder="Tên khách"></div>
                   <div class="col-12"><input type="text" v-model="walkInForm.pid" class="form-control form-control-sm bg-body text-body" placeholder="CCCD / CMND / Hộ chiếu"></div>
                   <div class="col-6"><input type="text" v-model="walkInForm.phoneNumber" class="form-control form-control-sm bg-body text-body" placeholder="Số điện thoại"></div>
-                  <div class="col-6"><input type="email" v-model="walkInForm.email" class="form-control form-control-sm bg-body text-body" placeholder="Email (Không bắt buộc)"></div>
+                  <div class="col-6"><input type="email" v-model="walkInForm.email" class="form-control form-control-sm bg-body text-body" placeholder="Email (Bắt buộc)" required></div>
                   <div class="col-12"><input type="text" v-model="walkInForm.nationality" class="form-control form-control-sm bg-body text-body" placeholder="Quốc tịch (VD: Việt Nam)"></div>
                   <div class="col-6">
                     <select v-model="walkInForm.sex" class="form-select form-select-sm bg-body text-body">
@@ -224,6 +242,28 @@
             </div>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- MODAL BÁO KHÔNG TÌM THẤY KHÁCH -->
+    <div v-if="showNotFoundModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5); z-index: 1060;">
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4 bg-body-tertiary">
+          <div class="modal-header border-0 pb-0 justify-content-center mt-3">
+            <div class="text-warning" style="font-size: 3rem;">
+              <i class="fas fa-user-times"></i>
+            </div>
+          </div>
+          <div class="modal-body text-center pt-2 pb-4 px-4">
+            <h5 class="fw-bold mb-3 text-body-emphasis">Khách hàng mới</h5>
+            <p class="text-body-secondary mb-0" style="font-size: 0.95rem;">
+              CCCD/Hộ chiếu này chưa có trên hệ thống. Mã đã được tự động điền vào form, vui lòng nhập thêm các thông tin còn lại!
+            </p>
+          </div>
+          <div class="modal-footer bg-body border-0 d-flex justify-content-center rounded-bottom-4 py-3">
+            <button type="button" class="btn px-4 fw-bold btn-primary w-100" @click="showNotFoundModal = false">Đã hiểu</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -253,6 +293,7 @@ const filterStartTime = ref('')
 const isLoadingWalkIn = ref(false)
 const isSubmitting = ref(false)
 const walkInRooms = ref([])
+const showNotFoundModal = ref(false) 
 
 // Khởi tạo thời gian Check-in hiện tại
 const getInitCheckIn = () => {
@@ -363,9 +404,42 @@ const estimatedTotal = computed(() => {
   return total;
 })
 
-const setQuickTime = (hours) => {
-  walkInForm.value.lengthOfStay = hours
-  fetchWalkInRooms()
+const fetchCustomerInfo = async () => {
+  const pid = walkInForm.value.existingCustomerPid?.trim()
+  if (!pid) return
+
+  try {
+    const res = await api.get(`/api/staff/customers/by-pid/${pid}`)
+    
+    if (res.data) {
+      const customer = res.data
+      walkInForm.value.lastName = customer.user?.lastName || ''
+      walkInForm.value.firstName = customer.user?.firstName || ''
+      walkInForm.value.pid = customer.user?.pid || pid
+      walkInForm.value.phoneNumber = customer.user?.phoneNumber || ''
+      walkInForm.value.email = customer.user?.email || ''
+      walkInForm.value.nationality = customer.user?.nationality || 'Việt Nam'
+      walkInForm.value.sex = customer.user?.sex || 'MALE'
+      
+      if (customer.user?.dateOfBirth) {
+        walkInForm.value.dateOfBirth = customer.user.dateOfBirth.substring(0, 10) 
+      }
+    }
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      showNotFoundModal.value = true
+      
+      walkInForm.value.pid = pid 
+      
+      walkInForm.value.lastName = ''
+      walkInForm.value.firstName = ''
+      walkInForm.value.phoneNumber = ''
+      walkInForm.value.email = ''
+    } else {
+      alert('Có lỗi xảy ra khi kiểm tra CCCD.')
+      console.error('Lỗi khi fetch khách hàng:', error)
+    }
+  }
 }
 
 // ÉP ĐỊNH DẠNG 24H Ở ĐÂY (Dùng cho thông báo thời gian Timeline phía trên cùng)

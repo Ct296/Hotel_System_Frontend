@@ -31,21 +31,18 @@
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link fw-bold px-4 rounded-pill" :class="{ active: currentTab === 'cleaning' }" @click="currentTab = 'cleaning'">
-          <i class="fas fa-broom me-2"></i>Dọn phòng
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
         <button class="nav-link fw-bold px-4 rounded-pill" :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">
           <i class="fas fa-clock-rotate-left me-2"></i>Lịch sử
         </button>
       </li>
     </ul>
 
-    <!-- Content Area (Render Dynamic Component) -->
+    <!-- Content Area -->
     <div class="tab-content">
       <transition name="fade" mode="out-in">
-        <component :is="activeComponent" @change-tab="handleTabChange" />
+        <KeepAlive>
+          <component :is="activeComponent" @change-tab="handleTabChange" />
+        </KeepAlive>
       </transition>
     </div>
   </div>
@@ -54,12 +51,11 @@
 <script setup>
 import { ref, computed } from 'vue'
 
-// Import các component con (Chúng ta sẽ tạo các file này ở bước sau)
+// Import các component
 import StaffOverview from './StaffOverview.vue/index.js'
 import StaffTimelineWalkIn from './StaffTimelineWalkIn.vue/index.js'
 import StaffBookings from './StaffBookings.vue/index.js'
 import StaffStay from './StaffStay.vue/index.js'
-import StaffCleaning from './StaffCleaning.vue/index.js'
 import StaffHistory from './StaffHistory.vue/index.js'
 
 const currentTab = ref('overview')
@@ -75,7 +71,6 @@ const componentsMap = {
 
 const activeComponent = computed(() => componentsMap[currentTab.value])
 
-// Cho phép các component con chuyển tab (vd: Đặt phòng walk-in xong thì nhảy sang tab Khách đang ở)
 const handleTabChange = (tabName) => {
   if (componentsMap[tabName]) {
     currentTab.value = tabName

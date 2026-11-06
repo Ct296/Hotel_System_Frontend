@@ -156,14 +156,14 @@ const handleLogout = async () => {
 
 /* Kích thước chữ Header (Navbar) */
 .navbar-nav .nav-link {
-  font-size: 1.1rem; 
+  font-size: 1rem; 
   padding-left: 1rem !important;
   padding-right: 1rem !important;
   transition: all 0.2s ease-in-out;
 }
 
 .navbar-brand {
-  font-size: 2rem; 
+  font-size: 1.7rem; 
 }
 
 .navbar-nav .nav-link:hover {
