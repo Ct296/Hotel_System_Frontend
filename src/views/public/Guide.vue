@@ -64,7 +64,7 @@
           </ul>
         </div>
         <div class="col-lg-6">
-          <img src="https://images.unsplash.com/photo-1551882547-ff40c0d588fa?auto=format&fit=crop&w=800&q=80" class="img-fluid rounded-4 shadow">
+          <img src="https://dichthuatphuongdong.com/wp-content/uploads/2020/06/dich-sach-huong-dan-su-dung-2-min.jpg" class="img-fluid rounded-4 shadow">
         </div>
       </div>
     </div>

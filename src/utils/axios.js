@@ -11,7 +11,6 @@ const api = axios.create({
 // Request Interceptor: Tự động đính kèm JWT Token
 api.interceptors.request.use(
     (config) => {
-        // Lưu ý: Gọi useAuthStore() bên trong interceptor để tránh lỗi chưa khởi tạo Pinia
         const authStore = useAuthStore();
         if (authStore.token) {
             config.headers.Authorization = `Bearer ${authStore.token}`;
@@ -29,13 +28,8 @@ api.interceptors.response.use(
             // Xử lý khi Token hết hạn hoặc sai Token (401)
             if (error.response.status === 401) {
                 const authStore = useAuthStore();
-                
-                // Lấy role trước khi xóa để biết nên đá về trang login nào
-                const isEmp = authStore.isEmployee; 
-                
+                const isEmp = authStore.isEmployee;
                 authStore.clearAuth();
-                
-                // Đá văng ra trang đăng nhập tương ứng
                 if (isEmp) {
                     router.push('/employee/login');
                 } else {

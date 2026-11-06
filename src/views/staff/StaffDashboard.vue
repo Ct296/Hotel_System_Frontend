@@ -65,7 +65,6 @@ const componentsMap = {
   timeline: StaffTimelineWalkIn,
   bookings: StaffBookings,
   stay: StaffStay,
-  cleaning: StaffCleaning,
   history: StaffHistory
 }
 
