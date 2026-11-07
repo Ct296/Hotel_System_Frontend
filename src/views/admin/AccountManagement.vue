@@ -43,6 +43,7 @@
                   <select v-model="filterState" class="form-select form-select-sm bg-body">
                     <option value="ALL">Mọi trạng thái</option>
                     <option value="ACTIVE">Đang hoạt động</option>
+                    <option value="BOOKING_BLOCKED">Cấm đặt phòng</option>
                     <option value="LOCKED">Bị khóa</option>
                   </select>
                 </div>
@@ -119,8 +120,8 @@
                 <td class="text-body-secondary fw-semibold">{{ acc.phoneNumber || 'N/A' }}</td>
                 <td class="text-body-secondary">{{ acc.pid || 'N/A' }}</td>
                 <td class="text-center">
-                  <span class="badge rounded-pill fw-bold" :class="acc.state === 'ACTIVE' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'">
-                    {{ acc.state === 'ACTIVE' ? 'ĐANG HOẠT ĐỘNG' : 'BỊ KHÓA' }}
+                  <span class="badge rounded-pill fw-bold" :class="acc.state === 'ACTIVE' ? 'bg-success-subtle text-success' : (acc.state === 'BOOKING_BLOCKED' ? 'bg-warning-subtle text-warning' : 'bg-danger-subtle text-danger')">
+                    {{ acc.state === 'ACTIVE' ? 'ĐANG HOẠT ĐỘNG' : (acc.state === 'BOOKING_BLOCKED' ? 'CẤM ĐẶT PHÒNG' : 'BỊ KHÓA') }}
                   </span>
                 </td>
                 <td class="text-end px-4">
@@ -139,14 +140,9 @@
                           <i class="fas fa-briefcase me-2"></i> Đổi trạng thái làm việc
                         </button>
                       </li>
-                      <li v-if="acc.state === 'LOCKED'">
-                        <button class="dropdown-item fw-semibold text-success py-2" @click="openUnlockModal(acc)">
-                          <i class="fas fa-unlock me-2"></i> Mở khóa tài khoản
-                        </button>
-                      </li>
-                      <li v-else>
+                      <li>
                         <button class="dropdown-item fw-semibold text-danger py-2" @click="openLockModal(acc)" :disabled="acc.role === 'ADMIN'">
-                          <i class="fas fa-lock me-2"></i> Khóa tài khoản
+                          <i class="fas fa-cog me-2"></i> Đổi trạng thái tài khoản
                         </button>
                       </li>
                     </ul>
@@ -318,70 +314,50 @@
       </div>
     </div>
 
-    <!-- MODAL KHÓA -->
+    <!-- MODAL ĐỔI TRẠNG THÁI (MỚI) -->
     <div v-if="showLockModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5); z-index: 1060;">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 bg-body-tertiary">
           <div class="modal-header bg-danger text-white">
-            <h5 class="modal-title fw-bold"><i class="fas fa-lock me-2"></i>Khóa tài khoản</h5>
+            <h5 class="modal-title fw-bold"><i class="fas fa-cog me-2"></i>Đổi trạng thái tài khoản</h5>
             <button type="button" class="btn-close btn-close-white" @click="showLockModal = false"></button>
           </div>
           <form @submit.prevent="submitLock">
             <div class="modal-body p-4">
-              <p class="text-body-emphasis">Bạn đang thao tác khóa tài khoản: <strong class="text-danger">{{ currentTarget.fullName }}</strong></p>
+              <p class="text-body-emphasis">Bạn đang thao tác với tài khoản: <strong class="text-danger">{{ currentTarget.fullName }}</strong></p>
               <div class="mb-3">
-                <label class="form-label fw-semibold text-body-secondary small">Thời gian khóa <span class="text-danger">*</span></label>
+                <label class="form-label fw-semibold text-body-secondary small">Chọn trạng thái <span class="text-danger">*</span></label>
+                <select v-model="formLock.status" class="form-select bg-body text-body-emphasis" required>
+                  <option value="ACTIVE">Đang hoạt động</option>
+                  <option value="BOOKING_BLOCKED">Cấm đặt phòng (Chỉ cho Khách hàng)</option>
+                  <option value="LOCKED">Bị khóa</option>
+                </select>
+              </div>
+              <div class="mb-3" v-if="formLock.status !== 'ACTIVE'">
+                <label class="form-label fw-semibold text-body-secondary small">Thời gian khóa/cấm <span class="text-danger">*</span></label>
                 <select v-model="formLock.durationDays" class="form-select bg-body text-body-emphasis" required>
                   <option :value="1">1 Ngày</option>
                   <option :value="3">3 Ngày</option>
                   <option :value="7">7 Ngày</option>
                   <option :value="30">30 Ngày</option>
-                  <option :value="-1">Khóa vĩnh viễn (-1)</option>
+                  <option :value="-1">Vĩnh viễn (-1)</option>
                 </select>
               </div>
               <div class="mb-3">
-                <label class="form-label fw-semibold text-body-secondary small">Lý do khóa <span class="text-body-secondary opacity-50 fw-normal">(Tùy chọn)</span></label>
-                <textarea v-model="formLock.reason" class="form-control bg-body text-body-emphasis" rows="3" placeholder="Nhập lý do vi phạm..."></textarea>
+                <label class="form-label fw-semibold text-body-secondary small">Lý do thay đổi <span class="text-body-secondary opacity-50 fw-normal">(Tùy chọn)</span></label>
+                <textarea v-model="formLock.reason" class="form-control bg-body text-body-emphasis" rows="3" placeholder="Nhập lý do..."></textarea>
               </div>
             </div>
             <div class="modal-footer bg-body border-0 rounded-bottom-4">
               <button type="button" class="btn btn-secondary fw-semibold" @click="showLockModal = false">Hủy</button>
               <button type="submit" class="btn btn-danger fw-bold" :disabled="isProcessing">
-                <span v-if="isProcessing" class="spinner-border spinner-border-sm me-1"></span> Xác nhận Khóa
+                <span v-if="isProcessing" class="spinner-border spinner-border-sm me-1"></span> Xác nhận Đổi
               </button>
             </div>
           </form>
         </div>
       </div>
     </div>
-
-    <!-- MODAL MỞ KHÓA -->
-    <div v-if="showUnlockModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5); z-index: 1060;">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4 bg-body-tertiary">
-          <div class="modal-header bg-success text-white">
-            <h5 class="modal-title fw-bold"><i class="fas fa-unlock me-2"></i>Mở khóa tài khoản</h5>
-            <button type="button" class="btn-close btn-close-white" @click="showUnlockModal = false"></button>
-          </div>
-          <form @submit.prevent="submitUnlock">
-            <div class="modal-body p-4">
-              <p class="text-body-emphasis">Xác nhận mở khóa cho tài khoản: <strong class="text-success">{{ currentTarget.fullName }}</strong>?</p>
-              <div class="mb-3">
-                <label class="form-label fw-semibold text-body-secondary small">Ghi chú mở khóa <span class="text-body-secondary opacity-50 fw-normal">(Không bắt buộc)</span></label>
-                <textarea v-model="formUnlock.reason" class="form-control bg-body text-body-emphasis" rows="3" placeholder="Nhập lý do..."></textarea>
-              </div>
-            </div>
-            <div class="modal-footer bg-body border-0 rounded-bottom-4">
-              <button type="button" class="btn btn-secondary fw-semibold" @click="showUnlockModal = false">Hủy</button>
-              <button type="submit" class="btn btn-success fw-bold" :disabled="isProcessing">
-                <span v-if="isProcessing" class="spinner-border spinner-border-sm me-1"></span> Xác nhận Mở
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
   </div>
 </template>
 
@@ -483,7 +459,6 @@ const getManagerTitleDisplay = (titleCode) => {
 // State Quản lý Modals
 const showCreateModal = ref(false)
 const showLockModal = ref(false)
-const showUnlockModal = ref(false)
 const showDetailModal = ref(false)
 const showUpdateStatusModal = ref(false)
 
@@ -494,8 +469,7 @@ const selectedAccount = ref(null)
 const formCreate = ref({ 
   firstName: '', lastName: '', dateOfBirth: '', sex: 'MALE', pid: '', phoneNumber: '', email: '', nationality: 'Việt Nam', role: 'STAFF', managerType: '' 
 })
-const formLock = ref({ durationDays: -1, reason: '' })
-const formUnlock = ref({ reason: '' })
+const formLock = ref({ status: 'ACTIVE', durationDays: -1, reason: '' })
 const formUpdateStatus = ref({ workingStatus: 'WORKING' })
 
 const fetchAccounts = async () => {
@@ -561,39 +535,19 @@ const submitCreate = async () => {
 
 const openLockModal = (acc) => {
   currentTarget.value = acc
-  formLock.value = { durationDays: -1, reason: '' }
+  formLock.value = { status: acc.state, durationDays: -1, reason: '' }
   showLockModal.value = true
 }
 
 const submitLock = async () => {
   isProcessing.value = true
   try {
-    await api.post(`/api/admin/accounts/${currentTarget.value.userId}/lock`, formLock.value)
-    showNotification('success', `Đã khóa tài khoản ${currentTarget.value.fullName} thành công!`)
+    await api.put(`/api/admin/accounts/${currentTarget.value.userId}/status`, formLock.value)
+    showNotification('success', `Đã cập nhật trạng thái tài khoản ${currentTarget.value.fullName} thành công!`)
     showLockModal.value = false
     fetchAccounts()
   } catch (error) {
-    showNotification('danger', error.response?.data?.error || 'Có lỗi xảy ra khi khóa tài khoản.')
-  } finally {
-    isProcessing.value = false
-  }
-}
-
-const openUnlockModal = (acc) => {
-  currentTarget.value = acc
-  formUnlock.value = { reason: '' }
-  showUnlockModal.value = true
-}
-
-const submitUnlock = async () => {
-  isProcessing.value = true
-  try {
-    await api.post(`/api/admin/accounts/${currentTarget.value.userId}/unlock`, { reason: formUnlock.value.reason })
-    showNotification('success', `Đã mở khóa tài khoản ${currentTarget.value.fullName}.`)
-    showUnlockModal.value = false
-    fetchAccounts()
-  } catch (error) {
-    showNotification('danger', error.response?.data?.error || 'Có lỗi xảy ra khi mở khóa.')
+    showNotification('danger', error.response?.data?.error || 'Có lỗi xảy ra.')
   } finally {
     isProcessing.value = false
   }

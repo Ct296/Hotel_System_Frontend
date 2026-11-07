@@ -136,11 +136,11 @@ const roleBarOptions = computed(() => ({
 const customerPieSeries = ref([])
 const customerPieOptions = computed(() => ({
   chart: { 
-    background: 'transparent', // Xóa khung xám
+    background: 'transparent',
     foreColor: getChartTextColor.value 
   },
-  labels: ['Đang hoạt động', 'Bị khóa'],
-  colors: ['#198754', '#dc3545'],
+  labels: ['Đang hoạt động', 'Cấm đặt phòng', 'Bị khóa'],
+  colors: ['#198754', '#ffc107', '#dc3545'], // Xanh - Vàng - Đỏ
   stroke: { show: false },
   dataLabels: {
     enabled: true,
@@ -183,7 +183,7 @@ const fetchDashboard = async () => {
     const accounts = response.data.accounts || []
     
     let adminCount = 0, managerCount = 0, staffCount = 0, customerCount = 0
-    let lockedCustomerCount = 0
+    let lockedCustomerCount = 0, blockedCustomerCount = 0 // Thêm đếm số lượng khách bị cấm
     const currentYear = new Date().getFullYear()
     const monthlyCustomers = Array(12).fill(0)
 
@@ -194,6 +194,8 @@ const fetchDashboard = async () => {
       else if (acc.role === 'CUSTOMER') {
         customerCount++
         if (acc.state === 'LOCKED') lockedCustomerCount++
+        else if (acc.state === 'BOOKING_BLOCKED') blockedCustomerCount++ // Tính thêm khách bị cấm
+        
         if (acc.createDate) {
           const date = new Date(acc.createDate)
           if (date.getFullYear() === currentYear) {
@@ -203,11 +205,11 @@ const fetchDashboard = async () => {
       }
     })
 
-    const activeCustomerCount = customerCount - lockedCustomerCount
+    const activeCustomerCount = customerCount - lockedCustomerCount - blockedCustomerCount
 
     stats.value = { totalAccounts: response.data.totalUsers, adminCount, managerCount, staffCount, activeCustomerCount }
     roleBarSeries.value[0].data = [adminCount, managerCount, staffCount, customerCount]
-    customerPieSeries.value = customerCount === 0 ? [0, 0] : [activeCustomerCount, lockedCustomerCount]
+    customerPieSeries.value = customerCount === 0 ? [0, 0, 0] : [activeCustomerCount, blockedCustomerCount, lockedCustomerCount] // Trả về 3 giá trị
     monthlyLineSeries.value[0].data = monthlyCustomers
 
   } catch (error) {} finally {

@@ -32,6 +32,7 @@
                   <select v-model="filterStatus" class="form-select form-select-sm bg-body">
                     <option value="ALL">Mọi trạng thái</option>
                     <option value="ACTIVE">Hoạt động</option>
+                    <option value="BOOKING_BLOCKED">Cấm đặt phòng</option>
                     <option value="LOCKED">Bị Khóa</option>
                   </select>
                 </div>
@@ -114,9 +115,9 @@
                   </span>
                 </td>
                 <td class="text-center">
-                  <span class="fw-bold small" :class="getAccountStatus(c.id) === 'ACTIVE' ? 'text-success' : 'text-danger'">
-                    <i :class="getAccountStatus(c.id) === 'ACTIVE' ? 'fas fa-unlock' : 'fas fa-lock'"></i> 
-                    {{ getAccountStatus(c.id) === 'ACTIVE' ? 'Đang mở' : 'Bị khóa' }}
+                  <span class="fw-bold small" :class="getAccountStatusClass(getAccountStatus(c.id))">
+                    <i :class="getAccountStatusIcon(getAccountStatus(c.id))"></i> 
+                    {{ getAccountStatusText(getAccountStatus(c.id)) }}
                   </span>
                 </td>
                 <td class="text-end fw-bold text-success fs-5">
@@ -134,9 +135,9 @@
                           <i class="fas fa-eye me-2"></i> Xem chi tiết
                         </button>
                       </li>
-                      <li v-if="getAccountStatus(c.id) === 'LOCKED'">
+                      <li v-if="getAccountStatus(c.id) === 'LOCKED' || getAccountStatus(c.id) === 'BOOKING_BLOCKED'">
                         <button class="dropdown-item fw-semibold text-success py-2" @click="toggleLock(c.id)">
-                          <i class="fas fa-unlock me-2"></i> Mở khóa tài khoản
+                          <i class="fas fa-unlock me-2"></i> Mở khóa / Gỡ phạt
                         </button>
                       </li>
                       <li v-else>
@@ -188,8 +189,8 @@
                 <hr class="my-2 border-secondary-subtle">
                 <p class="mb-0">
                   <strong>Trạng thái Tài khoản:</strong> 
-                  <span class="badge ms-2" :class="getAccountStatus(selectedCustomer.id) === 'ACTIVE' ? 'bg-success' : 'bg-danger'">
-                    {{ getAccountStatus(selectedCustomer.id) === 'ACTIVE' ? 'Đang mở' : 'Bị khóa' }}
+                  <span class="badge ms-2" :class="getAccountStatusClass(getAccountStatus(selectedCustomer.id))">
+                    {{ getAccountStatusText(getAccountStatus(selectedCustomer.id)) }}
                   </span>
                 </p>
               </div>
@@ -257,6 +258,25 @@ const getTierBadgeClass = (tierName) => {
 const getTier = (id) => dashboardData.value.currentTierByCustomerId?.[id]
 const getSpending = (id) => dashboardData.value.totalSpendingByCustomerId?.[id] || 0
 const getAccountStatus = (id) => dashboardData.value.accountStatusByCustomerId?.[id] || 'ACTIVE'
+
+// Logic xử lý hiển thị trạng thái tài khoản
+const getAccountStatusClass = (status) => {
+  if (status === 'ACTIVE') return 'text-success'
+  if (status === 'BOOKING_BLOCKED') return 'text-warning text-dark'
+  return 'text-danger'
+}
+
+const getAccountStatusIcon = (status) => {
+  if (status === 'ACTIVE') return 'fas fa-unlock'
+  if (status === 'BOOKING_BLOCKED') return 'fas fa-ban'
+  return 'fas fa-lock'
+}
+
+const getAccountStatusText = (status) => {
+  if (status === 'ACTIVE') return 'Đang mở'
+  if (status === 'BOOKING_BLOCKED') return 'Cấm đặt phòng'
+  return 'Bị khóa'
+}
 
 // Logic Lọc & Sắp xếp Khách hàng
 const filteredAndSortedCustomers = computed(() => {
@@ -329,7 +349,7 @@ const viewDetails = (customer) => {
 }
 
 const toggleLock = async (customerId) => {
-  if (!confirm('Bạn có chắc muốn thay đổi trạng thái tài khoản này?')) return;
+  if (!confirm('Bạn có chắc muốn thay đổi trạng thái tài khoản này? (Nếu đang bị phạt, thao tác này sẽ gỡ phạt ngay lập tức)')) return;
   try {
     await api.put(`/api/manager/customer/${customerId}/toggle-lock`);
     fetchDashboard(); 

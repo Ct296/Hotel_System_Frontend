@@ -15,10 +15,10 @@
     <div v-else class="row g-4">
       <div class="col-12 mb-2">
         <h2 class="fw-bold text-primary"><i class="fas fa-clipboard-check me-2"></i> Xác nhận đặt phòng</h2>
-        <p class="text-body-secondary mb-0">Hệ thống tính tiền theo giờ hoặc qua đêm tùy thuộc vào lựa chọn của bạn.</p>
+        <p class="text-body-secondary mb-0">Hệ thống sẽ tính tiền theo giờ hoặc qua đêm tùy lựa chọn.</p>
       </div>
       
-      <!-- CỘT TRÁI: DANH SÁCH PHÒNG ĐÃ CHỌN -->
+      <!-- CỘT TRÁI: DANH SÁCH PHÒNG CHỌN -->
       <div class="col-lg-5">
         <h5 class="fw-bold mb-3 border-bottom pb-2 text-body-emphasis">Các phòng đã chọn ({{ bookingData.rooms?.length || 0 }})</h5>
         
@@ -44,8 +44,7 @@
                       <span v-if="room.roomType.roomAmenities.length > 3" class="fst-italic opacity-50">...</span>
                     </div>
                   </div>
-
-                  <div class="text-danger fw-bold small">Cọc: {{ room.roomType?.depositPercent }}%</div>
+                  <div class="text-danger fw-bold small">Cần cọc: {{ room.roomType?.depositPercent }}%</div>
                 </div>
               </div>
             </div>
@@ -67,7 +66,7 @@
           </div>
           
           <form @submit.prevent="submitBooking">
-            <!-- CHỌN HÌNH THỨC THUÊ (GIAO DIỆN TAB XANH BIỂN) -->
+            <!-- CHỌN HÌNH THỨC THUÊ -->
             <div class="d-flex justify-content-center gap-5 mb-4 border-bottom border-secondary-subtle">
               <div 
                 class="rental-tab pb-2 cursor-pointer" 
@@ -85,7 +84,7 @@
               </div>
             </div>
 
-            <!-- CHỌN SỐ ĐÊM NẾU LÀ DAILY -->
+            <!-- CHẾ ĐỘ DAILY -->
             <div class="mb-4" v-if="form.rentalType === 'DAILY'">
               <label class="form-label fw-bold small text-body-secondary">Số đêm lưu trú</label>
               <input type="number" class="form-control bg-body fw-bold text-primary w-50" min="1" v-model="form.numberOfNights" @change="handleNightsChange" required>
@@ -94,28 +93,20 @@
             <div class="row mb-3 g-3">
               <div class="col-md-6">
                 <label class="form-label fw-bold small text-body-secondary">Giờ nhận phòng</label>
-                <!-- Phân tách Input: Nếu là DAILY thì dùng type="date" (chỉ cho chọn ngày) -->
-                <input v-if="form.rentalType === 'DAILY'" type="date" class="form-control fw-bold text-primary bg-body" 
+                <input v-if="form.rentalType === 'DAILY'" type="date" class="form-control fw-bold text-primary bg-body"
                        v-model="dailyCheckInDate" @change="handleDailyCheckInChange" required>
-                
-                <!-- Nếu HOURLY thì dùng datetime-local -->
-                <input v-else type="datetime-local" class="form-control fw-bold text-primary bg-body" 
+                <input v-else type="datetime-local" class="form-control fw-bold text-primary bg-body"
                        v-model="form.checkIn" @change="handleDateChange" required>
-
-                <div v-if="form.rentalType === 'DAILY'" class="form-text small text-body-secondary mt-1">Giờ nhận phòng được ấn định vào 14:00. Bạn vẫn có thể chọn ngày khác.</div>
+                <div v-if="form.rentalType === 'DAILY'" class="form-text small text-body-secondary mt-1">Giờ nhận phòng cố định vào 14:00. Bạn có thể chọn ngày khác.</div>
               </div>
               
               <div class="col-md-6">
                 <label class="form-label fw-bold small text-body-secondary">Giờ trả phòng</label>
-                <!-- Trả phòng của DAILY bị khóa (readonly) và hiển thị nền xám -->
-                <input v-if="form.rentalType === 'DAILY'" type="datetime-local" class="form-control fw-bold text-danger bg-body-secondary" 
+                <input v-if="form.rentalType === 'DAILY'" type="datetime-local" class="form-control fw-bold text-danger bg-body-secondary"
                        v-model="form.checkOut" readonly required>
-                
-                <!-- Trả phòng của HOURLY thì bình thường -->
-                <input v-else type="datetime-local" class="form-control fw-bold text-danger bg-body" 
+                <input v-else type="datetime-local" class="form-control fw-bold text-danger bg-body"
                        v-model="form.checkOut" @change="handleDateChange" required>
-                       
-                <div v-if="form.rentalType === 'DAILY'" class="form-text small text-body-secondary mt-1">Giờ trả phòng được ấn định vào 12:00 trưa.</div>
+                <div v-if="form.rentalType === 'DAILY'" class="form-text small text-body-secondary mt-1">Giờ trả phòng cố định vào 12:00 trưa.</div>
               </div>
             </div>
             
@@ -147,7 +138,6 @@
                 Tổng thời gian lưu trú: <strong class="fs-5">{{ bookingData.stayHours }}</strong> giờ
               </div>
               <div v-else>
-                <!-- TÍNH SỐ ĐÊM CHÍNH XÁC -->
                 Tổng thời gian lưu trú: <strong class="fs-5">{{ form.numberOfNights }}</strong> đêm
               </div>
             </div>
@@ -178,9 +168,6 @@
                 </span>
               </div>
               
-              <!-- Đã xóa hoàn toàn dòng hiển thị phụ thu lưu trú ngắn ở đây -->
-              
-              <!-- Đường gạch đứt phân cách -->
               <div class="my-3 border-bottom border-secondary-subtle" style="border-bottom-style: dashed !important;"></div>
               
               <div class="d-flex justify-content-between align-items-center mb-3 text-body-emphasis">
@@ -210,6 +197,41 @@
         </div>
       </div>
     </div>
+
+    <!-- MODAL LỖI / PHẠT -->
+    <div v-if="showErrorModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1060;">
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4 bg-body overflow-hidden">
+          
+          <div class="bg-danger py-4 text-center text-white">
+            <i class="fas fa-user-lock mb-2" style="font-size: 3.5rem;"></i>
+            <h5 class="fw-bold mb-0 px-2">{{ errorTitle }}</h5>
+          </div>
+          
+          <div class="modal-body pt-4 pb-4 px-4">
+            <!-- Nếu chuỗi lỗi có phân cách bằng | -->
+            <div v-if="errorMessage.includes('|')" class="text-start small">
+              <div v-for="(line, idx) in errorMessage.split('|')" :key="idx" class="mb-3">
+                <div v-if="idx === 0" class="fw-bold text-danger text-center fs-6 mb-3">{{ line }}</div>
+                <div v-else-if="idx === 1" class="d-flex"><i class="fas fa-exclamation-circle text-danger me-2 mt-1"></i> <span class="fw-semibold text-body-emphasis">{{ line }}</span></div>
+                <div v-else-if="idx === 2" class="d-flex"><i class="fas fa-clock text-warning me-2 mt-1"></i> <span class="text-body-secondary">{{ line }}</span></div>
+                <div v-else-if="idx === 3" class="d-flex"><i class="fas fa-headset text-primary me-2 mt-1"></i> <span class="text-body-secondary fst-italic">{{ line }}</span></div>
+              </div>
+            </div>
+            
+            <!-- Nếu lỗi bình thường -->
+            <p v-else class="text-body-secondary mb-0 text-center" style="font-size: 0.95rem;">
+              {{ errorMessage }}
+            </p>
+          </div>
+          
+          <div class="modal-footer bg-light border-0 d-flex justify-content-center py-3">
+            <button type="button" class="btn btn-danger px-5 fw-bold rounded-pill shadow-sm" @click="showErrorModal = false">ĐÃ HIỂU</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -220,16 +242,17 @@ import api from '../../utils/axios'
 
 const route = useRoute()
 const router = useRouter()
-
 const isLoading = ref(true)
 const isSubmitting = ref(false)
 const errorMsg = ref('')
 const bookingData = ref({})
 let isInitialLoad = true 
 
-// Biến lưu trữ riêng cho ô chọn ngày (DAILY)
-const dailyCheckInDate = ref('')
+const showErrorModal = ref(false)
+const errorMessage = ref('')
+const errorTitle = ref('Từ chối đặt phòng')
 
+const dailyCheckInDate = ref('')
 const form = ref({
   roomId: [],
   checkIn: '',
@@ -254,12 +277,11 @@ const getRoomImage = (room) => {
   }
   return defaultImage;
 }
+
 const handleImageError = (e) => { e.target.src = 'https://api.ct296.id.vn/image/default_room.jpg' }
 
-// Ép cứng giờ nhận (14:00) và giờ trả (12:00) sử dụng xử lý chuỗi (String) để tránh lệch Timezone
 const applyDailyFixedTimes = () => {
   let datePartCheckIn = '';
-
   if (dailyCheckInDate.value) {
     datePartCheckIn = dailyCheckInDate.value;
   } else if (form.value.checkIn) {
@@ -268,20 +290,13 @@ const applyDailyFixedTimes = () => {
   } else {
     return;
   }
-  
-  // 1. Ép cứng giờ nhận phòng thành 14:00
   form.value.checkIn = `${datePartCheckIn}T14:00`
-
-  // 2. Tính ngày trả phòng dựa trên số đêm
   const ciDate = new Date(datePartCheckIn)
   ciDate.setDate(ciDate.getDate() + form.value.numberOfNights)
-  
   const year = ciDate.getFullYear()
   const month = String(ciDate.getMonth() + 1).padStart(2, '0')
   const day = String(ciDate.getDate()).padStart(2, '0')
   const datePartCheckOut = `${year}-${month}-${day}`
-
-  // 3. Ép cứng giờ trả phòng thành 12:00
   form.value.checkOut = `${datePartCheckOut}T12:00`
 }
 
@@ -297,7 +312,6 @@ const handleDateChange = () => {
     if (form.value.rentalType === 'DAILY') {
       applyDailyFixedTimes()
     }
-
     const ci = new Date(form.value.checkIn)
     const co = new Date(form.value.checkOut)
     
@@ -307,7 +321,6 @@ const handleDateChange = () => {
       bookingData.value.bookingAvailable = false
       return
     }
-    
     fetchCalculation()
   }
 }
@@ -332,13 +345,13 @@ const fetchCalculation = async () => {
   
   let roomIds = route.query.roomId
   if (!roomIds) {
-    errorMsg.value = 'Chưa chọn phòng nào.'
+    errorMsg.value = 'Chưa chọn phòng nào!'
     isLoading.value = false
     return
   }
   if (!Array.isArray(roomIds)) roomIds = [roomIds] 
   form.value.roomId = roomIds
-  
+
   if (isInitialLoad) {
     form.value.checkIn = formatForInput(route.query.checkIn)
     form.value.checkOut = formatForInput(route.query.checkOut)
@@ -374,9 +387,12 @@ const fetchCalculation = async () => {
 
 const submitBooking = async () => {
   if (!bookingData.value.bookingAvailable) {
-    alert('Phòng đang bị kẹt lịch trong khung giờ này, vui lòng chọn thời gian khác!')
+    errorMessage.value = 'Phòng đang bị chắn trong khung giờ này, vui lòng chọn thời gian khác!'
+    errorTitle.value = 'Xung Đột Lịch'
+    showErrorModal.value = true
     return
   }
+
   isSubmitting.value = true
   try {
     const payload = {
@@ -387,7 +403,16 @@ const submitBooking = async () => {
     const res = await api.post('/api/customer/booking/confirm', payload)
     router.push({ path: '/customer/booking/payment', query: { rentalId: res.data.rentalId } })
   } catch (error) {
-    alert(error.response?.data?.error || 'Lỗi xác nhận đặt phòng.')
+    const errText = error.response?.data?.error || 'Lỗi xác nhận đặt phòng.'
+    
+    if (errText.includes('|')) {
+        errorTitle.value = 'Tài Khoản Bị Hạn Chế'
+    } else {
+        errorTitle.value = 'Không Thể Đặt Phòng'
+    }
+    
+    errorMessage.value = errText
+    showErrorModal.value = true
   } finally {
     isSubmitting.value = false
   }
