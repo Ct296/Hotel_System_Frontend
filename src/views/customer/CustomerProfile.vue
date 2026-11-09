@@ -179,7 +179,8 @@
                       <td><span class="badge" :class="r.isBooking ? 'text-bg-info' : 'text-bg-secondary'">{{ r.isBooking ? 'Đặt trước' : 'Thuê tại quầy' }}</span></td>
                       <td><span class="badge" :class="getRentalStatusClass(r)">{{ getRentalStatusText(r) }}</span></td>
                       <td class="text-end">
-                        <div v-if="r.isBooking && (r.status === 'PENDING' || r.status === 'CONFIRMED')">
+                        <!-- CHỈ HIỆN NÚT HỦY KHI KHÁCH CHƯA NHẬN PHÒNG (CHƯA CHECK-IN) -->
+                        <div v-if="canCancelBooking(r)">
                           <button v-if="r.status === 'PENDING'" @click="payVnPay(r.id)" class="btn btn-sm btn-primary mb-1 w-100 fw-bold" :disabled="isProcessing">Thanh toán cọc</button>
                           <button @click="confirmCancelBooking(r.id, r.status)" class="btn btn-sm btn-danger w-100 fw-bold" :disabled="isProcessing">Hủy</button>
                         </div>
@@ -367,6 +368,14 @@ const switchTab = (tab) => {
     urlError.value = ''
     urlSuccess.value = false
   }
+}
+
+// HÀM KIỂM TRA QUYỀN HỦY BOOKING: Chỉ cho hủy khi CHƯA nhận phòng (tất cả phòng vẫn đang PENDING)
+const canCancelBooking = (r) => {
+  if (!r || !r.isBooking) return false
+  if (r.status !== 'PENDING' && r.status !== 'CONFIRMED') return false
+  if (!r.rentalDetails || r.rentalDetails.length === 0) return false
+  return r.rentalDetails.every(d => !d.status || d.status === 'PENDING')
 }
 
 const getRentalStatusClass = (r) => {

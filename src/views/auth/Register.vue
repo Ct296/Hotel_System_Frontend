@@ -11,6 +11,12 @@
 
       <!-- BƯỚC 1: ĐIỀN THÔNG TIN -->
       <form v-if="step === 1" @submit.prevent="handleRegister">
+        <!-- THÔNG BÁO ĐỒNG BỘ ĐIỂM TÍCH LŨY CHO KHÁCH TỪNG LƯU TRÚ -->
+        <div class="alert alert-warning border-warning border-start border-4 py-2 px-3 small mb-4 shadow-sm text-body-emphasis">
+          <i class="fas fa-crown text-warning me-2"></i>
+          <strong>Lưu ý:</strong> Nếu bạn đã từng nghỉ tại ITHotel, hãy nhập đúng CCCD và SĐT để hệ thống tự động đồng bộ điểm tích lũy.
+        </div>
+
         <div class="row g-3">
           <div class="col-md-6 mb-2">
             <label class="form-label fw-semibold text-body-secondary small">Họ</label>

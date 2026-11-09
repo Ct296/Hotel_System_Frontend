@@ -1,12 +1,12 @@
 <template>
   <div class="bg-body-tertiary min-vh-100 pb-5">
     
-    <!-- BANNER CHÍNH (Đã đồng bộ giao diện như trang Home) -->
+    <!-- BANNER CHÍNH (Đồng bộ giao diện như trang Home) -->
     <div class="position-relative hero-section d-flex align-items-center justify-content-center text-center text-white">
       <div class="hero-overlay"></div>
       <div class="container position-relative z-2">
          <span class="badge text-uppercase tracking-wider mb-4 px-4 py-2 rounded-pill" style="background-color: rgba(255, 215, 0, 0.15); color: #FFD700; border: 1px solid rgba(255, 215, 0, 0.4);">
-          Lựa chọn
+          Lựa chọn kỳ nghỉ
         </span>
         <h1 class="display-4 fw-bold mb-0 font-serif text-shadow-sm">DANH SÁCH PHÒNG</h1>
       </div>
@@ -35,7 +35,7 @@
         </div>
 
         <div class="row align-items-end g-3">
-          <!-- CHỌN SỐ ĐÊM NẾU LÀ DAILY -->
+          <!-- CHẾ ĐỘ DAILY -->
           <div class="col-md-3" v-if="rentalType === 'DAILY'">
             <label class="form-label fw-bold small text-body-secondary tracking-wider text-uppercase" style="font-size: 0.75rem;">Số đêm lưu trú</label>
             <input type="number" class="form-control border-0 shadow-none px-2 bg-body-tertiary fw-bold text-primary" min="1" v-model="numberOfNights" @change="handleNightsChange" required>
@@ -49,13 +49,13 @@
             
             <!-- Giao diện ghép thêm đuôi 14:00 khi chọn DAILY -->
             <div v-if="rentalType === 'DAILY'" class="input-group shadow-none flex-nowrap w-100">
-                <input type="date"
-                       class="form-control border-0 shadow-none px-2 bg-body-tertiary fw-bold text-primary"
+                <input type="date" 
+                       class="form-control border-0 shadow-none px-2 bg-body-tertiary fw-bold text-primary" 
                        style="min-width: 0;"
-                       v-model="dailyCheckInDate"
-                       @change="handleDailyCheckInChange"
+                       v-model="dailyCheckInDate" 
+                       @change="handleDailyCheckInChange" 
                        required>
-            
+              
                 <span class="input-group-text border-0 bg-body-tertiary text-primary fw-bold px-2 flex-shrink-0">
                     14:00
                 </span>
@@ -99,10 +99,10 @@
             <span class="input-group-text bg-body-tertiary border-0"><i class="fas fa-user-friends text-body-secondary"></i></span>
             <select v-model="filterAdults" class="form-select bg-body-tertiary border-0 text-body fw-semibold shadow-none">
               <option value="0">Mọi sức chứa</option>
-              <option value="1">Từ 1 Khách</option>
-              <option value="2">Từ 2 Khách</option>
-              <option value="4">Từ 4 Khách</option>
-              <option value="6">Từ 6 Khách</option>
+              <option value="1">Từ 1 Người lớn</option>
+              <option value="2">Từ 2 Người lớn</option>
+              <option value="4">Từ 4 Người lớn</option>
+              <option value="6">Từ 6 Người lớn</option>
             </select>
           </div>
         </div>
@@ -135,14 +135,29 @@
       <!-- Lưới Danh sách phòng -->
       <div v-else class="row g-4">
         <div v-for="item in filteredAndSortedRooms" :key="item.id" class="col-md-6 col-lg-4">
-          <div class="card h-100 shadow-sm border-0 room-card overflow-hidden bg-body"
-                :class="{'border-dark border-2 shadow': isSelected(item.id)}">
+          <div class="card h-100 shadow-sm border-0 room-card overflow-hidden bg-body" 
+               :class="{'border-dark border-2 shadow': isSelected(item.id)}">
             
-            <div class="position-relative overflow-hidden">
-              <img :src="getImageUrl(item.images)" 
+            <!-- KHUNG ẢNH KÈM NÚT CHUYỂN SLIDE -->
+            <div class="position-relative overflow-hidden room-slider-container">
+              <img :src="getCurrentImage(item)" 
                    class="card-img-top room-img" 
                    style="height: 250px; object-fit: cover;" alt="Room Image" @error="handleImageError">
-              <div v-if="isSelected(item.id)" class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex justify-content-center align-items-center transition-all">
+              
+              <!-- Nút chuyển ảnh Trái / Phải khi có nhiều hơn 1 ảnh -->
+              <template v-if="getImageList(item).length > 1">
+                <button type="button" class="slider-btn slider-btn-prev" @click.stop.prevent="prevImage(item)" title="Ảnh trước">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <button type="button" class="slider-btn slider-btn-next" @click.stop.prevent="nextImage(item)" title="Ảnh tiếp">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+                <span class="slider-counter badge bg-dark bg-opacity-75 rounded-pill px-2 py-1">
+                  {{ (activeImageIndex[item.id] || 0) + 1 }} / {{ getImageList(item).length }}
+                </span>
+              </template>
+
+              <div v-if="isSelected(item.id)" class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex justify-content-center align-items-center transition-all" style="pointer-events: none;">
                 <i class="fas fa-check-circle text-white" style="font-size: 3rem; text-shadow: 0 4px 12px rgba(0,0,0,0.5);"></i>
               </div>
             </div>
@@ -153,11 +168,13 @@
                 <span class="badge bg-body-tertiary text-body-emphasis border">P.{{ item.name || 'N/A' }}</span>
               </div>
               
-              <!-- Thông số cơ bản -->
+              <!-- Thông số cơ bản (Hiển thị rõ NL & TE) -->
               <div class="d-flex flex-wrap gap-2 mb-3 mt-1">
                 <span class="text-body-secondary small"><i class="fas fa-bed text-secondary me-1"></i>{{ item.roomType?.bed || '1 Giường' }}</span>
                 <span class="text-body-secondary small border-start border-secondary-subtle ps-2"><i class="fas fa-vector-square text-secondary me-1"></i>{{ item.roomType?.area || 0 }}m&sup2;</span>
-                <span class="text-body-secondary small border-start border-secondary-subtle ps-2"><i class="fas fa-user-friends text-secondary me-1"></i>{{ (item.roomType?.adultMax||0) + (item.roomType?.childrenMax||0) }} Khách</span>
+                <span class="text-body-secondary small border-start border-secondary-subtle ps-2">
+                  <i class="fas fa-user-friends text-secondary me-1"></i>{{ item.roomType?.adultMax || 0 }} NL, {{ item.roomType?.childrenMax || 0 }} TE
+                </span>
               </div>
               
               <!-- Tiện ích phòng -->
@@ -166,7 +183,7 @@
                   <span v-for="ra in item.roomType.roomAmenities.slice(0, 4)" :key="ra.amenity?.id" class="me-3 d-inline-block mb-1">
                     <i class="fas fa-check text-success me-1"></i> {{ ra.amenity?.name }}
                   </span>
-                  <span v-if="item.roomType.roomAmenities.length > 4" class="fst-italic opacity-50">...</span>
+                  <span v-if="item.roomType.roomAmenities.length > 4" class="fst-italic opacity-75">+{{ item.roomType.roomAmenities.length - 4 }} tiện ích</span>
                 </div>
                 <div v-else class="fst-italic opacity-50">Đang cập nhật tiện ích...</div>
               </div>
@@ -226,6 +243,7 @@
                       </button>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
@@ -239,6 +257,7 @@
           <p>Vui lòng thay đổi thời gian hoặc bộ lọc tìm kiếm.</p>
         </div>
       </div>
+
     </div>
 
     <!-- THANH BOTTOM BAR NỔI LÊN KHI CÓ PHÒNG ĐƯỢC CHỌN -->
@@ -249,10 +268,11 @@
           <small class="text-body-secondary d-none d-sm-block">Bạn có thể chọn thêm nhiều phòng khác.</small>
         </div>
         <button @click="proceedToBooking" class="btn btn-dark fw-bold px-4 py-2 rounded-3 text-uppercase tracking-wider shadow">
-          Tiếp tục Đặt phòng <i class="fas fa-arrow-right ms-2"></i>
+          Tiếp tục đặt phòng <i class="fas fa-arrow-right ms-2"></i>
         </button>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -274,6 +294,9 @@ const errorMsg = ref('')
 const searchQuery = ref('')
 const filterAdults = ref('0')
 const sortOption = ref('default')
+
+// Biến lưu index ảnh hiện tại của từng phòng
+const activeImageIndex = ref({})
 
 // Biến cho hình thức thuê
 const rentalType = ref('HOURLY')
@@ -307,12 +330,39 @@ const filteredAndSortedRooms = computed(() => {
   return result
 })
 
-// Cấu hình URL Ảnh mặc định
+// Cấu hình URL ảnh mặc định & Slider
 const defaultRoomImage = 'https://api.ct296.id.vn/image/default_room.jpg'
-const getImageUrl = (images) => {
-  if (!images || images.length === 0) return defaultRoomImage
-  const path = typeof images[0] === 'string' ? images[0] : images[0].imagePath
+
+const resolveSinglePath = (imgItem) => {
+  if (!imgItem) return defaultRoomImage
+  const path = typeof imgItem === 'string' ? imgItem : imgItem.imagePath
+  if (!path) return defaultRoomImage
   return path.startsWith('http') ? path : `https://api.ct296.id.vn${path}`
+}
+
+const getImageList = (room) => {
+  if (!room.images || room.images.length === 0) return [defaultRoomImage]
+  return room.images.map(resolveSinglePath)
+}
+
+const getCurrentImage = (room) => {
+  const list = getImageList(room)
+  const idx = activeImageIndex.value[room.id] || 0
+  return list[idx] || defaultRoomImage
+}
+
+const prevImage = (room) => {
+  const list = getImageList(room)
+  if (list.length <= 1) return
+  const current = activeImageIndex.value[room.id] || 0
+  activeImageIndex.value[room.id] = (current - 1 + list.length) % list.length
+}
+
+const nextImage = (room) => {
+  const list = getImageList(room)
+  if (list.length <= 1) return
+  const current = activeImageIndex.value[room.id] || 0
+  activeImageIndex.value[room.id] = (current + 1) % list.length
 }
 
 const handleImageError = (e) => {
@@ -340,10 +390,9 @@ const toggleSelect = (room) => {
   }
 }
 
-// Hàm dùng chung để ép cứng giờ nhận (14:00) và giờ trả (12:00)
+// Hàm dùng chung để ép cứng giờ nhận (14:00) và trả (12:00)
 const applyDailyFixedTimes = () => {
   let datePartCheckIn = '';
-
   if (dailyCheckInDate.value) {
     datePartCheckIn = dailyCheckInDate.value;
   } else if (checkInDate.value) {
@@ -352,7 +401,7 @@ const applyDailyFixedTimes = () => {
   } else {
     return;
   }
-  
+
   // 1. Ép cứng giờ nhận phòng thành 14:00
   checkInDate.value = `${datePartCheckIn}T14:00`
 
@@ -407,7 +456,6 @@ const fetchRooms = async () => {
   isLoading.value = true
   errorMsg.value = ''
   selectedRooms.value = [] 
-  
   try {
     const params = new URLSearchParams()
     if (route.query.checkIn && !checkInDate.value) {
@@ -435,7 +483,7 @@ const fetchRooms = async () => {
     
     rooms.value = response.data.rooms || []
     
-    // Chỉ cập nhật nếu chưa có dữ liệu để tránh ghi đè lúc người dùng đang chọn
+    // Chỉ cập nhật nếu chưa có để tránh ghi đè lúc người dùng đang chọn
     if (!checkInDate.value) checkInDate.value = response.data.checkIn ? response.data.checkIn.substring(0, 16) : ''
     if (!checkOutDate.value) checkOutDate.value = response.data.checkOut ? response.data.checkOut.substring(0, 16) : ''
     
@@ -443,7 +491,7 @@ const fetchRooms = async () => {
     if (checkInDate.value && !dailyCheckInDate.value) {
       dailyCheckInDate.value = checkInDate.value.split('T')[0]
     }
-    
+      
   } catch (error) {
     errorMsg.value = error.response?.data?.error || 'Không thể lấy danh sách phòng lúc này. Vui lòng thử lại sau.'
   } finally {
@@ -460,7 +508,7 @@ const proceedToBooking = () => {
       roomId: roomIds,
       checkIn: checkInDate.value,
       checkOut: checkOutDate.value,
-      rentalType: rentalType.value // Truyền rentalType qua trang Booking
+      rentalType: rentalType.value
     } 
   })
 }
@@ -470,7 +518,6 @@ watch(() => route.query, () => {
 })
 
 onMounted(() => {
-  // Lấy rentalType từ query nếu có (ví dụ từ trang chủ truyền qua)
   if (route.query.rentalType) {
     rentalType.value = route.query.rentalType;
   }
@@ -485,6 +532,7 @@ onMounted(() => {
   padding: 120px 0;
   background: url('https://images.unsplash.com/photo-1542314831-c6a4d1409e1c?auto=format&fit=crop&w=1920&q=80') center center / cover no-repeat;
 }
+
 .hero-overlay {
   position: absolute;
   top: 0;
@@ -494,6 +542,7 @@ onMounted(() => {
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.75));
   z-index: 1;
 }
+
 .text-shadow-sm {
   text-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
@@ -504,6 +553,7 @@ onMounted(() => {
 .tracking-wider {
   letter-spacing: 1.5px;
 }
+
 .room-card {
   transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
@@ -520,6 +570,43 @@ onMounted(() => {
 [data-bs-theme="dark"] .room-card:hover {
   box-shadow: 0 20px 40px rgba(0,0,0,0.5) !important;
 }
+
+/* NÚT SLIDER ẢNH */
+.slider-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 5;
+}
+.room-slider-container:hover .slider-btn {
+  opacity: 1;
+}
+.slider-btn:hover {
+  background: rgba(0, 0, 0, 0.85);
+  transform: translateY(-50%) scale(1.1);
+}
+.slider-btn-prev { left: 10px; }
+.slider-btn-next { right: 10px; }
+.slider-counter {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  font-size: 0.72rem;
+  z-index: 4;
+}
+
 .object-fit-cover {
   object-fit: cover;
 }
@@ -533,6 +620,7 @@ onMounted(() => {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
+
 .input-group-text {
   background-color: transparent !important;
 }
@@ -547,13 +635,16 @@ onMounted(() => {
   position: relative;
   user-select: none;
 }
+
 .rental-tab:hover:not(.active-tab) {
-  color: #0d6efd !important; /* Xanh biển */
+  color: #0d6efd !important;
   opacity: 0.8;
 }
+
 .rental-tab.active-tab {
   font-weight: 800;
 }
+
 .rental-tab.active-tab::after {
   content: '';
   position: absolute;
@@ -561,9 +652,10 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 4px;
-  background-color: #0d6efd; /* Vạch gạch chân màu xanh biển */
+  background-color: #0d6efd;
   border-radius: 4px 4px 0 0;
 }
+
 .cursor-pointer {
   cursor: pointer;
 }

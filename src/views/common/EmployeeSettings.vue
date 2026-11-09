@@ -282,12 +282,25 @@ const showNotification = (type, message) => {
 
 const fetchCountries = async () => {
   try {
-    const res = await fetch('https://restcountries.com/v3.1/all?fields=name,translations')
+    // Sử dụng jsDelivr CDN, tốc độ cao và không bị lỗi CORS
+    const res = await fetch('https://cdn.jsdelivr.net/gh/umpirsky/country-list@master/data/vi/country.json')
     const data = await res.json()
-    countries.value = data.map(c => c.translations?.vie?.common || c.name.common)
-                          .sort((a, b) => a.localeCompare(b))
+    
+    // Dữ liệu trả về là Object { "VN": "Việt Nam", "US": "Hoa Kỳ", ... }
+    // Ta dùng Object.values() để lấy mảng tên và sắp xếp theo bảng chữ cái
+    let countryList = Object.values(data).sort((a, b) => a.localeCompare(b))
+    
+    // (Tùy chọn) Đưa Việt Nam lên đầu danh sách cho tiện
+    const vnIndex = countryList.indexOf('Việt Nam')
+    if (vnIndex > -1) {
+      countryList.splice(vnIndex, 1)
+      countryList.unshift('Việt Nam')
+    }
+    
+    countries.value = countryList
   } catch (error) {
-    countries.value = ['Việt Nam', 'Mỹ', 'Anh', 'Pháp', 'Nhật Bản', 'Hàn Quốc', 'Trung Quốc']
+    // Dự phòng nếu mất mạng hoàn toàn
+    countries.value = ['Việt Nam', 'Mỹ', 'Anh', 'Nhật Bản', 'Hàn Quốc', 'Trung Quốc', 'Úc', 'Pháp']
   }
 }
 

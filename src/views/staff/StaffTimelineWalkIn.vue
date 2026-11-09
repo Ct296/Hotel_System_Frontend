@@ -222,7 +222,7 @@
                   <div class="col-6"><input type="text" v-model="walkInForm.firstName" class="form-control form-control-sm bg-body text-body" placeholder="Tên khách"></div>
                   <div class="col-12"><input type="text" v-model="walkInForm.pid" class="form-control form-control-sm bg-body text-body" placeholder="CCCD / CMND / Hộ chiếu"></div>
                   <div class="col-6"><input type="text" v-model="walkInForm.phoneNumber" class="form-control form-control-sm bg-body text-body" placeholder="Số điện thoại"></div>
-                  <div class="col-6"><input type="email" v-model="walkInForm.email" class="form-control form-control-sm bg-body text-body" placeholder="Email (Bắt buộc)" required></div>
+                  <div class="col-6"><input type="email" v-model="walkInForm.email" class="form-control form-control-sm bg-body text-body" placeholder="Email (Không bắt buộc)"></div>
                   <div class="col-12"><input type="text" v-model="walkInForm.nationality" class="form-control form-control-sm bg-body text-body" placeholder="Quốc tịch (VD: Việt Nam)"></div>
                   <div class="col-6">
                     <select v-model="walkInForm.sex" class="form-select form-select-sm bg-body text-body">

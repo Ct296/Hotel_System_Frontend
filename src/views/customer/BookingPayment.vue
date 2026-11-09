@@ -15,7 +15,7 @@
             <p class="text-body-secondary fs-5">Mã đơn: <strong class="text-primary">{{ rentalId }}</strong></p>
             
             <div class="alert alert-warning text-dark py-2 small fw-semibold mt-3">
-              <i class="fas fa-clock me-1"></i> Vui lòng hoàn tất thanh toán trong vòng 10 phút để giữ phòng.
+              <i class="fas fa-clock me-1"></i> Vui lòng hoàn tất thanh toán trong vòng 15 phút để giữ phòng.
             </div>
           </div>
 

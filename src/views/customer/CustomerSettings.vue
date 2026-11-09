@@ -1,5 +1,5 @@
 <template>
-  <div class="container-fluid py-4">
+  <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
         <h3 class="fw-bold text-body-emphasis mb-1">Cài đặt hệ thống</h3>
@@ -198,8 +198,8 @@
                 <tbody>
                   <tr v-for="status in accountStatuses" :key="status.id">
                     <td>
-                      <span class="badge" :class="status.name === 'ACTIVE' ? 'bg-success' : 'bg-danger'">
-                        {{ status.name === 'ACTIVE' ? 'Đang hoạt động' : 'Bị Khóa' }}
+                      <span class="badge" :class="getStatusBadgeClass(status.name)">
+                        {{ getStatusDisplayName(status.name) }}
                       </span>
                     </td>
                     <td class="small">{{ formatDateTime(status.startTime) }}</td>
@@ -276,13 +276,36 @@ const formatDateTime = (dateString) => {
   })
 }
 
+const getStatusDisplayName = (statusName) => {
+  if (statusName === 'ACTIVE') return 'Đang hoạt động';
+  if (statusName === 'BOOKING_BLOCKED') return 'Cấm đặt phòng';
+  if (statusName === 'LOCKED') return 'Bị Khóa';
+  return statusName; // Fallback
+}
+
+const getStatusBadgeClass = (statusName) => {
+  if (statusName === 'ACTIVE') return 'bg-success';
+  if (statusName === 'BOOKING_BLOCKED') return 'bg-warning text-dark';
+  if (statusName === 'LOCKED') return 'bg-danger';
+  return 'bg-secondary';
+}
+
 const fetchCountries = async () => {
   try {
-    const res = await fetch('https://restcountries.com/v3.1/all?fields=name,translations')
+    // Sử dụng jsDelivr CDN, tốc độ cao và không bị lỗi CORS
+    const res = await fetch('https://cdn.jsdelivr.net/gh/umpirsky/country-list@master/data/vi/country.json')
     const data = await res.json()
-    countries.value = data.map(c => c.translations?.vie?.common || c.name.common).sort((a, b) => a.localeCompare(b))
+    
+    let countryList = Object.values(data).sort((a, b) => a.localeCompare(b))
+    const vnIndex = countryList.indexOf('Việt Nam')
+    if (vnIndex > -1) {
+      countryList.splice(vnIndex, 1)
+      countryList.unshift('Việt Nam')
+    }
+    
+    countries.value = countryList
   } catch (error) {
-    countries.value = ['Việt Nam', 'Mỹ', 'Anh', 'Nhật Bản', 'Hàn Quốc']
+    countries.value = ['Việt Nam', 'Mỹ', 'Anh', 'Nhật Bản', 'Hàn Quốc', 'Trung Quốc', 'Úc', 'Pháp']
   }
 }
 
