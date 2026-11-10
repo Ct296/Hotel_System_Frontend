@@ -254,6 +254,27 @@
     </div>
 
   </div>
+  <div v-if="showConfirmModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5); z-index: 1080;">
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4 bg-body-tertiary">
+          <div class="modal-header border-0 pb-0 justify-content-center mt-3">
+            <div :class="'text-' + confirmConfig.type" style="font-size: 3rem;">
+              <i :class="confirmConfig.icon"></i>
+            </div>
+          </div>
+          <div class="modal-body text-center pt-2 pb-4 px-4">
+            <h5 class="fw-bold mb-3 text-body-emphasis">{{ confirmConfig.title }}</h5>
+            <p class="text-body-secondary mb-0" style="font-size: 0.95rem;" v-html="confirmConfig.message"></p>
+          </div>
+          <div class="modal-footer bg-body border-0 d-flex justify-content-center rounded-bottom-4 py-3 gap-2">
+            <button type="button" class="btn btn-secondary px-4 fw-semibold" @click="closeConfirm" :disabled="isProcessingConfirm">Hủy</button>
+            <button type="button" class="btn px-4 fw-bold" :class="'btn-' + confirmConfig.type" @click="executeConfirm" :disabled="isProcessingConfirm">
+              <span v-if="isProcessingConfirm" class="spinner-border spinner-border-sm me-1"></span> Xác nhận
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 </template>
 
 <script setup>
@@ -362,22 +383,54 @@ const submitForm = async () => {
   }
 }
 
-const toggleStatus = async (id, targetStatus) => {
-  const confirmMsg = targetStatus === 'RESIGNED' 
-    ? 'Hành động này sẽ khóa tài khoản đăng nhập của nhân viên. Bạn chắc chứ?' 
-    : 'Nhân viên này sẽ đi làm lại và tài khoản sẽ được mở khóa?'
-  
-  if (!confirm(confirmMsg)) return
+const showConfirmModal = ref(false)
+const isProcessingConfirm = ref(false)
+const confirmConfig = ref({ title: '', message: '', type: 'danger', icon: 'fas fa-exclamation-triangle', action: null })
 
-  try {
-    await api.put(`/api/manager/hr/staffs/${id}/status`, { status: targetStatus })
-    showNotification('success', 'Đã cập nhật trạng thái.')
-    fetchData()
-  } catch (error) {
-    showNotification('danger', error.response?.data?.error || 'Có lỗi xảy ra.')
-  }
+const openConfirm = (title, message, type, icon, actionCallback) => {
+  confirmConfig.value = { title, message, type, icon, action: actionCallback }
+  showConfirmModal.value = true
 }
 
+const closeConfirm = () => {
+  showConfirmModal.value = false
+  confirmConfig.value.action = null
+}
+
+const executeConfirm = async () => {
+  if (confirmConfig.value.action) {
+    isProcessingConfirm.value = true
+    await confirmConfig.value.action()
+    isProcessingConfirm.value = false
+  }
+  closeConfirm()
+}
+
+const toggleStatus = (id, targetStatus) => {
+  const isResigning = targetStatus === 'RESIGNED'
+  const title = isResigning ? 'Xác nhận cho nghỉ việc' : 'Khôi phục làm việc'
+  const message = isResigning 
+    ? 'Hành động này sẽ khóa tài khoản đăng nhập của nhân viên. Bạn chắc chứ?' 
+    : 'Nhân viên này sẽ đi làm lại và tài khoản sẽ được mở khóa?'
+  const type = isResigning ? 'danger' : 'success'
+  const icon = isResigning ? 'fas fa-user-times' : 'fas fa-user-check'
+
+  openConfirm(
+    title,
+    message,
+    type,
+    icon,
+    async () => {
+      try {
+        await api.put(`/api/manager/hr/staffs/${id}/status`, { status: targetStatus })
+        showNotification('success', 'Đã cập nhật trạng thái.')
+        fetchData()
+      } catch (error) {
+        showNotification('danger', error.response?.data?.error || 'Có lỗi xảy ra.')
+      }
+    }
+  )
+}
 onMounted(() => fetchData())
 </script>
 

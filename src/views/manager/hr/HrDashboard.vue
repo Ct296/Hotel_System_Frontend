@@ -213,6 +213,27 @@
     </div>
 
   </div>
+  <div v-if="showConfirmModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5); z-index: 1080;">
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4 bg-body-tertiary">
+          <div class="modal-header border-0 pb-0 justify-content-center mt-3">
+            <div :class="'text-' + confirmConfig.type" style="font-size: 3rem;">
+              <i :class="confirmConfig.icon"></i>
+            </div>
+          </div>
+          <div class="modal-body text-center pt-2 pb-4 px-4">
+            <h5 class="fw-bold mb-3 text-body-emphasis">{{ confirmConfig.title }}</h5>
+            <p class="text-body-secondary mb-0" style="font-size: 0.95rem;" v-html="confirmConfig.message"></p>
+          </div>
+          <div class="modal-footer bg-body border-0 d-flex justify-content-center rounded-bottom-4 py-3 gap-2">
+            <button type="button" class="btn btn-secondary px-4 fw-semibold" @click="closeConfirm" :disabled="isProcessingConfirm">Hủy</button>
+            <button type="button" class="btn px-4 fw-bold" :class="'btn-' + confirmConfig.type" @click="executeConfirm" :disabled="isProcessingConfirm">
+              <span v-if="isProcessingConfirm" class="spinner-border spinner-border-sm me-1"></span> Xác nhận
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 </template>
 
 <script setup>
@@ -274,15 +295,45 @@ const submitCreateSchedule = async () => {
   }
 }
 
-const deleteSchedule = async (id) => {
-  if (!confirm('Bạn có chắc chắn muốn xóa ca làm này?')) return
-  try {
-    await api.delete(`/api/manager/hr/work-schedules/${id}`)
-    fetchDashboard()
-    showNotification('success', 'Đã xóa ca làm việc!')
-  } catch (error) {
-    showNotification('danger', error.response?.data?.error || 'Lỗi xóa ca.')
+const showConfirmModal = ref(false)
+const isProcessingConfirm = ref(false)
+const confirmConfig = ref({ title: '', message: '', type: 'danger', icon: 'fas fa-trash-alt', action: null })
+
+const openConfirm = (title, message, type, icon, actionCallback) => {
+  confirmConfig.value = { title, message, type, icon, action: actionCallback }
+  showConfirmModal.value = true
+}
+
+const closeConfirm = () => {
+  showConfirmModal.value = false
+  confirmConfig.value.action = null
+}
+
+const executeConfirm = async () => {
+  if (confirmConfig.value.action) {
+    isProcessingConfirm.value = true
+    await confirmConfig.value.action()
+    isProcessingConfirm.value = false
   }
+  closeConfirm()
+}
+
+const deleteSchedule = (id) => {
+  openConfirm(
+    'Xác nhận xóa ca',
+    'Bạn có chắc chắn muốn xóa ca làm việc này không? Dữ liệu sẽ không thể khôi phục.',
+    'danger',
+    'fas fa-trash-alt',
+    async () => {
+      try {
+        await api.delete(`/api/manager/hr/work-schedules/${id}`)
+        fetchDashboard()
+        showNotification('success', 'Đã xóa ca làm việc!')
+      } catch (error) {
+        showNotification('danger', error.response?.data?.error || 'Lỗi xóa ca.')
+      }
+    }
+  )
 }
 
 const openAssignModal = (scheduleId) => {
@@ -305,15 +356,22 @@ const submitAssignStaff = async () => {
   }
 }
 
-const removeAssignment = async (assignId) => {
-  if (!confirm('Gỡ nhân viên này khỏi ca?')) return
-  try {
-    await api.delete(`/api/manager/hr/work-assignments/${assignId}`)
-    fetchDashboard()
-    showNotification('success', 'Đã gỡ phân công thành công!')
-  } catch (error) {
-    showNotification('danger', error.response?.data?.error || 'Lỗi khi gỡ phân công.')
-  }
+const removeAssignment = (assignId) => {
+  openConfirm(
+    'Gỡ phân công',
+    'Bạn có chắc chắn muốn gỡ nhân viên này khỏi ca làm việc hiện tại?',
+    'warning',
+    'fas fa-user-minus',
+    async () => {
+      try {
+        await api.delete(`/api/manager/hr/work-assignments/${assignId}`)
+        fetchDashboard()
+        showNotification('success', 'Đã gỡ phân công thành công!')
+      } catch (error) {
+        showNotification('danger', error.response?.data?.error || 'Lỗi khi gỡ phân công.')
+      }
+    }
+  )
 }
 
 onMounted(() => {
@@ -347,7 +405,11 @@ onMounted(() => {
   border-radius: 8px;
   transform: scale(0.95);
   box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+  /* Thêm 2 dòng này để làm nổi bật ô được chọn */
+  border: 2px solid #0d6efd !important;
+  background-color: var(--bs-secondary-bg) !important;
 }
+
 .dot {
   width: 6px;
   height: 6px;

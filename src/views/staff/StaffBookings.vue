@@ -102,6 +102,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../../utils/axios'
+import { formatPrice, formatDate, formatTime, formatDateTime } from '../../utils/formatters'
 
 const router = useRouter()
 const pendingBookings = ref([])
@@ -147,13 +148,6 @@ const executeConfirm = async () => {
   }
   closeConfirm()
 }
-
-const formatDateTime = (val) => {
-  if (!val) return ''
-  return new Date(val).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
-}
-
-const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price || 0) + 'đ'
 
 const fetchBookings = async () => {
   isLoading.value = true

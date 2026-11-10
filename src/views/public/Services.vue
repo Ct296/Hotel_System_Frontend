@@ -25,7 +25,7 @@
           <div v-else class="row g-3">
             <div v-for="(svc, index) in services" :key="index" class="col-md-6">
               <div class="card h-100 border-0 shadow-sm service-card overflow-hidden bg-body">
-                <img :src="getImageUrl(svc.imagePath)" class="card-img-top object-fit-cover" style="height: 200px;" alt="Service Image" @error="handleImageError">
+                <img :src="resolveImageUrl(svc.imagePath, DEFAULT_IMAGES.SERVICE)" class="card-img-top object-fit-cover" style="height: 200px;" alt="Service Image" @error="handleImageError($event, DEFAULT_IMAGES.SERVICE)">
                 <div class="card-body d-flex flex-column p-4">
                   <!-- KHỐI CHỨA NỘI DUNG FLEX-GROW -->
                   <div class="flex-grow-1">
@@ -114,22 +114,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '../../utils/axios'
+import { formatPrice, formatDate, resolveImageUrl, handleImageError, DEFAULT_IMAGES } from '../../utils/formatters'
 
 const services = ref([])
 const isLoading = ref(true)
-
-// Sử dụng link ảnh mặc định từ Backend cho dịch vụ
-const defaultServiceImage = 'https://api.ct296.id.vn/image/default_service.jpg'
-
-const getImageUrl = (path) => {
-  if (!path) return defaultServiceImage
-  return path.startsWith('http') ? path : `https://api.ct296.id.vn${path}`
-}
-const handleImageError = (e) => {
-  e.target.src = defaultServiceImage
-}
-
-const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price || 0) + ' đ'
 
 const fetchServices = async () => {
   isLoading.value = true

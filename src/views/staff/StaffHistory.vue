@@ -106,6 +106,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '../../utils/axios'
+import { formatPrice, formatDate, formatTime, formatDateTime } from '../../utils/formatters'
 
 const activeTab = ref('bill') 
 const bills = ref([])
@@ -113,10 +114,6 @@ const payments = ref([])
 const serviceUsages = ref([])
 const incidents = ref([])
 const isLoading = ref(true)
-
-// Fix định dạng 24h
-const formatDate = (val) => val ? new Date(val).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : ''
-const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price || 0) + ' đ'
 
 const fetchData = async () => {
   isLoading.value = true
@@ -167,4 +164,12 @@ onMounted(() => fetchData())
 <style scoped>
 .nav-tabs .nav-link { cursor: pointer; color: #6c757d; }
 .nav-tabs .nav-link.active { border-bottom-color: transparent; }
+
+.table-responsive thead th {
+  position: sticky;
+  top: 0;
+  background-color: var(--bs-secondary-bg) !important;
+  z-index: 10;
+  box-shadow: inset 0 -1px 0 var(--bs-border-color); /* Tạo viền dưới cho header */
+}
 </style>

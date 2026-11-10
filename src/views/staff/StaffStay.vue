@@ -284,6 +284,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import api from '../../utils/axios'
+import { formatPrice, formatDate, formatTime, formatDateTime } from '../../utils/formatters'
 
 const activeTab = ref('stay')
 const checkedInRentals = ref([])
@@ -292,7 +293,7 @@ const checkedOutRentals = ref([])
 const activeServices = ref([])
 const billingSummaries = ref({})
 const allIncidents = ref([])
-const allServiceUsages = ref([]) // Thêm state lưu lịch sử dịch vụ
+const allServiceUsages = ref([])
 const isLoading = ref(true)
 const isProcessing = ref(false)
 
@@ -314,11 +315,6 @@ const showConfirmModal = ref(false)
 const confirmConfig = ref({ title: '', message: '', type: 'primary', icon: '', action: null })
 
 const allActiveRentals = computed(() => [...overdueRentals.value, ...checkedInRentals.value])
-
-// Fix định dạng giờ 24h
-const formatTime = (val) => val ? new Date(val).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false }) : ''
-const formatDate = (val) => val ? new Date(val).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : ''
-const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price || 0) + 'đ'
 
 const isOverdue = (r) => r.rentalDetails[0]?.status === 'OVERDUE'
 const isSettled = (rentalId) => false 

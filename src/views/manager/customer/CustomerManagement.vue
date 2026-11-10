@@ -193,6 +193,10 @@
                     {{ getAccountStatusText(getAccountStatus(selectedCustomer.id)) }}
                   </span>
                 </p>
+                <p class="mb-0" v-if="getAccountStatus(selectedCustomer.id) !== 'ACTIVE'">
+                  <strong>Lý do:</strong> 
+                  <span class="text-danger fw-semibold ms-2">{{ getAccountStatusReason(selectedCustomer.id) }}</span>
+                </p>
               </div>
             </div>
           </div>
@@ -204,6 +208,29 @@
     </div>
 
   </div>
+
+  <!-- MODAL CONFIRM XÁC NHẬN (CUSTOM) -->
+    <div v-if="showConfirmModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5); z-index: 1080;">
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4 bg-body-tertiary">
+          <div class="modal-header border-0 pb-0 justify-content-center mt-3">
+            <div :class="'text-' + confirmConfig.type" style="font-size: 3rem;">
+              <i :class="confirmConfig.icon"></i>
+            </div>
+          </div>
+          <div class="modal-body text-center pt-2 pb-4 px-4">
+            <h5 class="fw-bold mb-3 text-body-emphasis">{{ confirmConfig.title }}</h5>
+            <p class="text-body-secondary mb-0" style="font-size: 0.95rem;" v-html="confirmConfig.message"></p>
+          </div>
+          <div class="modal-footer bg-body border-0 d-flex justify-content-center rounded-bottom-4 py-3 gap-2">
+            <button type="button" class="btn btn-secondary px-4 fw-semibold" @click="closeConfirm" :disabled="isProcessingConfirm">Hủy</button>
+            <button type="button" class="btn px-4 fw-bold" :class="'btn-' + confirmConfig.type" @click="executeConfirm" :disabled="isProcessingConfirm">
+              <span v-if="isProcessingConfirm" class="spinner-border spinner-border-sm me-1"></span> Xác nhận
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 </template>
 
 <script setup>
@@ -348,14 +375,60 @@ const viewDetails = (customer) => {
   showDetailModal.value = true
 }
 
-const toggleLock = async (customerId) => {
-  if (!confirm('Bạn có chắc muốn thay đổi trạng thái tài khoản này? (Nếu đang bị phạt, thao tác này sẽ gỡ phạt ngay lập tức)')) return;
-  try {
-    await api.put(`/api/manager/customer/${customerId}/toggle-lock`);
-    fetchDashboard(); 
-  } catch (error) {
-    alert("Lỗi khi cập nhật trạng thái");
+// --- QUẢN LÝ MODAL XÁC NHẬN CUSTOM ---
+const showConfirmModal = ref(false)
+const isProcessingConfirm = ref(false)
+const confirmConfig = ref({ title: '', message: '', type: 'danger', icon: 'fas fa-exclamation-triangle', action: null })
+
+const openConfirm = (title, message, type, icon, actionCallback) => {
+  confirmConfig.value = { title, message, type, icon, action: actionCallback }
+  showConfirmModal.value = true
+}
+
+const closeConfirm = () => {
+  showConfirmModal.value = false
+  confirmConfig.value.action = null
+}
+
+const executeConfirm = async () => {
+  if (confirmConfig.value.action) {
+    isProcessingConfirm.value = true
+    await confirmConfig.value.action()
+    isProcessingConfirm.value = false
   }
+  closeConfirm()
+}
+
+// Bổ sung hàm lấy lý do khóa tài khoản
+const getAccountStatusReason = (id) => {
+  return dashboardData.value.accountStatusReasonByCustomerId?.[id] || 'Không có ghi chú'
+}
+
+// Hàm đổi trạng thái tài khoản (Sử dụng Confirm Modal)
+const toggleLock = (customerId) => {
+  const currentStatus = getAccountStatus(customerId)
+  const isLocked = currentStatus === 'LOCKED' || currentStatus === 'BOOKING_BLOCKED'
+  const title = isLocked ? 'Xác nhận Mở khóa/Gỡ phạt' : 'Xác nhận Khóa tài khoản'
+  const message = isLocked 
+    ? 'Tài khoản này sẽ được khôi phục trạng thái hoạt động bình thường. Bạn chắc chứ?' 
+    : 'Hành động này sẽ khóa tài khoản đăng nhập của khách hàng. Bạn chắc chứ?'
+  const type = isLocked ? 'success' : 'danger'
+  const icon = isLocked ? 'fas fa-unlock' : 'fas fa-lock'
+
+  openConfirm(
+    title,
+    message,
+    type,
+    icon,
+    async () => {
+      try {
+        await api.put(`/api/manager/customer/${customerId}/toggle-lock`)
+        fetchDashboard()
+      } catch (error) {
+        alert("Lỗi khi cập nhật trạng thái")
+      }
+    }
+  )
 }
 
 onMounted(() => fetchDashboard())

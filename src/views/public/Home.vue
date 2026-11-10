@@ -79,7 +79,7 @@
                 <!-- Thông số cơ bản (Hiển thị rõ Người lớn & Trẻ em) -->
                 <div class="d-flex flex-wrap gap-2 mb-3 mt-1">
                   <span class="text-body-secondary small"><i class="fas fa-bed text-secondary me-1"></i>{{ type.bed || '1 Giường' }}</span>
-                  <span class="text-body-secondary small border-start border-secondary-subtle ps-2"><i class="fas fa-vector-square text-secondary me-1"></i>{{ type.area }}m&sup2;</span>
+                  <span class="text-body-secondary small border-start border-secondary-subtle ps-2"><i class="fas fa-ruler-combined text-secondary me-1"></i>{{ type.area }}m&sup2;</span>
                   <span class="text-body-secondary small border-start border-secondary-subtle ps-2">
                     <i class="fas fa-user-friends text-secondary me-1"></i>{{ type.adultMax || 0 }} NL, {{ type.childrenMax || 0 }} TE
                   </span>
@@ -155,58 +155,15 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../../utils/axios'
+import { formatPrice, handleImageError, getDailyPrice, getDiscountedDailyPrice } from '../../utils/formatters'
+import { useRoomImageSlider } from '../../composables/useRoomImageSlider'
+const { activeImageIndex, getImageList, getCurrentImage, prevImage, nextImage } = useRoomImageSlider()
+
 
 const router = useRouter()
 const homeData = ref({ roomTypes: [], luxuryRoomTypes: [], budgetRoomTypes: [] })
 const searchForm = ref({ checkIn: '', checkOut: '', typeId: '' })
-const activeImageIndex = ref({})
 
-const defaultRoomImage = 'https://api.ct296.id.vn/image/default_room.jpg'
-const handleImageError = (e) => { e.target.src = defaultRoomImage }
-const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price || 0) + 'đ'
-
-const resolveSinglePath = (imgItem) => {
-  if (!imgItem) return defaultRoomImage
-  const path = typeof imgItem === 'string' ? imgItem : imgItem.imagePath
-  if (!path) return defaultRoomImage
-  return path.startsWith('http') ? path : `https://api.ct296.id.vn${path}`
-}
-
-const getImageList = (type) => {
-  if (!type.images || type.images.length === 0) return [defaultRoomImage]
-  return type.images.map(resolveSinglePath)
-}
-
-const getCurrentImage = (type) => {
-  const list = getImageList(type)
-  const idx = activeImageIndex.value[type.id] || 0
-  return list[idx] || defaultRoomImage
-}
-
-const prevImage = (type) => {
-  const list = getImageList(type)
-  if (list.length <= 1) return
-  const current = activeImageIndex.value[type.id] || 0
-  activeImageIndex.value[type.id] = (current - 1 + list.length) % list.length
-}
-
-const nextImage = (type) => {
-  const list = getImageList(type)
-  if (list.length <= 1) return
-  const current = activeImageIndex.value[type.id] || 0
-  activeImageIndex.value[type.id] = (current + 1) % list.length
-}
-
-// Lấy giá qua đêm (mặc định nếu ko có sẽ lấy giá giờ * 22)
-const getDailyPrice = (type) => type.dailyPrice || (type.basePrice * 22)
-
-// Hàm tính giá qua đêm đã được giảm giá / phụ thu theo tỷ lệ của giá giờ
-const getDiscountedDailyPrice = (type) => {
-  const daily = getDailyPrice(type)
-  if (!type.surchargeAmount) return daily
-  const ratio = type.surchargeAmount / type.basePrice
-  return daily + (daily * ratio)
-}
 
 const fetchHomeData = async () => {
   try {

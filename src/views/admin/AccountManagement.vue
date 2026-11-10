@@ -261,7 +261,17 @@
               <div class="col-md-6"><p class="mb-0"><strong>Giới tính:</strong> <span class="text-body-secondary">{{ selectedAccount.sex === 'MALE' ? 'Nam' : (selectedAccount.sex === 'FEMALE' ? 'Nữ' : 'Khác') }}</span></p></div>
               <div class="col-12"><p class="mb-0"><strong>Quốc tịch:</strong> <span class="text-body-secondary">{{ selectedAccount.nationality || 'Chưa cập nhật' }}</span></p></div>
               <div class="col-12"><p class="mb-0"><strong>Ngày tạo:</strong> <span class="text-body-secondary">{{ formatDateTime(selectedAccount.createDate) }}</span></p></div>
-              
+              <div class="col-12" v-if="selectedAccount.state !== 'ACTIVE'">
+                <hr class="my-2 border-secondary-subtle">
+                <p class="mb-1">
+                  <strong>Lý do khóa/cấm:</strong> 
+                  <span class="text-danger fw-semibold ms-2">{{ selectedAccount.reason || 'Không có ghi chú' }}</span>
+                </p>
+                <p class="mb-0">
+                  <strong>Thời gian mở lại:</strong> 
+                  <span class="text-body-secondary ms-2">{{ selectedAccount.unlockTime ? formatDateTime(selectedAccount.unlockTime) : 'Vĩnh viễn' }}</span>
+                </p>
+              </div>
               <div class="col-12" v-if="selectedAccount.workingStatus">
                 <hr class="my-2 border-secondary-subtle">
                 <p class="mb-0">

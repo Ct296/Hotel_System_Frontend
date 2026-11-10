@@ -147,7 +147,7 @@
           <span class="fw-semibold text-body-emphasis">Xin chào, {{ authStore.user?.fullName || 'Nhân sự' }}</span>
           
           <div class="rounded-circle d-flex justify-content-center align-items-center shadow-sm border border-2 border-primary bg-primary text-white overflow-hidden" style="width: 40px; height: 40px;">
-            <img v-if="authStore.user?.avatar" :src="getImageUrl(authStore.user.avatar)" class="w-100 h-100 object-fit-cover" @error="handleImageError" alt="Avatar">
+            <img v-if="authStore.user?.avatar" :src="resolveImageUrl(authStore.user.avatar, DEFAULT_IMAGES.AVATAR)" class="w-100 h-100 object-fit-cover" @error="handleImageError($event, DEFAULT_IMAGES.AVATAR)" alt="Avatar">
             <i v-else class="fas fa-user"></i>
           </div>
         </div>
@@ -165,18 +165,10 @@
 import { useAuthStore } from '../stores/authStore'
 import { useRouter } from 'vue-router'
 import api from '../utils/axios'
+import { resolveImageUrl, handleImageError, DEFAULT_IMAGES } from '../utils/formatters'
 
 const authStore = useAuthStore()
 const router = useRouter()
-
-const getImageUrl = (path) => {
-  if (!path) return ''
-  return path.startsWith('http') ? path : `https://api.ct296.id.vn${path}`
-}
-
-const handleImageError = (e) => {
-  e.target.style.display = 'none' 
-}
 
 const handleLogout = async () => {
   try {

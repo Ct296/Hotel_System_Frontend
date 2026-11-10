@@ -101,10 +101,10 @@
               <div class="card border-0 shadow-sm rounded-4 bg-body review-card">
                 <div class="card-body p-4">
                   <div class="d-flex align-items-center mb-3">
-                    <img :src="getImageUrl(review.customer?.user?.avatar)" 
-                         class="rounded-circle border border-2 border-secondary-subtle object-fit-cover me-3" 
-                         style="width: 50px; height: 50px;" 
-                         @error="handleImageError" alt="Avatar">
+                    <img :src="resolveImageUrl(review.customer?.user?.avatar, DEFAULT_IMAGES.AVATAR)" 
+                      class="rounded-circle border border-2 border-secondary-subtle object-fit-cover me-3" 
+                      style="width: 50px; height: 50px;" 
+                      @error="handleImageError($event, DEFAULT_IMAGES.AVATAR)" alt="Avatar">
                     <div>
                       <h6 class="fw-bold text-body-emphasis mb-1 font-serif fs-5">
                         {{ review.customer?.user?.lastName }} {{ review.customer?.user?.firstName }}
@@ -133,6 +133,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../../stores/authStore'
 import api from '../../utils/axios'
+import { formatPrice, formatDate, resolveImageUrl, handleImageError, DEFAULT_IMAGES } from '../../utils/formatters'
 
 const authStore = useAuthStore()
 const reviews = ref([])
@@ -148,27 +149,9 @@ const reviewForm = ref({
   description: ''
 })
 
-const backendBaseUrl = 'https://api.ct296.id.vn'
-const defaultAvatar = `${backendBaseUrl}/image/default_avatar_customer.jpg`
-
-const getImageUrl = (path) => {
-  if (!path || path.trim() === '') return defaultAvatar
-  return path.startsWith('http') ? path : `${backendBaseUrl}${path}`
-}
-
-const handleImageError = (e) => {
-  e.target.src = defaultAvatar
-}
-
 const showNotification = (type, message) => {
   notification.value = { type, message }
   setTimeout(() => notification.value.message = '', 5000)
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 const fetchReviews = async () => {

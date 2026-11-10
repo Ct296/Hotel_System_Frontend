@@ -87,7 +87,7 @@
           <div class="card-body d-flex justify-content-center align-items-center p-3">
             <div class="position-relative w-100 d-flex justify-content-center" style="height: 220px;">
               <Doughnut :data="roomTypeRevenueData" :options="donutOptionsRightLegend" />
-              <div class="position-absolute top-50 translate-middle-y text-center" style="left: 30%; pointer-events: none;">
+              <div class="position-absolute top-50 start-50 translate-middle text-center" style="pointer-events: none;">
                 <h5 class="fw-bold mb-0 text-body-emphasis text-truncate" style="max-width: 90px;" :title="formatPrice(totalRoomTypeRev)">{{ formatShortPrice(totalRoomTypeRev) }}</h5>
                 <span class="text-body-secondary" style="font-size: 0.7rem;">VNĐ</span>
               </div>
@@ -331,14 +331,11 @@ const formatShortPrice = (price) => {
   return price
 }
 
-// Data cơ bản
 const kpi = ref({ occupancyRate: 0, todayRevenue: 0, arrivals: 0, departures: 0, maintenanceRooms: 0 })
 const todayTasks = ref([])
 const dbServicesList = ref([])
 const dbRevenue = ref({})
 const dbServices = ref({})
-
-// Data mới cho Row 2 & 3
 const roomTypeRevLabels = ref([])
 const roomTypeRevValues = ref([])
 const serviceRevLabels = ref([])
@@ -354,7 +351,6 @@ const currentYear = new Date().getFullYear()
 const topRoomFilter = ref({ month: currentMonth, year: currentYear })
 const topServiceFilter = ref({ month: currentMonth, year: currentYear })
 
-// --- CHART OPTIONS & THEME ---
 const getChartTextColor = computed(() => themeStore.isDarkMode ? '#e9ecef' : '#212529')
 const getGridColor = computed(() => themeStore.isDarkMode ? '#495057' : '#e9ecef')
 
@@ -365,7 +361,7 @@ const donutOptions = computed(() => ({
 
 const donutOptionsRightLegend = computed(() => ({
   responsive: true, maintainAspectRatio: false, cutout: '75%',
-  plugins: { legend: { position: 'right', labels: { color: getChartTextColor.value, boxWidth: 12, padding: 15 } } }
+  plugins: { legend: { position: 'bottom', labels: { color: getChartTextColor.value, boxWidth: 12 } } }
 }))
 
 const barOptions = computed(() => ({
@@ -386,7 +382,7 @@ const lineOptions = computed(() => ({
   }
 }))
 
-// --- CẤU HÌNH BIỂU ĐỒ TRÒN ---
+// CẤU HÌNH BIỂU ĐỒ TRÒN
 const roomStatusCounts = ref([0, 0, 0, 0])
 const totalRooms = computed(() => roomStatusCounts.value.reduce((a,b) => a+b, 0))
 const roomStatusData = computed(() => ({
@@ -406,7 +402,7 @@ const serviceRevenueData = computed(() => ({
   datasets: [{ backgroundColor: ['#e83e8c', '#17a2b8', '#28a745', '#ffc107', '#6610f2', '#fd7e14'], data: serviceRevValues.value }]
 }))
 
-// --- CẤU HÌNH BIỂU ĐỒ 12 THÁNG ---
+//CẤU HÌNH BIỂU ĐỒ 12 THÁNG
 const availableYears = ref([currentYear, currentYear - 1, currentYear - 2])
 const monthsLabel = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12']
 
@@ -428,60 +424,63 @@ const serviceChartData = computed(() => {
   }
 })
 
-// --- CẤU HÌNH BIỂU ĐỒ THEO TUẦN (MỚI) ---
+// CẤU HÌNH BIỂU ĐỒ THEO TUẦN
 const weeklyChartData = computed(() => ({
   labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
   datasets: [{ label: 'Số lượt thuê', backgroundColor: '#0dcaf0', borderRadius: 4, data: weeklyBookingsRaw.value }]
 }))
 
-// --- FETCH DATA ---
+// FETCH DATA
 const fetchData = async () => {
   try {
     const resBase = await api.get('/api/manager/operation/dashboard')
     dbServicesList.value = resBase.data.services || []
-
-    const resStats = await api.get('/api/manager/operation/dashboard-stats')
+    
+    // Gửi kèm thông số tháng/năm từ droplist
+    const params = new URLSearchParams()
+    params.append('topRoomMonth', topRoomFilter.value.month)
+    params.append('topRoomYear', topRoomFilter.value.year)
+    params.append('topServiceMonth', topServiceFilter.value.month)
+    params.append('topServiceYear', topServiceFilter.value.year)
+    
+    const resStats = await api.get(`/api/manager/operation/dashboard-stats?${params.toString()}`)
     const stats = resStats.data
-
+    
     kpi.value = stats.kpi
     roomStatusCounts.value = stats.roomStatusCounts
     todayTasks.value = stats.todayTasks
     dbRevenue.value = stats.monthlyRevenue || {}
     dbServices.value = stats.monthlyServices || {}
     
-    // Gán dữ liệu cho biểu đồ tròn loại phòng
     if (stats.roomTypeRevLabels && stats.roomTypeRevValues) {
       roomTypeRevLabels.value = stats.roomTypeRevLabels
       roomTypeRevValues.value = stats.roomTypeRevValues
     }
-
-    // Gán dữ liệu cho biểu đồ tròn dịch vụ
     if (stats.serviceRevLabels && stats.serviceRevValues) {
       serviceRevLabels.value = stats.serviceRevLabels
       serviceRevValues.value = stats.serviceRevValues
     }
-
-    // Gán dữ liệu cho bảng Top phòng
     if (stats.topRoomsList) {
       topRoomsList.value = stats.topRoomsList
     }
-
-    // Gán dữ liệu cho Top dịch vụ
     if (stats.topServices) {
        topServicesList.value = stats.topServices.map(s => ({ name: s.name, count: s.sold, revenue: s.revenue }))
     }
-
-    // Gán dữ liệu cho biểu đồ tuần
     if (stats.weeklyBookings) {
       weeklyBookingsRaw.value = stats.weeklyBookings
     }
-
   } catch (error) {
     console.error("Lỗi tải dữ liệu", error)
   }
 }
 
-// --- HÀM XUẤT EXCEL DÙNG CHUNG ---
+// Bổ sung lệnh này để gọi lại API mỗi khi chọn lại droplist
+import { watch } from 'vue'
+watch([topRoomFilter, topServiceFilter], () => {
+  fetchData()
+}, { deep: true })
+
+// HÀM XUẤT EXCEL DÙNG CHUNG
 const executeExcelExport = (data, filename, sheetName) => {
   if (!data || data.length === 0) return alert('Không có dữ liệu để xuất!')
   const ws = XLSX.utils.json_to_sheet(data)
@@ -490,7 +489,7 @@ const executeExcelExport = (data, filename, sheetName) => {
   XLSX.writeFile(wb, `${filename}.xlsx`)
 }
 
-// --- CÁC HÀM XUẤT EXCEL CỤ THỂ ---
+// CÁC HÀM XUẤT EXCEL CỤ THỂ
 const exportRoomStatusExcel = () => {
   const data = roomStatusData.value.labels.map((label, idx) => ({ 'Trạng thái': label, 'Số lượng': roomStatusCounts.value[idx] }))
   executeExcelExport(data, 'Trang_Thai_Phong', 'Trạng Thái')

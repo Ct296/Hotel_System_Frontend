@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- BẢNG TIMELINE PHÒNG -->
+    <!-- BẢNG TIMELINE PHÒNG (ĐÃ NÂNG CẤP BỘ LỌC) -->
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-body-tertiary">
       <div class="card-header bg-transparent border-0 pt-4 pb-0">
         <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-2">
@@ -10,10 +10,23 @@
               Khung hiển thị từ <strong>{{ formatTime(timelineStart) }}</strong> đến <strong>{{ formatTime(timelineEnd) }}</strong>
             </p>
           </div>
-          <!-- ĐIỀU KHIỂN NHẢY THỜI GIAN -->
-          <div class="d-flex align-items-center gap-2">
-            <label class="small fw-bold text-body-secondary text-nowrap mb-0">Xem từ:</label>
-            <input type="datetime-local" v-model="filterStartTime" class="form-control form-control-sm bg-body text-body" style="width: 190px;">
+          <!-- ĐIỀU KHIỂN BỘ LỌC VÀ NHẢY THỜI GIAN -->
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            
+            <!-- MỚI: Bộ lọc theo Loại phòng -->
+            <select v-model="filterRoomType" class="form-select form-select-sm bg-body text-body-emphasis shadow-sm" style="width: 140px;">
+              <option value="ALL">Mọi hạng phòng</option>
+              <option v-for="type in uniqueRoomTypes" :key="type" :value="type">{{ type }}</option>
+            </select>
+
+            <!-- Bộ lọc tìm kiếm nhanh tên phòng -->
+            <div class="input-group input-group-sm shadow-sm" style="width: 150px;">
+              <span class="input-group-text bg-body border-secondary-subtle"><i class="fas fa-search text-body-secondary"></i></span>
+              <input type="text" v-model="searchRoomQuery" class="form-control bg-body border-secondary-subtle" placeholder="Tìm phòng...">
+            </div>
+
+            <label class="small fw-bold text-body-secondary text-nowrap mb-0 ms-2">Xem từ:</label>
+            <input type="datetime-local" v-model="filterStartTime" class="form-control form-control-sm bg-body text-body shadow-sm" style="width: 190px;">
             <button @click="jumpToTime" class="btn btn-sm btn-primary fw-bold px-3 shadow-sm">Đi</button>
             <button @click="resetTime" class="btn btn-sm btn-outline-secondary shadow-sm" title="Về hiện tại"><i class="fas fa-undo"></i></button>
           </div>
@@ -44,26 +57,40 @@
             <thead class="table-secondary position-sticky top-0" style="z-index: 10;">
               <tr>
                 <th class="sticky-col bg-body-secondary text-start px-3" style="min-width: 120px; left: 0; z-index: 11;">Phòng</th>
-                <th class="sticky-col-2 bg-body-secondary px-2" style="min-width: 100px; left: 120px; z-index: 11;">Trạng thái</th>
+                <!-- CỘT BẢNG GIÁ MỚI THÊM VÀO GIỮA -->
+                <th class="sticky-col bg-body-secondary text-end px-2" style="min-width: 110px; left: 120px; z-index: 11;">Bảng giá</th>
+                <!-- DỊCH CỘT TRẠNG THÁI RA SAU -->
+                <th class="sticky-col-2 bg-body-secondary px-2" style="min-width: 100px; left: 230px; z-index: 11;">Trạng thái</th>
                 <th v-for="(slot, idx) in roomTimelineSlots" :key="idx" class="small text-body-secondary bg-body-secondary" style="min-width: 40px;">
                   {{ slot.label }}
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="row in roomTimelineRows" :key="row.room.id">
-                <td class="sticky-col bg-body text-start px-3 py-2" style="left: 0; z-index: 1;">
+              <tr v-if="filteredRoomTimelineRows.length === 0">
+                <td :colspan="3 + roomTimelineSlots.length" class="text-center text-body-secondary py-4">Không tìm thấy phòng phù hợp.</td>
+              </tr>
+              <tr v-else v-for="row in filteredRoomTimelineRows" :key="row.room.id" class="table-row-hover">
+                <!-- Cột Phòng -->
+                <td class="sticky-col bg-body text-start px-3 py-2 border-end-0" style="left: 0; z-index: 1;">
                   <div class="fw-bold text-primary">{{ row.room.name }}</div>
                   <div class="small text-body-secondary" style="font-size: 0.75rem;">{{ row.room.roomType?.name }}</div>
                 </td>
-                <td class="sticky-col-2 bg-body px-2 py-2" style="left: 120px; z-index: 1;">
-                  <span class="badge w-100" :class="row.maintenanceRoom ? 'bg-danger' : (row.availableNow ? 'bg-success' : 'bg-warning text-dark')">
+                <!-- Cột Bảng giá -->
+                <td class="sticky-col bg-body text-end px-2 py-2" style="left: 120px; z-index: 1;">
+                  <div class="small fw-bold text-success">{{ formatPrice(row.room.roomType?.basePrice) }}/h</div>
+                  <div class="small text-primary fw-semibold" style="font-size: 0.75rem;">{{ formatPrice(row.room.roomType?.dailyPrice || (row.room.roomType?.basePrice * 22)) }}/đ</div>
+                </td>
+                <!-- Cột Trạng thái -->
+                <td class="sticky-col-2 bg-body px-2 py-2" style="left: 230px; z-index: 1;">
+                  <span class="badge w-100 shadow-sm" :class="row.maintenanceRoom ? 'bg-danger' : (row.availableNow ? 'bg-success' : 'bg-warning text-dark')">
                     {{ row.currentStateLabel }}
                   </span>
                 </td>
+                <!-- Các cột Timeline 30 phút -->
                 <td v-for="(seg, idx) in row.segments" :key="idx" :colspan="seg.colspan" :title="seg.tooltip" class="p-0 border-start border-end bg-body">
                   <div class="h-100 w-100 d-flex align-items-center justify-content-center text-truncate small"
-                        :class="getCssClassForSegment(seg.cssClass)" style="min-height: 30px; font-size: 0.75rem;">
+                        :class="getCssClassForSegment(seg.cssClass)" style="min-height: 38px; font-size: 0.75rem;">
                     {{ seg.label }}
                   </div>
                 </td>
@@ -273,6 +300,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../../utils/axios'
+import { formatPrice, formatDate, formatTime, formatDateTime } from '../../utils/formatters'
 
 const router = useRouter()
 
@@ -286,8 +314,41 @@ const availableNowRoomCount = ref(0)
 const busyNowRoomCount = ref(0)
 const maintenanceRoomCount = ref(0)
 
-// Data Nhảy thời gian
+// QUẢN LÝ LỌC & NHẢY THỜI GIAN TIMELINE
 const filterStartTime = ref('') 
+const filterRoomType = ref('ALL') // MỚI: Biến chọn loại phòng
+const searchRoomQuery = ref('')
+const timelineDurationHours = ref(24) 
+
+// MỚI: Tự động trích xuất các hạng phòng duy nhất từ danh sách phòng 
+const uniqueRoomTypes = computed(() => {
+  const types = new Set()
+  roomTimelineRows.value.forEach(row => {
+    if (row.room?.roomType?.name) {
+      types.add(row.room.roomType.name)
+    }
+  })
+  return Array.from(types).sort()
+})
+
+// MỚI: Cập nhật hàm lọc timeline để lọc thêm cả loại phòng
+const filteredRoomTimelineRows = computed(() => {
+  let result = roomTimelineRows.value
+  
+  if (filterRoomType.value !== 'ALL') {
+    result = result.filter(row => row.room?.roomType?.name === filterRoomType.value)
+  }
+
+  if (searchRoomQuery.value.trim()) {
+    const q = searchRoomQuery.value.toLowerCase().trim()
+    result = result.filter(row => 
+      row.room?.name?.toLowerCase().includes(q) || 
+      row.room?.roomType?.name?.toLowerCase().includes(q)
+    )
+  }
+  
+  return result
+})
 
 // 3 biến thiết lập form WalkIn
 const isLoadingWalkIn = ref(false)
@@ -442,16 +503,7 @@ const fetchCustomerInfo = async () => {
   }
 }
 
-// ÉP ĐỊNH DẠNG 24H Ở ĐÂY (Dùng cho thông báo thời gian Timeline phía trên cùng)
-const formatTime = (dateStr) => {
-  if (!dateStr) return ''
-  const d = new Date(dateStr)
-  return d.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
-}
-
-const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price || 0) + 'đ'
-
-// HÀM MAP CSS MÀU - Chống mù mắt
+// HÀM MAP CSS MÀU
 const getCssClassForSegment = (cssClass) => {
   const map = {
     'available': 'bg-body-secondary text-body border',
@@ -465,12 +517,15 @@ const getCssClassForSegment = (cssClass) => {
   return map[cssClass] || 'bg-secondary text-white'
 }
 
-// GỌI API KÈM START_TIME 
+// GỌI API KÈM START_TIME & DURATION
 const fetchTimeline = async (startISO = null) => {
   isLoadingTimeline.value = true
   try {
-    const url = startISO ? `/api/staff/timeline?startTime=${startISO}:00` : '/api/staff/timeline'
-    const res = await api.get(url)
+    const params = new URLSearchParams()
+    if (startISO) params.append('startTime', `${startISO}:00`)
+    params.append('duration', timelineDurationHours.value)
+    
+    const res = await api.get(`/api/staff/timeline?${params.toString()}`)
     
     timelineStart.value = res.data.timelineStart
     timelineEnd.value = res.data.timelineEnd
@@ -593,5 +648,14 @@ onMounted(() => {
 
 <style scoped>
 .sticky-col { position: sticky; }
-.sticky-col-2 { position: sticky; }
+/* Cột bảng giá (thứ 2) */
+.sticky-col:nth-child(2) { left: 120px !important; z-index: 12; border-right: 1px solid var(--bs-border-color); }
+/* Cột trạng thái (thứ 3) */
+.sticky-col-2 { position: sticky; left: 230px !important; z-index: 11; border-right: 1px solid var(--bs-border-color); }
+
+.table-row-hover:hover .bg-body {
+  background-color: var(--bs-secondary-bg) !important;
+}
+/* Fix viền timeline */
+.staff-timeline-wrapper th { box-shadow: inset 0 -1px 0 var(--bs-border-color); }
 </style>
