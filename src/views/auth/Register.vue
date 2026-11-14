@@ -110,12 +110,41 @@
       </div>
     </div>
   </div>
+  <!-- MODAL ĐĂNG KÝ THÀNH CÔNG (Thay cho alert mặc định) -->
+    <div v-if="showSuccessModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(2px); z-index: 1080;">
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4 bg-body">
+          <div class="modal-header border-0 pb-0 justify-content-center mt-3">
+            <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; font-size: 2.2rem;">
+              <i class="fas fa-check-circle"></i>
+            </div>
+          </div>
+          <div class="modal-body text-center pt-3 pb-4 px-4">
+            <h5 class="fw-bold mb-2 text-body-emphasis">Đăng ký thành công!</h5>
+            <p class="text-body-secondary small mb-0">{{ successModalMsg }}</p>
+          </div>
+          <div class="modal-footer border-0 pt-0 pb-4 px-4">
+            <button type="button" class="btn btn-success w-100 fw-bold py-2 rounded-pill shadow-sm" @click="goToLogin">
+              Đăng nhập ngay <i class="fas fa-arrow-right ms-1"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../../utils/axios'
+
+const showSuccessModal = ref(false)
+const successModalMsg = ref('')
+
+const goToLogin = () => {
+  showSuccessModal.value = false
+  router.push('/login')
+}
 
 const router = useRouter()
 
@@ -160,8 +189,8 @@ const handleVerify = async () => {
   
   try {
     await api.post('/api/auth/register/verify', { otp: otp.value })
-    alert('Đăng ký thành công! Vui lòng đăng nhập.')
-    router.push('/login')
+    successModalMsg.value = response.data?.message || 'Đăng ký thành công! Vui lòng đăng nhập.'
+    showSuccessModal.value = true
   } catch (error) {
     errorMsg.value = error.response?.data?.error || 'Mã OTP không hợp lệ hoặc đã hết hạn.'
   } finally {
