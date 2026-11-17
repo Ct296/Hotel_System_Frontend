@@ -30,6 +30,7 @@ const routes = [
       { path: 'guide', name: 'Guide', component: () => import('../views/public/Guide.vue') },
       { path: 'reviews', name: 'Reviews', component: () => import('../views/public/Reviews.vue') },
       { path: 'policy', name: 'Policy', component: () => import('../views/public/Policy.vue') },
+      { path: 'business-license', name: 'BusinessLicense', component: () => import('../views/public/BusinessLicense.vue') },
       
       // 2. CÁC TRANG PRIVATE (Yêu cầu đăng nhập tài khoản Khách Hàng)
       { 

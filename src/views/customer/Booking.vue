@@ -18,7 +18,7 @@
         <p class="text-body-secondary mb-0">Hệ thống sẽ tính tiền theo giờ hoặc qua đêm tùy lựa chọn.</p>
       </div>
       
-      <!-- CỘT TRÁI: DANH SÁCH PHÒNG ĐÃ CHỌN (ĐÃ LẤP ĐẦY THÔNG TIN & THÊM SLIDER ẢNH) -->
+      <!-- CỘT TRÁI: DANH SÁCH PHÒNG ĐÃ CHỌN -->
       <div class="col-lg-5">
         <h5 class="fw-bold mb-3 border-bottom pb-2 text-body-emphasis">Các phòng đã chọn ({{ bookingData.rooms?.length || 0 }})</h5>
         
@@ -42,11 +42,10 @@
                 </template>
               </div>
 
-              <!-- Cột thông tin chi tiết lấp đầy khoảng trống -->
+              <!-- Cột thông tin chi tiết -->
               <div class="col-sm-7">
                 <div class="card-body p-3 d-flex flex-column h-100 justify-content-between">
                   <div>
-                    <!-- Header: Tên phòng + Hạng phòng + Vị trí -->
                     <div class="d-flex justify-content-between align-items-start mb-2">
                       <div>
                         <h6 class="fw-bold mb-0 text-primary fs-5">Phòng {{ room.name }}</h6>
@@ -57,7 +56,6 @@
                       </span>
                     </div>
 
-                    <!-- Lưới 2 cột thông số: Người lớn/Trẻ em, Diện tích, Giường -->
                     <div class="row g-1 small text-body-secondary mb-2 bg-body p-2 rounded-3 border border-secondary-subtle">
                       <div class="col-12 mb-1">
                         <i class="fas fa-user-friends text-primary me-1"></i>
@@ -71,7 +69,6 @@
                       </div>
                     </div>
 
-                    <!-- HIỂN THỊ TIỆN ÍCH -->
                     <div class="small text-body-secondary mb-2" v-if="room.roomType?.roomAmenities && room.roomType.roomAmenities.length > 0">
                       <div class="d-flex flex-wrap gap-1">
                         <span v-for="ra in room.roomType.roomAmenities" :key="ra.amenity?.id" class="badge bg-body text-body-emphasis border border-secondary-subtle fw-normal">
@@ -80,13 +77,11 @@
                       </div>
                     </div>
 
-                    <!-- Mô tả ngắn -->
                     <p v-if="room.roomType?.description" class="small text-body-secondary fst-italic mb-2 text-truncate" :title="room.roomType.description">
                       "{{ room.roomType.description }}"
                     </p>
                   </div>
 
-                  <!-- Chân thẻ: Giá phòng & Cọc -->
                   <div class="pt-2 border-top border-secondary-subtle d-flex justify-content-between align-items-end">
                     <div class="small">
                       <div class="fw-bold text-body-emphasis">{{ formatPrice(room.roomType?.basePrice) }}<span class="fw-normal text-body-secondary">/giờ</span></div>
@@ -161,14 +156,28 @@
               </div>
             </div>
             
-            <h5 class="fw-bold mt-4 mb-3 text-body-emphasis">Thông tin khách lưu trú từng phòng</h5>
-            <div v-for="(room, index) in bookingData.rooms" :key="room.id" class="card border mb-3 bg-body">
-              <div class="card-header bg-body-secondary py-2 border-bottom">
-                <span class="fw-bold text-primary">Phòng: {{ room.name }}</span>
-                <span class="badge bg-secondary ms-2">{{ room.roomType?.name }}</span>
+            <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+              <h5 class="fw-bold mb-0 text-body-emphasis">Thông tin khách lưu trú từng phòng</h5>
+              <span v-if="bookingData.rooms?.length > 1" class="badge bg-info-subtle text-info-emphasis border border-info-subtle">
+                <i class="fas fa-user-check me-1"></i> Bản thân chỉ đại diện tối đa 1 phòng
+              </span>
+            </div>
+
+            <div v-for="(room, index) in bookingData.rooms" :key="room.id" class="card border mb-3 bg-body rounded-3 overflow-hidden shadow-sm">
+              <div class="card-header bg-body-secondary py-2 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                  <span class="fw-bold text-primary">Phòng: {{ room.name }}</span>
+                  <span class="badge bg-secondary ms-2">{{ room.roomType?.name }}</span>
+                </div>
+                <span class="badge" :class="form.isForSelfList[index] ? 'bg-success' : 'bg-warning text-dark'">
+                  <i :class="form.isForSelfList[index] ? 'fas fa-user' : 'fas fa-user-friends'" class="me-1"></i>
+                  {{ form.isForSelfList[index] ? 'Tôi ở phòng này' : 'Đặt cho người khác / Đi cùng' }}
+                </span>
               </div>
+
               <div class="card-body p-3">
-                <div class="row g-3">
+                <!-- Số lượng Người lớn / Trẻ em -->
+                <div class="row g-3 mb-3">
                   <div class="col-md-6">
                     <label class="form-label fw-bold small text-body-secondary">Người lớn</label>
                     <input type="number" v-model="form.adultCounts[index]" class="form-control bg-body" min="1" :max="room.roomType?.adultMax" required>
@@ -178,6 +187,59 @@
                     <label class="form-label fw-bold small text-body-secondary">Trẻ em</label>
                     <input type="number" v-model="form.childrenCounts[index]" class="form-control bg-body" min="0" :max="room.roomType?.childrenMax" required>
                     <div class="form-text small text-body-secondary">Tối đa: {{ room.roomType?.childrenMax }} trẻ em</div>
+                  </div>
+                </div>
+
+                <!-- TÙY CHỌN: BẠN ĐẶT PHÒNG NÀY CHO AI? -->
+                <div class="border-top border-secondary-subtle pt-3">
+                  <label class="form-label fw-bold small text-body-emphasis mb-2">
+                    <i class="fas fa-id-badge text-primary me-1"></i> Bạn đặt Phòng {{ room.name }} cho ai?
+                  </label>
+                  <div class="d-flex flex-wrap gap-4 mb-2">
+                    <div class="form-check">
+                      <input class="form-check-input cursor-pointer" type="radio" 
+                             :name="'forSelf_' + index" :id="'self_' + index"
+                             :checked="form.isForSelfList[index] === true"
+                             @change="selectForSelf(index, true)">
+                      <label class="form-check-label cursor-pointer fw-semibold small" :for="'self_' + index">
+                        Tôi là khách lưu trú chính tại phòng này
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input cursor-pointer" type="radio" 
+                             :name="'forSelf_' + index" :id="'other_' + index"
+                             :checked="form.isForSelfList[index] === false"
+                             @change="selectForSelf(index, false)">
+                      <label class="form-check-label cursor-pointer fw-semibold small" :for="'other_' + index">
+                        Đặt phòng này cho người khác / Người đi cùng
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- Nếu là Bản thân ở -->
+                  <div v-if="form.isForSelfList[index]" class="small text-success bg-success-subtle p-2 rounded-2 border border-success-subtle">
+                    <i class="fas fa-check-circle me-1"></i> Hệ thống sẽ tự động lấy Họ tên, SĐT và CCCD từ tài khoản của bạn làm người đại diện nhận Phòng {{ room.name }}.
+                  </div>
+
+                  <!-- Nếu là Đặt hộ / Người khác ở -->
+                  <div v-else class="bg-body-tertiary p-3 rounded-3 border border-secondary-subtle mt-2">
+                    <div class="small text-body-secondary mb-2">
+                      Vui lòng nhập thông tin người đại diện sẽ nhận <strong>Phòng {{ room.name }}</strong> (các thành viên ở cùng khác sẽ được lễ tân ghi nhận khi Check-in tại quầy):
+                    </div>
+                    <div class="row g-2">
+                      <div class="col-md-5">
+                        <label class="form-label small fw-semibold mb-1">Họ và tên người nhận <span class="text-danger">*</span></label>
+                        <input type="text" v-model="form.guestFullNames[index]" class="form-control form-control-sm bg-body" placeholder="VD: Nguyễn Văn B" required>
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label small fw-semibold mb-1">Số điện thoại <span class="text-danger">*</span></label>
+                        <input type="text" v-model="form.guestPhones[index]" class="form-control form-control-sm bg-body" pattern="^\d{9,11}$" title="Số điện thoại từ 9 - 11 chữ số" placeholder="09xxxxxxxx" required>
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label small fw-semibold mb-1">CCCD/Hộ chiếu <span class="text-muted fw-normal">(Tùy chọn)</span></label>
+                        <input type="text" v-model="form.guestPids[index]" class="form-control form-control-sm bg-body" minlength="9" maxlength="20" placeholder="Có thể bổ sung tại quầy">
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -260,7 +322,6 @@
           </div>
           
           <div class="modal-body pt-4 pb-4 px-4">
-            <!-- Nếu chuỗi có phân tách bằng | -->
             <div v-if="errorMessage.includes('|')" class="text-start small">
               <div v-for="(line, idx) in errorMessage.split('|')" :key="idx" class="mb-3">
                 <div v-if="idx === 0" class="fw-bold text-danger text-center fs-6 mb-3">{{ line }}</div>
@@ -270,7 +331,6 @@
               </div>
             </div>
             
-            <!-- Nếu là lỗi bình thường -->
             <p v-else class="text-body-secondary mb-0 text-center" style="font-size: 0.95rem;">
               {{ errorMessage }}
             </p>
@@ -315,18 +375,29 @@ const form = ref({
   numberOfNights: 1, 
   adultCounts: [],
   childrenCounts: [],
+  isForSelfList: [],
+  guestFullNames: [],
+  guestPhones: [],
+  guestPids: [],
   note: ''
 })
+
+// Đảm bảo chỉ tối đa 1 phòng được chọn "Tôi lưu trú tại phòng này"
+const selectForSelf = (targetIdx, val) => {
+  if (val === true) {
+    form.value.isForSelfList = form.value.isForSelfList.map((_, i) => i === targetIdx)
+  } else {
+    form.value.isForSelfList[targetIdx] = false
+  }
+}
 
 const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price || 0) + 'đ'
 const formatForInput = (isoString) => isoString ? isoString.substring(0, 16) : ''
 
 const defaultImage = 'https://api.ct296.id.vn/image/default_room.jpg'
 
-// Xử lý danh sách ảnh & Slider cho từng phòng trên trang Booking
 const getRoomImageList = (room) => {
   if (!room || !room.images || room.images.length === 0) return [defaultImage]
-  // Đưa ảnh chính (isPrimary) lên đầu danh sách
   const sorted = [...room.images].sort((a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0))
   return sorted.map(img => {
     const imgPath = typeof img === 'string' ? img : img.imagePath
@@ -444,8 +515,14 @@ const fetchCalculation = async () => {
       if (form.value.checkIn) {
         dailyCheckInDate.value = form.value.checkIn.split('T')[0]
       }
-      form.value.adultCounts = (res.data.rooms || []).map(() => 1)
-      form.value.childrenCounts = (res.data.rooms || []).map(() => 0)
+      const rooms = res.data.rooms || []
+      form.value.adultCounts = rooms.map(() => 1)
+      form.value.childrenCounts = rooms.map(() => 0)
+      // Mặc định: Phòng đầu tiên (index 0) là cho bản thân, các phòng tiếp theo là đặt cho người đi cùng
+      form.value.isForSelfList = rooms.map((_, idx) => idx === 0)
+      form.value.guestFullNames = rooms.map(() => '')
+      form.value.guestPhones = rooms.map(() => '')
+      form.value.guestPids = rooms.map(() => '')
       isInitialLoad = false
     }
   } catch (error) {
@@ -470,6 +547,10 @@ const submitBooking = async () => {
       rentalType: form.value.rentalType,
       adultCounts: form.value.adultCounts,
       childrenCounts: form.value.childrenCounts,
+      isForSelfList: form.value.isForSelfList,
+      guestFullNames: form.value.guestFullNames,
+      guestPhones: form.value.guestPhones,
+      guestPids: form.value.guestPids,
       note: form.value.note
     }
 
@@ -540,7 +621,6 @@ onMounted(() => {
   border-radius: 4px 4px 0 0;
 }
 
-/* NÚT SLIDER ẢNH TRÊN TRANG BOOKING */
 .slider-btn {
   position: absolute;
   top: 50%;

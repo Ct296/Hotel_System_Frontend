@@ -33,11 +33,7 @@
           </button>
 
           <button type="button" class="customer-profile-nav-btn" :class="{ 'is-active': activeTab === 'bookings' }" @click="switchTab('bookings')">
-            <i class="fas fa-calendar-check"></i><span>Booking / Thuê phòng</span>
-          </button>
-
-          <button type="button" class="customer-profile-nav-btn" :class="{ 'is-active': activeTab === 'billing' }" @click="switchTab('billing')">
-            <i class="fas fa-file-invoice-dollar"></i><span>Thanh toán / Hóa đơn</span>
+            <i class="fas fa-file-invoice-dollar"></i><span>Booking & Hóa đơn</span>
           </button>
 
           <router-link to="/customer/settings" class="customer-profile-nav-link border-top border-light border-opacity-10 mt-2 pt-3">
@@ -152,39 +148,109 @@
             </div>
           </section>
 
-          <!-- TAB 2: BOOKING -->
+          <!-- TAB 2: GỘP BOOKING / THUÊ PHÒNG & HÓA ĐƠN THANH TOÁN -->
           <section v-if="activeTab === 'bookings'" class="customer-profile-pane is-active">
             <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary p-3 p-md-4">
-              <h5 class="fw-bold mb-4 text-body-emphasis border-bottom pb-2">Booking / Thuê phòng</h5>
-              <div v-if="rentals.length === 0" class="customer-profile-empty text-center py-4">Chưa có lượt đặt phòng hoặc thuê phòng nào.</div>
+              <!-- Header + Bộ lọc & Tìm kiếm -->
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 border-bottom pb-3">
+                <div>
+                  <h5 class="fw-bold mb-1 text-body-emphasis">
+                    <i class="fas fa-file-invoice-dollar text-primary me-2"></i>Lịch sử Đặt phòng & Hóa đơn
+                  </h5>
+                  <p class="small text-body-secondary mb-0">Tra cứu thông tin phòng, khách lưu trú, hóa đơn và lịch sử giao dịch của từng chuyến đi.</p>
+                </div>
+
+                <!-- Thanh tìm kiếm & Lọc trạng thái -->
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                  <select v-model="statusFilter" class="form-select form-select-sm bg-body border-secondary-subtle fw-semibold" style="width: 150px;">
+                    <option value="ALL">Tất cả trạng thái</option>
+                    <option value="PENDING">Chờ cọc</option>
+                    <option value="CONFIRMED">Đã chốt cọc</option>
+                    <option value="STAYING">Đang ở</option>
+                    <option value="COMPLETED">Đã hoàn tất</option>
+                    <option value="CANCELLED">Đã hủy</option>
+                  </select>
+
+                  <div class="input-group input-group-sm shadow-sm" style="width: 280px;">
+                    <span class="input-group-text bg-body border-secondary-subtle"><i class="fas fa-search text-secondary"></i></span>
+                    <input type="text" v-model="searchQuery" class="form-control bg-body border-secondary-subtle" 
+                           placeholder="Tìm mã đơn, phòng, khách, mã HĐ...">
+                    <button v-if="searchQuery" class="btn btn-outline-secondary border-secondary-subtle" type="button" @click="searchQuery = ''">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="filteredRentals.length === 0" class="customer-profile-empty text-center py-4">
+                <span v-if="searchQuery || statusFilter !== 'ALL'">Không tìm thấy đơn đặt phòng nào khớp với bộ lọc hiện tại.</span>
+                <span v-else>Chưa có lượt đặt phòng hoặc thuê phòng nào.</span>
+              </div>
+
               <div v-else class="customer-profile-table-wrap">
                 <table class="table table-bordered table-hover align-middle customer-profile-table mb-0">
-                  <thead class="table-secondary"><tr><th>Mã đơn</th><th>Phòng</th><th>Thời gian</th><th>Khách</th><th>Hình thức</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                  <thead class="table-secondary">
+                    <tr>
+                      <th>Mã đơn</th>
+                      <th>Phòng & Khách đại diện</th>
+                      <th>Thời gian lưu trú</th>
+                      <th class="text-end">Tổng đã thanh toán</th>
+                      <th class="text-center">Trạng thái</th>
+                      <th class="text-end px-3">Thao tác</th>
+                    </tr>
+                  </thead>
                   <tbody class="small bg-body">
-                    <tr v-for="r in rentals" :key="r.id">
-                      <td class="fw-bold">{{ r.id }}</td>
+                    <tr v-for="r in filteredRentals" :key="r.id">
+                      <td>
+                        <div class="fw-bold text-primary">{{ r.id }}</div>
+                        <span class="badge mt-1" :class="r.isBooking ? 'bg-info-subtle text-info-emphasis border border-info-subtle' : 'bg-secondary-subtle text-secondary border'">
+                          {{ r.isBooking ? 'Đặt online' : 'Tại quầy' }}
+                        </span>
+                      </td>
                       <td>
                         <div v-if="r.rentalDetails && r.rentalDetails.length > 0">
-                          <span class="badge bg-secondary me-1" v-for="(d, i) in r.rentalDetails" :key="i">P.{{ d.room?.name || 'N/A' }}</span>
-                          <div class="text-body-secondary mt-1" style="font-size: 0.75rem;">{{ r.rentalDetails[0]?.room?.roomType?.name }}</div>
+                          <div v-for="(d, i) in r.rentalDetails" :key="i" class="mb-1">
+                            <span class="badge bg-secondary me-1">P.{{ d.room?.name || 'N/A' }}</span>
+                            <span class="text-body-secondary">({{ d.room?.roomType?.name }})</span>
+                            <span v-if="d.rentalGuests && d.rentalGuests.length > 0" class="ms-1 text-dark fw-semibold">
+                              - {{ d.rentalGuests[0].fullName }}
+                            </span>
+                          </div>
                         </div>
                       </td>
                       <td>
                         <div v-if="r.rentalDetails && r.rentalDetails.length > 0">
                           <div class="mb-1"><i class="fas fa-sign-in-alt text-success me-1"></i> {{ formatDateTime(r.rentalDetails[0]?.checkinDate) }}</div>
-                          <div class="badge bg-body-secondary text-body-emphasis border mt-1"><i class="fas fa-clock me-1"></i> {{ r.rentalDetails[0]?.lengthOfStay || 0 }} giờ</div>
+                          <span class="badge bg-body-secondary text-body-emphasis border">
+                            <i class="fas fa-clock me-1"></i> {{ r.rentalDetails[0]?.lengthOfStay || 0 }} giờ
+                            ({{ r.rentalDetails[0]?.rentalType === 'DAILY' ? 'Theo ngày' : 'Theo giờ' }})
+                          </span>
                         </div>
                       </td>
-                      <td class="fw-bold text-center">{{ r.rentalDetails[0]?.adultCount || 0 }} NL, {{ r.rentalDetails[0]?.childrenCount || 0 }} TE</td>
-                      <td><span class="badge" :class="r.isBooking ? 'text-bg-info' : 'text-bg-secondary'">{{ r.isBooking ? 'Đặt trước' : 'Thuê tại quầy' }}</span></td>
-                      <td><span class="badge" :class="getRentalStatusClass(r)">{{ getRentalStatusText(r) }}</span></td>
                       <td class="text-end">
-                        <!-- CHỈ HIỆN NÚT HỦY KHI KHÁCH CHƯA NHẬN PHÒNG (CHƯA CHECK-IN) -->
-                        <div v-if="canCancelBooking(r)">
-                          <button v-if="r.status === 'PENDING'" @click="payVnPay(r.id)" class="btn btn-sm btn-primary mb-1 w-100 fw-bold" :disabled="isProcessing">Thanh toán cọc</button>
-                          <button @click="confirmCancelBooking(r.id, r.status)" class="btn btn-sm btn-danger w-100 fw-bold" :disabled="isProcessing">Hủy</button>
+                        <div class="fw-bold text-danger fs-6">{{ formatPrice(getTotalPaidForRental(r.id)) }}</div>
+                        <div class="text-body-secondary" style="font-size: 0.72rem;">
+                          {{ getBillsForRental(r.id).length }} hóa đơn
                         </div>
-                        <span v-else class="text-body-secondary" style="font-size: 0.75rem;">Không khả dụng</span>
+                      </td>
+                      <td class="text-center">
+                        <span class="badge" :class="getRentalStatusClass(r)">{{ getRentalStatusText(r) }}</span>
+                      </td>
+                      <td class="text-end px-3" style="min-width: 170px;">
+                        <div class="d-flex flex-column gap-1 align-items-end">
+                          <button type="button" @click="openRentalDetailModal(r)" class="btn btn-sm btn-outline-dark w-100 fw-bold shadow-sm">
+                            <i class="fas fa-eye me-1 text-primary"></i> Chi tiết & Hóa đơn
+                          </button>
+
+                          <template v-if="canCancelBooking(r)">
+                            <button v-if="r.status === 'PENDING'" @click="payVnPay(r.id)" class="btn btn-sm btn-primary w-100 fw-bold shadow-sm" :disabled="isProcessing">
+                              <i class="fas fa-credit-card me-1"></i> Đóng cọc VNPay
+                            </button>
+                            <button @click="confirmCancelBooking(r.id, r.status)" class="btn btn-sm btn-outline-danger w-100 fw-bold" :disabled="isProcessing">
+                              <i class="fas fa-times me-1"></i> Hủy đơn
+                            </button>
+                          </template>
+                        </div>
                       </td>
                     </tr>
                   </tbody>
@@ -193,66 +259,192 @@
             </div>
           </section>
 
-          <!-- TAB 3: BILLING -->
-          <section v-if="activeTab === 'billing'" class="customer-profile-pane is-active">
-            <div class="card border-0 shadow-sm rounded-4 bg-body-tertiary p-3 p-md-4">
-              <h5 class="fw-bold mb-4 text-body-emphasis border-bottom pb-2">Thanh toán / Hóa đơn</h5>
-              <div class="mb-4">
-                <h6 class="text-primary fw-bold mb-3">Danh sách hóa đơn</h6>
-                <div v-if="bills.length === 0" class="customer-profile-empty py-3">Chưa có hóa đơn nào.</div>
-                <div v-else class="customer-profile-table-wrap">
-                  <table class="table table-bordered table-hover align-middle customer-profile-table mb-0">
-                    <thead class="table-secondary">
-                        <tr>
-                            <th>Mã HĐ</th>
-                            <th>Ngày lập</th>
-                            <th>Loại</th>
-                            <!-- CHỖ MỚI: Hiển thị tiền phụ thu để minh bạch với khách -->
-                            <th class="text-end">Phụ thu H.Động</th>
-                            <th class="text-end">Tổng tiền (VNĐ)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="small bg-body">
-                      <tr v-for="b in bills" :key="b.id">
-                        <td class="fw-bold text-body-emphasis">{{ b.id }} <br><span class="fw-normal text-body-secondary" style="font-size: 0.7rem;">Mã thuê: {{ b.rental?.id }}</span></td>
-                        <td>{{ formatDateTime(b.createDate) }}</td>
-                        <td><span class="badge" :class="b.type === 'DEPOSIT' ? 'text-bg-primary' : 'text-bg-danger'">{{ b.type === 'DEPOSIT' ? 'Tiền cọc' : 'Thanh toán' }}</span></td>
-                        <td class="text-end">
-                             <div v-if="(b.earlyCheckinSurcharge && b.earlyCheckinSurcharge > 0) || (b.lateCheckoutSurcharge && b.lateCheckoutSurcharge > 0)">
-                                 <div v-if="b.earlyCheckinSurcharge > 0" class="text-warning-emphasis" style="font-size: 0.75rem;">+ Vô sớm: {{ formatPrice(b.earlyCheckinSurcharge) }}</div>
-                                 <div v-if="b.lateCheckoutSurcharge > 0" class="text-danger-emphasis" style="font-size: 0.75rem;">+ Ra trễ: {{ formatPrice(b.lateCheckoutSurcharge) }}</div>
-                             </div>
-                             <span v-else class="text-body-secondary fst-italic">-</span>
-                        </td>
-                        <td class="text-end fw-bold text-danger">{{ formatPrice(b.totalAmount) }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              
-              <div>
-                <h6 class="text-success fw-bold mb-3">Lịch sử giao dịch</h6>
-                <div v-if="payments.length === 0" class="customer-profile-empty py-3">Chưa có thanh toán nào.</div>
-                <div v-else class="customer-profile-table-wrap">
-                  <table class="table table-bordered table-hover align-middle customer-profile-table mb-0">
-                    <thead class="table-secondary"><tr><th>Mã giao dịch</th><th>Mã HĐ</th><th>Phương thức</th><th>Ngày thanh toán</th></tr></thead>
-                    <tbody class="small bg-body">
-                      <tr v-for="p in payments" :key="p.id">
-                        <td class="fw-bold text-success">{{ p.transaction }}</td>
-                        <td>{{ p.bill?.id }}</td>
-                        <td><span class="badge bg-success-subtle text-success border border-success">{{ p.method }}</span></td>
-                        <td>{{ formatDateTime(p.date) }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+        </div>
+      </main>
+    </div>
+
+    <!-- ==================== MODAL XEM CHI TIẾT ĐƠN & HÓA ĐƠN TẤT TOÁN ==================== -->
+    <div v-if="showDetailModal && selectedRental" class="modal fade show" tabindex="-1" style="display: block; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(3px); z-index: 1990;">
+      <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4 bg-body">
+          <div class="modal-header bg-dark text-white border-0 py-3">
+            <div>
+              <h5 class="modal-title fw-bold mb-0">
+                <i class="fas fa-file-invoice-dollar text-warning me-2"></i>Chi tiết Đặt phòng & Hóa đơn (#{{ selectedRental.id }})
+              </h5>
+              <small class="text-white-50">
+                Ngày tạo đơn: {{ formatDateTime(selectedRental.rentDate) }} — Trạng thái: <strong>{{ getRentalStatusText(selectedRental) }}</strong>
+              </small>
+            </div>
+            <button type="button" class="btn-close btn-close-white" @click="closeRentalDetailModal"></button>
+          </div>
+
+          <div class="modal-body p-4" style="max-height: 75vh; overflow-y: auto;">
+            <!-- 1. DANH SÁCH PHÒNG & KHÁCH LƯU TRÚ -->
+            <h6 class="fw-bold text-body-emphasis mb-2">
+              <i class="fas fa-bed text-primary me-2"></i>1. Phòng đã thuê & Danh sách khách lưu trú
+            </h6>
+            <div class="row g-3 mb-4">
+              <div v-for="(detail, idx) in selectedRental.rentalDetails" :key="detail.id || idx" class="col-12">
+                <div class="p-3 rounded-3 border bg-body-tertiary">
+                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 pb-2 border-bottom">
+                    <div>
+                      <span class="fw-bold text-primary fs-6">Phòng {{ detail.room?.name }}</span>
+                      <span class="badge bg-secondary ms-2">{{ detail.room?.roomType?.name }}</span>
+                      <span class="small text-body-secondary ms-2">
+                        ({{ detail.adultCount }} Người lớn, {{ detail.childrenCount }} Trẻ em)
+                      </span>
+                    </div>
+                    <div class="small fw-bold text-success">
+                      Đơn giá: {{ formatPrice(detail.unitPrice) }} / {{ detail.rentalType === 'DAILY' ? 'đêm' : 'giờ' }}
+                    </div>
+                  </div>
+
+                  <div class="row g-2 small text-body-secondary mb-2">
+                    <div class="col-sm-6">
+                      <i class="fas fa-calendar-check text-success me-1"></i>
+                      <strong>Giờ nhận phòng:</strong> {{ formatDateTime(detail.checkinDate) }}
+                    </div>
+                    <div class="col-sm-6">
+                      <i class="fas fa-clock text-primary me-1"></i>
+                      <strong>Thời lượng đăng ký:</strong> {{ detail.lengthOfStay }} giờ
+                    </div>
+                  </div>
+
+                  <!-- Danh sách người ở trong phòng này -->
+                  <div v-if="detail.rentalGuests && detail.rentalGuests.length > 0" class="mt-2 pt-2 border-top border-secondary-subtle">
+                    <div class="small fw-bold text-body-emphasis mb-1">
+                      <i class="fas fa-users text-info me-1"></i> Khách lưu trú tại Phòng {{ detail.room?.name }}:
+                    </div>
+                    <div class="table-responsive">
+                      <table class="table table-sm table-bordered mb-0 small bg-body">
+                        <thead class="table-light">
+                          <tr>
+                            <th>Họ và tên</th>
+                            <th>Phân loại</th>
+                            <th>CCCD / Định danh</th>
+                            <th>Số điện thoại</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="(g, gIdx) in detail.rentalGuests" :key="g.id || gIdx">
+                            <td class="fw-semibold">
+                              {{ g.fullName }}
+                              <span v-if="g.isRepresentative || gIdx === 0" class="badge bg-success-subtle text-success border ms-1">Đại diện</span>
+                            </td>
+                            <td>{{ g.isAdult !== false ? 'Người lớn' : 'Trẻ em' }}</td>
+                            <td>{{ g.pid || 'Chưa cập nhật' }}</td>
+                            <td>{{ g.phoneNumber || '-' }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </section>
 
+            <!-- 2. DỊCH VỤ ĐÃ SỬ DỤNG TRONG CHUYẾN ĐI -->
+            <h6 class="fw-bold text-body-emphasis mb-2">
+              <i class="fas fa-concierge-bell text-success me-2"></i>2. Dịch vụ phụ trợ đã sử dụng ({{ selectedRentalServices.length }})
+            </h6>
+            <div class="table-responsive border rounded-3 mb-4">
+              <table class="table table-sm align-middle mb-0 small bg-body">
+                <thead class="table-light">
+                  <tr>
+                    <th class="px-3 py-2">Thời gian</th>
+                    <th>Phòng</th>
+                    <th>Tên dịch vụ</th>
+                    <th class="text-center">SL</th>
+                    <th class="text-end">Đơn giá</th>
+                    <th class="text-end px-3">Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-if="selectedRentalServices.length === 0">
+                    <td colspan="6" class="text-center text-body-secondary py-3 fst-italic">Chuyến đi này không phát sinh dịch vụ phụ trợ.</td>
+                  </tr>
+                  <tr v-else v-for="svc in selectedRentalServices" :key="svc.id">
+                    <td class="px-3 text-body-secondary">{{ formatDateTime(svc.time) }}</td>
+                    <td><span class="badge bg-secondary">P.{{ svc.roomName }}</span></td>
+                    <td class="fw-semibold">{{ svc.service?.name || 'Dịch vụ tại phòng' }}</td>
+                    <td class="text-center fw-bold">{{ svc.count }}</td>
+                    <td class="text-end">{{ formatPrice(svc.unitPrice) }}</td>
+                    <td class="text-end px-3 fw-bold text-danger">{{ formatPrice((svc.count || 0) * (svc.unitPrice || 0)) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 3. HÓA ĐƠN & LỊCH SỬ GIAO DỊCH CỦA ĐƠN NÀY -->
+            <h6 class="fw-bold text-body-emphasis mb-2">
+              <i class="fas fa-receipt text-warning me-2"></i>3. Hóa đơn & Giao dịch thanh toán ({{ selectedRentalBills.length }})
+            </h6>
+            <div class="table-responsive border rounded-3">
+              <table class="table table-sm align-middle mb-0 small bg-body">
+                <thead class="table-light">
+                  <tr>
+                    <th class="px-3 py-2">Mã HĐ</th>
+                    <th>Ngày lập</th>
+                    <th>Phân loại</th>
+                    <th>Chi tiết Tiền phòng & Phụ thu</th>
+                    <th>Giao dịch thanh toán</th>
+                    <th class="text-end px-3">Số tiền HĐ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-if="selectedRentalBills.length === 0">
+                    <td colspan="6" class="text-center text-body-secondary py-3 fst-italic">Chưa có hóa đơn nào được lập cho đơn này.</td>
+                  </tr>
+                  <tr v-else v-for="b in selectedRentalBills" :key="b.id">
+                    <td class="px-3 fw-bold text-body-emphasis">{{ b.id }}</td>
+                    <td class="text-body-secondary">{{ formatDateTime(b.createDate) }}</td>
+                    <td>
+                      <span class="badge" :class="b.type === 'DEPOSIT' ? 'text-bg-primary' : 'text-bg-danger'">
+                        {{ b.type === 'DEPOSIT' ? 'Hóa đơn Cọc' : (b.type === 'EARLY_CHECKOUT' ? 'Tất toán sớm' : 'Hóa đơn Tất toán') }}
+                      </span>
+                    </td>
+                    <td>
+                      <div v-if="b.type === 'DEPOSIT'" class="text-body-secondary">Khoản đặt cọc giữ phòng</div>
+                      <div v-else>
+                        <div v-if="b.actualRoomAmount != null">Tổng tiền phòng: <strong>{{ formatPrice(b.actualRoomAmount) }}</strong> ({{ b.actualStayHours || 1 }}h)</div>
+                        <div v-if="b.earlyCheckinSurcharge > 0" class="text-warning-emphasis">
+                          + Phụ thu nhận sớm: {{ formatPrice(b.earlyCheckinSurcharge) }}
+                        </div>
+                        <div v-if="b.lateCheckoutSurcharge > 0" class="text-danger-emphasis">
+                          + Phụ thu trả muộn: {{ formatPrice(b.lateCheckoutSurcharge) }}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div v-if="getPaymentForBill(b.id)" class="small">
+                        <span class="badge bg-success-subtle text-success border border-success me-1">
+                          {{ getPaymentForBill(b.id).method }}
+                        </span>
+                        <span class="fw-semibold text-success">{{ getPaymentForBill(b.id).transaction }}</span>
+                      </div>
+                      <span v-else class="text-body-secondary fst-italic">Chưa ghi nhận</span>
+                    </td>
+                    <td class="text-end px-3 fw-bold text-danger fs-6">{{ formatPrice(b.totalAmount) }}</td>
+                  </tr>
+                </tbody>
+                <tfoot v-if="selectedRentalBills.length > 0" class="table-light">
+                  <tr>
+                    <td colspan="5" class="text-end fw-bold">Tổng số tiền đã thanh toán cho chuyến đi này:</td>
+                    <td class="text-end px-3 fw-bold text-success fs-5">
+                      {{ formatPrice(getTotalPaidForRental(selectedRental.id)) }}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="modal-footer bg-light border-0 rounded-bottom-4">
+            <button type="button" class="btn btn-secondary fw-semibold px-4" @click="closeRentalDetailModal">Đóng</button>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
 
     <!-- CUSTOM CONFIRM MODAL CHO HỦY BOOKING -->
@@ -296,6 +488,14 @@ const rentals = ref([])
 const bills = ref([])
 const payments = ref([])
 
+// Bộ lọc & Tìm kiếm trong Tab Booking & Hóa đơn
+const searchQuery = ref('')
+const statusFilter = ref('ALL')
+
+// Modal Xem chi tiết Đơn & Hóa đơn
+const showDetailModal = ref(false)
+const selectedRental = ref(null)
+
 const notification = ref({ type: '', message: '' })
 const urlError = ref(route.query.error || '')
 const urlSuccess = ref(route.query.status === 'success')
@@ -329,6 +529,97 @@ const nextTierProgress = computed(() => {
   }
 })
 
+// ==================== HÀM TRA CỨU HÓA ĐƠN & GIAO DỊCH THEO ĐƠN ====================
+const getBillsForRental = (rentalId) => {
+  if (!rentalId || !bills.value) return []
+  return bills.value.filter(b => b.rental?.id === rentalId)
+}
+
+const getPaymentForBill = (billId) => {
+  if (!billId || !payments.value) return null
+  return payments.value.find(p => p.bill?.id === billId) || null
+}
+
+const getTotalPaidForRental = (rentalId) => {
+  return getBillsForRental(rentalId).reduce((sum, b) => sum + (b.totalAmount || 0), 0)
+}
+
+// Lọc danh sách đơn theo Trạng thái và Từ khóa tìm kiếm
+const filteredRentals = computed(() => {
+  let list = rentals.value || []
+
+  if (statusFilter.value !== 'ALL') {
+    list = list.filter(r => {
+      const dStatus = r.rentalDetails?.[0]?.status
+      if (statusFilter.value === 'STAYING') {
+        return r.status === 'CONFIRMED' && (dStatus === 'CHECKED_IN' || dStatus === 'OVERDUE')
+      }
+      if (statusFilter.value === 'CONFIRMED') {
+        return r.status === 'CONFIRMED' && (!dStatus || dStatus === 'PENDING')
+      }
+      return r.status === statusFilter.value
+    })
+  }
+
+  const q = searchQuery.value.toLowerCase().trim()
+  if (!q) return list
+
+  return list.filter(r => {
+    const idMatch = (r.id || '').toLowerCase().includes(q)
+    const detailMatch = (r.rentalDetails || []).some(d => {
+      const roomMatch = (d.room?.name || '').toLowerCase().includes(q) || (d.room?.roomType?.name || '').toLowerCase().includes(q)
+      const guestMatch = (d.rentalGuests || []).some(g =>
+        (g.fullName || '').toLowerCase().includes(q) ||
+        (g.pid || '').toLowerCase().includes(q) ||
+        (g.phoneNumber || '').toLowerCase().includes(q)
+      )
+      return roomMatch || guestMatch
+    })
+
+    const rBills = getBillsForRental(r.id)
+    const billMatch = rBills.some(b => {
+      const bIdMatch = (b.id || '').toLowerCase().includes(q)
+      const pay = getPaymentForBill(b.id)
+      const txMatch = pay && (pay.transaction || '').toLowerCase().includes(q)
+      return bIdMatch || txMatch
+    })
+
+    return idMatch || detailMatch || billMatch
+  })
+})
+
+// Computed cho Modal Chi tiết Đơn
+const selectedRentalBills = computed(() => {
+  if (!selectedRental.value) return []
+  return getBillsForRental(selectedRental.value.id)
+})
+
+const selectedRentalServices = computed(() => {
+  if (!selectedRental.value || !selectedRental.value.rentalDetails) return []
+  const list = []
+  selectedRental.value.rentalDetails.forEach(d => {
+    if (d.serviceUsages && d.serviceUsages.length > 0) {
+      d.serviceUsages.forEach(su => {
+        list.push({
+          ...su,
+          roomName: d.room?.name || 'N/A'
+        })
+      })
+    }
+  })
+  return list
+})
+
+const openRentalDetailModal = (rental) => {
+  selectedRental.value = rental
+  showDetailModal.value = true
+}
+
+const closeRentalDetailModal = () => {
+  showDetailModal.value = false
+  selectedRental.value = null
+}
+
 const getTierColor = (tierName) => {
   if (tierName === 'Đồng') return 'text-secondary'
   if (tierName === 'Bạc') return 'text-secondary opacity-75'
@@ -340,7 +631,6 @@ const getTierColor = (tierName) => {
 
 const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price || 0) + ' đ'
 
-// Fix định dạng 24h
 const formatDateTime = (val) => val ? new Date(val).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : 'N/A'
 const formatDateOnly = (val) => val ? new Date(val).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Chưa cập nhật'
 
@@ -370,7 +660,6 @@ const switchTab = (tab) => {
   }
 }
 
-// HÀM KIỂM TRA QUYỀN HỦY BOOKING: Chỉ cho hủy khi CHƯA nhận phòng (tất cả phòng vẫn đang PENDING)
 const canCancelBooking = (r) => {
   if (!r || !r.isBooking) return false
   if (r.status !== 'PENDING' && r.status !== 'CONFIRMED') return false
@@ -464,25 +753,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Đồng bộ biến nền theo hệ thống Dark Mode của Bootstrap */
 .customer-profile-page {
   --cp-bg: var(--bs-body-bg);
   --cp-text: var(--bs-body-color);
   --cp-border: var(--bs-border-color);
   --cp-primary: #0d6efd;
-  /* Đổi sidebar sang xanh biển/đen gradient đồng bộ */
   --cp-sidebar-bg: linear-gradient(180deg, #0a1128 0%, #001f54 100%);
   --cp-sidebar-item-hover: rgba(255,255,255,0.16);
   background: var(--cp-bg); 
   color: var(--cp-text); 
 }
 
-/* Đổi nền sidebar thành đen/xám khi bật Dark Mode */
 [data-bs-theme="dark"] .customer-profile-page {
   --cp-sidebar-bg: linear-gradient(180deg, #000000 0%, #121212 100%);
 }
 
-/* KHÓA SIDEBAR (BẢN FIX CỨNG) */
 .customer-profile-layout { 
   display: flex; 
   min-height: 100vh; 
@@ -490,7 +775,7 @@ onMounted(() => {
 .customer-profile-sidebar { 
   width: 250px; 
   min-width: 250px;
-  position: fixed; /* Khóa đứng yên không cho trôi */
+  position: fixed;
   top: 0; 
   left: 0;
   height: 100vh; 
@@ -503,7 +788,7 @@ onMounted(() => {
 }
 .customer-profile-main { 
   flex-grow: 1;
-  margin-left: 250px; /* Bù khoảng trống do sidebar bị khóa (fixed) */
+  margin-left: 250px;
   padding: 20px; 
   min-width: 0; 
   background-color: var(--cp-bg);
@@ -525,7 +810,6 @@ onMounted(() => {
 .customer-profile-nav-btn i, .customer-profile-nav-link i, .customer-profile-logout-form button i { width: 20px; text-align: center; font-size: 1rem; }
 .customer-profile-logout-form button { color: #ffab9c; }
 
-/* THU NHỎ CÁC THẺ GIAO DIỆN PHẢI (CARDS) */
 .customer-profile-content-wrapper { max-width: 1100px; margin: 0 auto; }
 .customer-profile-mobile-topbar { display: none; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .customer-profile-mobile-toggle { border: 0; background: var(--cp-primary); color: #fff; width: 40px; height: 40px; border-radius: 10px; }
@@ -537,7 +821,6 @@ onMounted(() => {
 .customer-profile-table thead th { font-weight: 700; white-space: nowrap; font-size: 0.85rem;}
 .customer-profile-empty { border: 1px dashed var(--cp-border); border-radius: 14px; background: var(--bs-secondary-bg); color: var(--bs-secondary-color); padding: 12px 14px; margin: 0; font-size: 0.9rem;}
 
-/* Modal Hủy Booking Thu nhỏ */
 .customer-profile-confirm-modal { position: fixed; inset: 0; z-index: 2000; display: none; align-items: center; justify-content: center; padding: 16px; }
 .customer-profile-confirm-modal.show { display: flex; animation: fadein 0.2s; }
 .customer-profile-confirm-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(3px); }
@@ -549,7 +832,6 @@ onMounted(() => {
 .customer-profile-confirm-actions { display: flex; gap: 10px; }
 .customer-profile-confirm-actions button { flex: 1; border-radius: 12px; font-weight: 700; }
 
-/* CSS Mới Cho Hạng thẻ - Đổi sang dải Xanh Biển */
 .tier-banner { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); }
 .tier-bg-icon { font-size: 10rem; right: -1rem; bottom: -2rem; transform: rotate(15deg); }
 .tracking-wider { letter-spacing: 2px; }
