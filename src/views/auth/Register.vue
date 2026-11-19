@@ -175,7 +175,7 @@ const handleRegister = async () => {
   try {
     const res = await api.post('/api/auth/register', form)
     successMsg.value = res.data.message
-    step.value = 2 // Chuyển sang bước nhập OTP
+    step.value = 2
   } catch (error) {
     errorMsg.value = error.response?.data?.error || 'Lỗi đăng ký. Vui lòng kiểm tra lại!'
   } finally {
@@ -186,9 +186,9 @@ const handleRegister = async () => {
 const handleVerify = async () => {
   errorMsg.value = ''
   isLoading.value = true
-  
+
   try {
-    await api.post('/api/auth/register/verify', { otp: otp.value })
+    const response = await api.post('/api/auth/register/verify', { otp: otp.value })
     successModalMsg.value = response.data?.message || 'Đăng ký thành công! Vui lòng đăng nhập.'
     showSuccessModal.value = true
   } catch (error) {

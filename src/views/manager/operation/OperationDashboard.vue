@@ -64,19 +64,24 @@
             <h6 class="fw-bold text-body-emphasis mb-0"><i class="fas fa-chart-pie text-primary me-2"></i>Trạng thái phòng</h6>
             <button @click="exportRoomStatusExcel" class="btn btn-sm btn-outline-success" title="Xuất Excel"><i class="fas fa-file-excel"></i></button>
           </div>
-          <div class="card-body d-flex justify-content-center align-items-center p-3">
-            <div class="position-relative w-100 d-flex justify-content-center" style="height: 220px;">
+          <div class="card-body d-flex flex-column align-items-center p-3">
+            <div class="position-relative mx-auto" style="height: 170px; width: 170px;">
               <Doughnut :data="roomStatusData" :options="donutOptions" />
-              <!-- Text ở giữa biểu đồ -->
               <div class="position-absolute top-50 start-50 translate-middle text-center" style="pointer-events: none;">
                 <h4 class="fw-bold mb-0 text-body-emphasis">{{ totalRooms }}</h4>
                 <span class="text-body-secondary small">Phòng</span>
               </div>
             </div>
+            <div class="d-flex flex-wrap justify-content-center gap-2 mt-3 w-100">
+              <span v-for="(label, idx) in roomStatusData.labels" :key="idx" class="d-inline-flex align-items-center text-body-secondary" style="font-size: 0.78rem;">
+                <span class="rounded-1 me-1 d-inline-block" :style="{ width: '10px', height: '10px', backgroundColor: roomStatusData.datasets[0].backgroundColor[idx] }"></span>
+                {{ label }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
-      
+
       <!-- 2. Cơ cấu doanh thu Loại phòng -->
       <div class="col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 h-100 bg-body-tertiary">
@@ -84,13 +89,19 @@
             <h6 class="fw-bold text-body-emphasis mb-0"><i class="fas fa-bed text-success me-2"></i>Doanh thu loại phòng</h6>
             <button @click="exportRoomTypeRevExcel" class="btn btn-sm btn-outline-success" title="Xuất Excel"><i class="fas fa-file-excel"></i></button>
           </div>
-          <div class="card-body d-flex justify-content-center align-items-center p-3">
-            <div class="position-relative w-100 d-flex justify-content-center" style="height: 220px;">
-              <Doughnut :data="roomTypeRevenueData" :options="donutOptionsRightLegend" />
+          <div class="card-body d-flex flex-column align-items-center p-3">
+            <div class="position-relative mx-auto" style="height: 170px; width: 170px;">
+              <Doughnut :data="roomTypeRevenueData" :options="donutOptions" />
               <div class="position-absolute top-50 start-50 translate-middle text-center" style="pointer-events: none;">
-                <h5 class="fw-bold mb-0 text-body-emphasis text-truncate" style="max-width: 90px;" :title="formatPrice(totalRoomTypeRev)">{{ formatShortPrice(totalRoomTypeRev) }}</h5>
+                <h5 class="fw-bold mb-0 text-body-emphasis text-truncate" style="max-width: 100px;" :title="formatPrice(totalRoomTypeRev)">{{ formatShortPrice(totalRoomTypeRev) }}</h5>
                 <span class="text-body-secondary" style="font-size: 0.7rem;">VNĐ</span>
               </div>
+            </div>
+            <div class="d-flex flex-wrap justify-content-center gap-2 mt-3 w-100" style="max-height: 75px; overflow-y: auto;">
+              <span v-for="(label, idx) in roomTypeRevenueData.labels" :key="idx" class="d-inline-flex align-items-center text-body-secondary" style="font-size: 0.75rem;">
+                <span class="rounded-1 me-1 d-inline-block flex-shrink-0" :style="{ width: '10px', height: '10px', backgroundColor: roomTypeRevenueData.datasets[0].backgroundColor[idx % roomTypeRevenueData.datasets[0].backgroundColor.length] }"></span>
+                {{ label }}
+              </span>
             </div>
           </div>
         </div>
@@ -103,13 +114,19 @@
             <h6 class="fw-bold text-body-emphasis mb-0"><i class="fas fa-concierge-bell text-warning me-2"></i>Doanh thu dịch vụ</h6>
             <button @click="exportServiceRevExcel" class="btn btn-sm btn-outline-success" title="Xuất Excel"><i class="fas fa-file-excel"></i></button>
           </div>
-          <div class="card-body d-flex justify-content-center align-items-center p-3">
-            <div class="position-relative w-100 d-flex justify-content-center" style="height: 220px;">
-              <Doughnut :data="serviceRevenueData" :options="donutOptionsRightLegend" />
-              <div class="position-absolute top-50 translate-middle-y text-center" style="left: 30%; pointer-events: none;">
-                <h5 class="fw-bold mb-0 text-body-emphasis text-truncate" style="max-width: 90px;" :title="formatPrice(totalServiceRev)">{{ formatShortPrice(totalServiceRev) }}</h5>
+          <div class="card-body d-flex flex-column align-items-center p-3">
+            <div class="position-relative mx-auto" style="height: 170px; width: 170px;">
+              <Doughnut :data="serviceRevenueData" :options="donutOptions" />
+              <div class="position-absolute top-50 start-50 translate-middle text-center" style="pointer-events: none;">
+                <h5 class="fw-bold mb-0 text-body-emphasis text-truncate" style="max-width: 100px;" :title="formatPrice(totalServiceRev)">{{ formatShortPrice(totalServiceRev) }}</h5>
                 <span class="text-body-secondary" style="font-size: 0.7rem;">VNĐ</span>
               </div>
+            </div>
+            <div class="d-flex flex-wrap justify-content-center gap-2 mt-3 w-100" style="max-height: 75px; overflow-y: auto;">
+              <span v-for="(label, idx) in serviceRevenueData.labels" :key="idx" class="d-inline-flex align-items-center text-body-secondary" style="font-size: 0.75rem;">
+                <span class="rounded-1 me-1 d-inline-block flex-shrink-0" :style="{ width: '10px', height: '10px', backgroundColor: serviceRevenueData.datasets[0].backgroundColor[idx % serviceRevenueData.datasets[0].backgroundColor.length] }"></span>
+                {{ label }}
+              </span>
             </div>
           </div>
         </div>
@@ -355,8 +372,12 @@ const getChartTextColor = computed(() => themeStore.isDarkMode ? '#e9ecef' : '#2
 const getGridColor = computed(() => themeStore.isDarkMode ? '#495057' : '#e9ecef')
 
 const donutOptions = computed(() => ({
-  responsive: true, maintainAspectRatio: false, cutout: '75%',
-  plugins: { legend: { position: 'bottom', labels: { color: getChartTextColor.value, boxWidth: 12 } } }
+  responsive: true,
+  maintainAspectRatio: false,
+  cutout: '75%',
+  plugins: {
+    legend: { display: false }
+  }
 }))
 
 const donutOptionsRightLegend = computed(() => ({

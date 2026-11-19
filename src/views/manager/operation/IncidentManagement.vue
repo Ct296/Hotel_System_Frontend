@@ -19,11 +19,9 @@
 
     <!-- Bảng danh sách Sự cố (Kèm Bộ lọc & Tìm kiếm) -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-body-tertiary">
-      
       <!-- HEADER: THANH CÔNG CỤ -->
       <div class="card-header bg-transparent border-bottom-0 pt-4 pb-3">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-          
           <div class="d-flex align-items-center gap-2 flex-wrap flex-grow-1">
             <!-- Nút Lọc Mở Rộng -->
             <div class="dropdown">
@@ -46,7 +44,7 @@
                   <select v-model="sortOption" class="form-select form-select-sm bg-body">
                     <option value="NEWEST">Thời gian: Mới nhất</option>
                     <option value="OLDEST">Thời gian: Cũ nhất</option>
-                    <option value="MONEY_DESC">Đền bù: Cao nhất</option>
+                    <option value="MONEY_DESC">Số tiền: Cao nhất</option>
                   </select>
                 </div>
               </div>
@@ -63,7 +61,6 @@
               </button>
             </div>
           </div>
-          
         </div>
       </div>
 
@@ -77,7 +74,7 @@
                 <th class="py-3 fw-bold border-0 text-uppercase">Phòng</th>
                 <th class="py-3 fw-bold border-0 text-uppercase">Thời gian</th>
                 <th class="py-3 fw-bold border-0 text-uppercase text-center">Trách nhiệm</th>
-                <th class="py-3 fw-bold border-0 text-uppercase text-end">Đền bù (VNĐ)</th>
+                <th class="py-3 fw-bold border-0 text-uppercase text-end">Phạt / Bồi thường</th>
                 <th class="py-3 fw-bold border-0 text-uppercase text-center">Trạng thái</th>
                 <th class="py-3 fw-bold border-0 text-end px-4"></th>
               </tr>
@@ -106,14 +103,17 @@
                     {{ getResponsibleText(ic.responsible) }}
                   </span>
                 </td>
-                <td class="text-end fw-semibold text-danger">{{ ic.money > 0 ? formatPrice(ic.money) : '-' }}</td>
+                <td class="text-end fw-bold">
+                  <span v-if="ic.money > 0 && ic.responsible === 'CUSTOMER'" class="text-danger">+{{ formatPrice(ic.money) }}</span>
+                  <span v-else-if="ic.money > 0 && ic.responsible === 'HOTEL'" class="text-success">-{{ formatPrice(ic.money) }}</span>
+                  <span v-else class="text-muted">-</span>
+                </td>
                 <td class="text-center">
                   <span class="badge rounded-pill fw-bold" :class="getStatusBadgeClass(ic.status)">
                     {{ ic.status === 'RESOLVED' ? 'ĐÃ XỬ LÝ' : (ic.status === 'PROCESSING' ? 'ĐANG XỬ LÝ' : 'CHỜ XỬ LÝ') }}
                   </span>
                 </td>
                 <td class="text-end px-4">
-                  <!-- Nút hành động dạng Dropdown -->
                   <div class="dropdown">
                     <button class="btn btn-link text-body-secondary p-0 shadow-none fs-5" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                       <i class="fas fa-list"></i>
@@ -172,9 +172,9 @@
                 <div class="col-md-4">
                   <label class="form-label fw-semibold text-body-secondary small">Bên chịu trách nhiệm</label>
                   <select v-model="form.responsible" class="form-select bg-body text-body-emphasis">
-                    <option value="HOTEL">Khách sạn</option>
-                    <option value="CUSTOMER">Khách hàng</option>
-                    <option value="OTHER">Khác</option>
+                    <option value="HOTEL">Khách sạn (Bồi thường / Giảm trừ)</option>
+                    <option value="CUSTOMER">Khách hàng (Thu tiền phạt)</option>
+                    <option value="NONE">Khách quan / Không tính tiền</option>
                   </select>
                 </div>
                 <div class="col-md-4">
@@ -191,28 +191,37 @@
                   <textarea v-model="form.description" class="form-control bg-body text-body-emphasis" rows="2" placeholder="Tình trạng cụ thể..."></textarea>
                 </div>
 
-                <!-- Khu vực đền bù & Hướng giải quyết -->
+                <!-- Khu vực đền bù / giảm trừ & Hướng giải quyết -->
                 <div class="col-md-12 mt-3 p-3 bg-body border border-secondary-subtle rounded-3">
                   <h6 class="fw-bold text-body-emphasis mb-3"><i class="fas fa-gavel me-2 text-warning"></i>Phương án giải quyết</h6>
                   <div class="row g-3">
                     <div class="col-md-4">
-                      <label class="form-label fw-semibold text-danger small">Tiền phạt / Đền bù (VNĐ)</label>
-                      <input v-model="form.money" type="number" min="0" class="form-control fw-bold bg-body text-body-emphasis border-danger" :disabled="form.responsible !== 'CUSTOMER'" placeholder="0">
-                      <small v-if="form.responsible !== 'CUSTOMER'" class="text-body-secondary" style="font-size: 0.75rem;">Chỉ thu tiền nếu lỗi do Khách.</small>
+                      <label class="form-label fw-semibold small"
+                             :class="form.responsible === 'CUSTOMER' ? 'text-danger' : (form.responsible === 'HOTEL' ? 'text-success' : 'text-secondary')">
+                        {{ form.responsible === 'CUSTOMER' ? 'Tiền phạt khách (+ VNĐ)' : (form.responsible === 'HOTEL' ? 'Bồi thường / Giảm trừ (- VNĐ)' : 'Số tiền (Không áp dụng)') }}
+                      </label>
+                      <input v-model="form.money" type="number" min="0"
+                             class="form-control fw-bold bg-body text-body-emphasis"
+                             :class="form.responsible === 'CUSTOMER' ? 'border-danger' : (form.responsible === 'HOTEL' ? 'border-success' : '')"
+                             :disabled="form.responsible === 'NONE'" placeholder="0">
+                      <small class="text-body-secondary" style="font-size: 0.75rem;">
+                        <span v-if="form.responsible === 'CUSTOMER'">Cộng (+) vào hóa đơn trả phòng.</span>
+                        <span v-else-if="form.responsible === 'HOTEL'">Trừ (-) trực tiếp vào hóa đơn khách.</span>
+                        <span v-else>Sự cố khách quan không phát sinh tiền.</span>
+                      </small>
                     </div>
                     <div class="col-md-8">
                       <label class="form-label fw-semibold text-body-secondary small">Cách xử lý (Ghi chú)</label>
-                      <input v-model="form.handle" type="text" class="form-control bg-body text-body-emphasis" placeholder="VD: Thay mới, Cảnh cáo khách, Bảo trì tòa nhà...">
+                      <input v-model="form.handle" type="text" class="form-control bg-body text-body-emphasis" placeholder="VD: Thay mới, Giảm trừ tiền phòng, Đổi phòng cho khách...">
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
             <div class="modal-footer bg-body border-0 rounded-bottom-4">
               <button type="button" class="btn btn-secondary fw-semibold" @click="closeModal">Hủy bỏ</button>
               <button type="submit" class="btn btn-danger fw-bold" :disabled="isProcessing">
-                <span v-if="isProcessing" class="spinner-border spinner-border-sm me-1"></span> 
+                <span v-if="isProcessing" class="spinner-border spinner-border-sm me-1"></span>
                 {{ isEditMode ? 'Lưu thay đổi' : 'Ghi nhận Sự cố' }}
               </button>
             </div>
@@ -220,7 +229,6 @@
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -236,38 +244,32 @@ const showModal = ref(false)
 const isEditMode = ref(false)
 const notification = ref({ type: '', message: '' })
 
-// Bộ lọc & Tìm kiếm
 const searchQuery = ref('')
-const filterStatus = ref('ALL') // ALL, PENDING, PROCESSING, RESOLVED
-const sortOption = ref('NEWEST') // NEWEST, OLDEST, MONEY_DESC
+const filterStatus = ref('ALL')
+const sortOption = ref('NEWEST')
 
-// Hàm làm mới bộ lọc (Reset button)
 const resetFilters = () => {
   searchQuery.value = ''
   filterStatus.value = 'ALL'
   sortOption.value = 'NEWEST'
 }
 
-// Computed để lọc và sắp xếp Sự cố
 const filteredAndSortedIncidents = computed(() => {
   let result = incidents.value
 
-  // Lọc theo trạng thái
   if (filterStatus.value !== 'ALL') {
     result = result.filter(ic => ic.status === filterStatus.value)
   }
 
-  // Tìm kiếm theo tên, mô tả hoặc tên phòng
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.toLowerCase().trim()
-    result = result.filter(ic => 
-      ic.name?.toLowerCase().includes(q) || 
-      ic.description?.toLowerCase().includes(q) || 
+    result = result.filter(ic =>
+      ic.name?.toLowerCase().includes(q) ||
+      ic.description?.toLowerCase().includes(q) ||
       ic.roomName?.toString().toLowerCase().includes(q)
     )
   }
 
-  // Sắp xếp
   if (sortOption.value === 'NEWEST') {
     result = result.slice().sort((a, b) => new Date(b.occurTime) - new Date(a.occurTime))
   } else if (sortOption.value === 'OLDEST') {
@@ -280,7 +282,7 @@ const filteredAndSortedIncidents = computed(() => {
 })
 
 const form = ref({
-  id: '', name: '', rentalDetailId: '', occurTime: '', 
+  id: '', name: '', rentalDetailId: '', occurTime: '',
   responsible: 'HOTEL', status: 'PENDING', description: '', money: 0, handle: ''
 })
 
@@ -312,7 +314,7 @@ const getResponsibleBadgeClass = (responsible) => {
 const getResponsibleText = (responsible) => {
   if (responsible === 'CUSTOMER') return 'Khách hàng'
   if (responsible === 'HOTEL') return 'Khách sạn'
-  return 'Khác'
+  return 'Khách quan'
 }
 
 const showNotification = (type, message) => {
@@ -335,13 +337,12 @@ const fetchData = async () => {
 
 const openCreateModal = () => {
   isEditMode.value = false
-  
   const now = new Date()
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
-  
+
   form.value = {
-    id: '', name: '', rentalDetailId: '', 
-    occurTime: now.toISOString().slice(0, 16), 
+    id: '', name: '', rentalDetailId: '',
+    occurTime: now.toISOString().slice(0, 16),
     responsible: 'HOTEL', status: 'PENDING', description: '', money: 0, handle: ''
   }
   showModal.value = true
@@ -349,7 +350,8 @@ const openCreateModal = () => {
 
 const openEditModal = (ic) => {
   isEditMode.value = true
-  form.value = { ...ic, rentalDetailId: ic.rentalDetailId || '' }
+  const resp = ['CUSTOMER', 'HOTEL', 'NONE'].includes(ic.responsible) ? ic.responsible : 'NONE'
+  form.value = { ...ic, responsible: resp, rentalDetailId: ic.rentalDetailId || '' }
   if (form.value.occurTime) {
     form.value.occurTime = form.value.occurTime.slice(0, 16)
   }
@@ -361,14 +363,13 @@ const closeModal = () => showModal.value = false
 const submitForm = async () => {
   isProcessing.value = true
   try {
-    if (form.value.responsible !== 'CUSTOMER') form.value.money = 0
-    
+    if (form.value.responsible === 'NONE') form.value.money = 0
     await api.post('/api/manager/operation/incidents', form.value)
     showNotification('success', isEditMode.value ? 'Cập nhật thành công!' : 'Đã ghi nhận sự cố!')
     closeModal()
     fetchData()
   } catch (error) {
-    showNotification('danger', 'Có lỗi xảy ra khi lưu.')
+    showNotification('danger', error.response?.data?.error || 'Có lỗi xảy ra khi lưu.')
   } finally {
     isProcessing.value = false
   }

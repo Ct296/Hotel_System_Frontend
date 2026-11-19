@@ -98,12 +98,23 @@
                         </td>
                         <td class="text-end px-4">
                           <template v-if="canEditOrDeletePR(pr.id)">
-                            <button @click="editPriceRate(pr)" class="btn btn-sm btn-outline-primary shadow-sm me-2" title="Chỉnh sửa">
-                              <i class="fas fa-edit"></i>
-                            </button>
-                            <button @click="deletePriceRate(pr.id)" class="btn btn-sm btn-outline-danger shadow-sm" title="Xóa">
-                              <i class="fas fa-trash"></i>
-                            </button>
+                            <div class="dropdown">
+                              <button class="btn btn-sm btn-link text-body-secondary p-1" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
+                                <i class="fas fa-bars fs-6"></i>
+                              </button>
+                              <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                <li>
+                                  <button class="dropdown-item text-primary fw-medium py-2" @click="editPriceRate(pr)">
+                                    <i class="fas fa-edit me-2"></i>Chỉnh sửa
+                                  </button>
+                                </li>
+                                <li>
+                                  <button class="dropdown-item text-danger fw-medium py-2" @click="deletePriceRate(pr.id)">
+                                    <i class="fas fa-trash me-2"></i>Xóa chương trình
+                                  </button>
+                                </li>
+                              </ul>
+                            </div>
                           </template>
                           <template v-else>
                             <span class="badge bg-secondary" title="Sự kiện đã kết thúc, không thể thay đổi lịch sử">Đã khóa</span>
@@ -207,16 +218,25 @@
                         <td class="text-body-secondary small">{{ formatDate(ap.startDate) }}</td>
                         <td class="text-body-secondary small">{{ formatDate(ap.endDate) }}</td>
                         <td class="text-end px-4">
-                          <!-- Kiểm tra: Nếu ngày kết thúc vẫn lớn hơn hiện tại (Đang hoặc Sắp diễn ra) thì cho phép Sửa/Xóa -->
                           <template v-if="new Date(ap.endDate).getTime() >= new Date().getTime()">
-                            <button @click="editAppliedPeriod(ap)" class="btn btn-sm btn-outline-primary shadow-sm me-2" title="Chỉnh sửa">
-                              <i class="fas fa-edit"></i>
-                            </button>
-                            <button @click="deleteAppliedPeriod(ap.id)" class="btn btn-sm btn-outline-danger shadow-sm" title="Hủy bỏ">
-                              <i class="fas fa-times"></i>
-                            </button>
+                            <div class="dropdown">
+                              <button class="btn btn-sm btn-link text-body-secondary p-1" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
+                                <i class="fas fa-bars fs-6"></i>
+                              </button>
+                              <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                <li>
+                                  <button class="dropdown-item text-primary fw-medium py-2" @click="editAppliedPeriod(ap)">
+                                    <i class="fas fa-edit me-2"></i>Chỉnh sửa
+                                  </button>
+                                </li>
+                                <li>
+                                  <button class="dropdown-item text-danger fw-medium py-2" @click="deleteAppliedPeriod(ap.id)">
+                                    <i class="fas fa-trash me-2"></i>Hủy áp dụng
+                                  </button>
+                                </li>
+                              </ul>
+                            </div>
                           </template>
-                          <!-- Nếu đã kết thúc (Nằm trong quá khứ) thì khóa lại -->
                           <template v-else>
                             <span class="badge bg-secondary" title="Kỳ áp dụng đã kết thúc">Đã khóa</span>
                           </template>
