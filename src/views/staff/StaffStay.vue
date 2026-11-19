@@ -1,7 +1,15 @@
 <template>
   <div class="card border-0 shadow-sm rounded-4 mb-4">
-    <div class="card-header bg-white border-0 pt-4 pb-0">
-      <h5 class="fw-bold mb-1"><i class="fas fa-bed me-2 text-primary"></i>Quản lý Lưu trú & Dọn dẹp</h5>
+    <!-- HEADER + NÚT XEM QUY ĐỊNH TÍNH TIỀN -->
+    <div class="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <h5 class="fw-bold mb-0">
+        <i class="fas fa-bed me-2 text-primary"></i>Quản lý Lưu trú & Dọn dẹp
+      </h5>
+      <button type="button"
+              class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-3 shadow-sm d-flex align-items-center gap-2"
+              @click="showPricingRuleModal = true">
+        <i class="fas fa-info-circle fs-6"></i> Quy tắc tính giờ & Phụ thu
+      </button>
     </div>
     
     <div class="card-body">
@@ -12,26 +20,63 @@
         <button type="button" class="btn-close" @click="notification.message = ''"></button>
       </div>
 
-      <!-- Tabs -->
-      <ul class="nav nav-tabs mb-3">
-        <li class="nav-item">
-          <button class="nav-link fw-bold" :class="{ 'active text-primary': activeTab === 'stay' }" @click="activeTab = 'stay'">
-            <i class="fas fa-user-check me-1"></i> Khách đang ở
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link fw-bold" :class="{ 'active text-danger': activeTab === 'cleaning' }" @click="activeTab = 'cleaning'">
-            <i class="fas fa-broom me-1"></i> Phòng cần dọn
-            <span class="badge bg-danger ms-1" v-if="checkedOutRentals.length > 0">{{ checkedOutRentals.length }}</span>
-          </button>
-        </li>
-      </ul>
+      <!-- Tabs + Thanh Tìm kiếm & Số lượng -->
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3 border-bottom pb-2">
+        <ul class="nav nav-pills">
+          <li class="nav-item">
+            <button class="nav-link fw-bold d-flex align-items-center gap-2"
+                    :class="activeTab === 'stay' ? 'active bg-primary text-white shadow-sm' : 'text-secondary'"
+                    @click="activeTab = 'stay'">
+              <i class="fas fa-user-check"></i> Khách đang ở
+              <span class="badge rounded-pill" :class="activeTab === 'stay' ? 'bg-white text-primary' : 'bg-primary text-white'">
+                {{ allActiveRentals.length }}
+              </span>
+            </button>
+          </li>
+          <li class="nav-item ms-2">
+            <button class="nav-link fw-bold d-flex align-items-center gap-2"
+                    :class="activeTab === 'cleaning' ? 'active bg-danger text-white shadow-sm' : 'text-secondary'"
+                    @click="activeTab = 'cleaning'">
+              <i class="fas fa-broom"></i> Phòng cần dọn
+              <span class="badge rounded-pill" :class="activeTab === 'cleaning' ? 'bg-white text-danger' : 'bg-danger text-white'">
+                {{ checkedOutRentals.length }}
+              </span>
+            </button>
+          </li>
+        </ul>
+
+        <!-- Bộ lọc & Tìm kiếm nhanh -->
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="badge bg-light text-dark border px-3 py-2 fw-semibold">
+            Hiển thị: <strong class="text-primary">{{ activeTab === 'stay' ? filteredActiveRentals.length : filteredCleaningRentals.length }}</strong>
+            / {{ activeTab === 'stay' ? allActiveRentals.length : checkedOutRentals.length }} đơn
+          </span>
+
+          <select v-if="activeTab === 'stay'" v-model="stayFilterType" class="form-select form-select-sm shadow-sm" style="width: 145px;">
+            <option value="ALL">Mọi hình thức</option>
+            <option value="HOURLY">Thuê theo giờ</option>
+            <option value="DAILY">Thuê qua đêm</option>
+            <option value="OVERDUE">Đang quá hạn ({{ overdueRentals.length }})</option>
+          </select>
+
+          <div class="input-group input-group-sm shadow-sm" style="width: 260px;">
+            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+            <input type="text"
+                   v-model="searchQuery"
+                   class="form-control border-start-0"
+                   placeholder="Tìm tên, mã đơn, phòng, SĐT, CCCD...">
+            <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button" @click="searchQuery = ''">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div v-if="isLoading" class="text-center py-4"><div class="spinner-border text-primary"></div></div>
       
       <div v-else class="tab-content border rounded bg-white">
         <!-- TAB 1: KHÁCH ĐANG Ở -->
-        <div v-if="activeTab === 'stay'" class="table-responsive p-2">
+        <div v-if="activeTab === 'stay'" class="table-responsive p-2" style="overflow: visible;">
           <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
               <tr>
@@ -44,13 +89,19 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-if="allActiveRentals.length === 0">
-                <td colspan="6" class="text-center text-muted py-4">Hiện không có khách lưu trú.</td>
+              <tr v-if="filteredActiveRentals.length === 0">
+                <td colspan="6" class="text-center text-muted py-4">
+                  <span v-if="searchQuery || stayFilterType !== 'ALL'">Không tìm thấy đơn lưu trú nào khớp với bộ lọc.</span>
+                  <span v-else>Hiện không có khách lưu trú.</span>
+                </td>
               </tr>
-              <tr v-for="r in allActiveRentals" :key="r.id" :class="{'table-danger border-danger': isOverdue(r)}">
+              <tr v-for="r in filteredActiveRentals" :key="r.id" :class="{'table-danger border-danger': isOverdue(r)}">
                 <td>
                   <div class="fw-bold">{{ r.customer?.user?.lastName }} {{ r.customer?.user?.firstName }}</div>
                   <div class="small text-muted">{{ r.id }}</div>
+                  <div v-if="r.customer?.user?.phoneNumber" class="small text-secondary">
+                    <i class="fas fa-phone-alt me-1" style="font-size: 0.7rem;"></i>{{ r.customer.user.phoneNumber }}
+                  </div>
                 </td>
                 <td>
                   <div v-for="detail in r.rentalDetails" :key="detail.id" class="d-flex align-items-center gap-2 mb-1">
@@ -62,7 +113,13 @@
                   </div>
                 </td>
                 <td>
-                  <div class="small fw-semibold text-success"><i class="fas fa-arrow-right me-1"></i> {{ formatTime(r.rentalDetails[0]?.checkinDate) }}</div>
+                  <div class="small fw-semibold text-success">
+                    <i class="fas fa-sign-in-alt me-1"></i>Vào: {{ formatTime(r.rentalDetails[0]?.checkinDate) }}
+                  </div>
+                  <div class="small text-muted">
+                    <i class="fas fa-clock me-1"></i>ĐK:
+                    <strong>{{ getPlannedDurationLabel(r) }}</strong>
+                  </div>
                   <div class="badge bg-danger mt-1 px-2" v-if="isOverdue(r)">Quá hạn!</div>
                 </td>
                 
@@ -96,12 +153,78 @@
                   </div>
                 </td>
                 
-                <td class="text-end px-3" style="min-width: 230px;">
+                <!-- CỘT TẤT TOÁN & POPUP ĐỒNG HỒ SỐ CHI TIẾT (ĐỊNH VỊ THÔNG MINH) -->
+                <td class="text-end px-3 position-relative" style="min-width: 255px;">
                   <div v-if="!isSettled(r.id)" class="d-flex flex-column align-items-end gap-1">
-                    <div class="small text-muted mb-2">
-                       Đã ở: <strong class="text-dark">{{ getBillingSummary(r.id)?.actualStayHours || 0 }}h</strong>
-                       <span class="mx-1">|</span>
-                       Cần thu: <strong class="text-danger fs-6">{{ formatPrice(getBillingSummary(r.id)?.finalAmount) }}</strong>
+                    <div class="small text-muted mb-2 d-flex align-items-center justify-content-end gap-1 flex-wrap">
+                      <span>Đã ở:</span>
+                      <strong class="text-dark">{{ getLiveStayMetrics(r).roundedBillableLabel }}</strong>
+
+                      <!-- NÚT CHỮ i TRONG HÌNH TRÒN (TỰ ĐỘNG TÍNH TOÁN VỊ TRÍ TRÁNH TRÀN MÀN HÌNH) -->
+                      <div class="position-relative d-inline-block ms-1"
+                           @mouseenter="handleHoverStayInfo($event, r.id)"
+                           @mouseleave="hoveredStayInfoId = null">
+                        <button type="button"
+                                class="btn btn-link p-0 text-primary border-0 d-inline-flex align-items-center"
+                                style="text-decoration: none;"
+                                @click.stop="handleTogglePinnedStayInfo($event, r.id)"
+                                title="Xem chi tiết thời gian lưu trú & làm tròn">
+                          <i class="fas fa-info-circle fs-6"></i>
+                        </button>
+
+                        <!-- POPUP CHI TIẾT THỜI GIAN LƯU TRÚ & ĐỒNG HỒ SỐ -->
+                        <div v-if="hoveredStayInfoId === r.id || pinnedStayInfoId === r.id"
+                             class="stay-time-popover shadow-lg border rounded-3 bg-white text-start p-3"
+                             :class="popoverDirectionClass"
+                             @click.stop>
+                          <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                            <span class="fw-bold text-primary small">
+                              <i class="fas fa-stopwatch me-1"></i>Chi tiết thời gian #{{ r.id }}
+                            </span>
+                            <button v-if="pinnedStayInfoId === r.id"
+                                    type="button"
+                                    class="btn-close"
+                                    style="font-size: 0.65rem;"
+                                    @click="pinnedStayInfoId = null"></button>
+                          </div>
+
+                          <div class="small mb-1 d-flex justify-content-between">
+                            <span class="text-muted">Hình thức thuê:</span>
+                            <span class="fw-bold text-dark">{{ getLiveStayMetrics(r).typeLabel }}</span>
+                          </div>
+                          <div class="small mb-1 d-flex justify-content-between">
+                            <span class="text-muted">Đăng ký trên đơn:</span>
+                            <span class="fw-bold text-dark">{{ getPlannedDurationLabel(r) }}</span>
+                          </div>
+                          <div class="small mb-1 d-flex justify-content-between">
+                            <span class="text-muted">Thực tế nhận phòng:</span>
+                            <span class="fw-semibold text-success">{{ getLiveStayMetrics(r).checkinStr }}</span>
+                          </div>
+                          <div class="small mb-2 d-flex justify-content-between">
+                            <span class="text-muted">Dự kiến trả phòng:</span>
+                            <span class="fw-semibold text-secondary">{{ getLiveStayMetrics(r).expectedCheckoutStr }}</span>
+                          </div>
+
+                          <!-- ĐỒNG HỒ SỐ TĂNG DẦN THEO GIÂY -->
+                          <div class="bg-dark text-white rounded-3 p-2 text-center my-2 shadow-sm">
+                            <div class="text-white-50" style="font-size: 0.7rem; letter-spacing: 0.5px;">THỜI LƯỢNG ĐÃ LƯU TRÚ THỰC TẾ</div>
+                            <div class="fw-bold text-warning font-monospace" style="font-size: 1.05rem; letter-spacing: 0.5px;">
+                              <i class="far fa-clock me-1"></i>{{ getLiveStayMetrics(r).digitalClock }}
+                            </div>
+                          </div>
+
+                          <div class="small d-flex justify-content-between align-items-center pt-1 border-top">
+                            <span class="text-muted">Làm tròn tính đơn:</span>
+                            <span class="badge bg-primary fs-6">{{ getLiveStayMetrics(r).roundedBillableLabel }}</span>
+                          </div>
+                          <div class="text-muted fst-italic mt-1" style="font-size: 0.73rem;">
+                            {{ getLiveStayMetrics(r).roundingRuleNote }}
+                          </div>
+                        </div>
+                      </div>
+
+                      <span class="mx-1">|</span>
+                      <span>Cần thu: <strong class="text-danger fs-6">{{ formatPrice(getBillingSummary(r.id)?.finalAmount) }}</strong></span>
                     </div>
 
                     <div class="d-flex gap-1 w-100 justify-content-end">
@@ -131,8 +254,8 @@
               <tr><th class="px-4 py-3">Phòng</th><th>Khách vừa trả</th><th>Trạng thái</th><th class="text-end px-3">Thao tác</th></tr>
             </thead>
             <tbody>
-              <tr v-if="checkedOutRentals.length === 0"><td colspan="4" class="text-center text-muted py-4">Không có phòng nào đang chờ dọn.</td></tr>
-              <tr v-for="r in checkedOutRentals" :key="r.id">
+              <tr v-if="filteredCleaningRentals.length === 0"><td colspan="4" class="text-center text-muted py-4">Không có phòng nào đang chờ dọn.</td></tr>
+              <tr v-for="r in filteredCleaningRentals" :key="r.id">
                 <td class="px-4 fw-bold fs-5 text-primary">{{ r.rentalDetails[0]?.room?.name }}</td>
                 <td class="text-muted">{{ r.customer?.user?.lastName }} {{ r.customer?.user?.firstName }}</td>
                 <td><span class="badge bg-warning text-dark"><i class="fas fa-spray-can me-1"></i> Đang dọn dẹp</span></td>
@@ -144,6 +267,93 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL BẢNG QUY TẮC TÍNH TIỀN & LÀM TRÒN GIỜ ==================== -->
+    <div v-if="showPricingRuleModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.55); z-index: 1090;">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 bg-body">
+          <div class="modal-header bg-primary text-white border-0">
+            <h5 class="modal-title fw-bold">
+              <i class="fas fa-calculator me-2"></i>Bảng Quy Tắc Tính Giờ Lưu Trú & Phụ Thu Khách Sạn
+            </h5>
+            <button type="button" class="btn-close btn-close-white" @click="showPricingRuleModal = false"></button>
+          </div>
+          <div class="modal-body p-4">
+            <!-- Bảng 1: Thuê theo giờ -->
+            <h6 class="fw-bold text-primary mb-2">
+              <i class="fas fa-clock me-2"></i>1. Hình thức Thuê theo giờ (HOURLY) — Ân hạn 15 phút
+            </h6>
+            <p class="small text-muted mb-2">
+              Thời gian lưu trú thực tế được tính từ thời điểm bấm <strong>Check-in thực tế</strong> đến thời điểm trả phòng. Nếu khách nhận phòng sớm hơn giờ hẹn, mốc giờ trả phòng dự kiến ban đầu vẫn được giữ nguyên.
+            </p>
+            <div class="table-responsive border rounded-3 mb-4">
+              <table class="table table-sm table-bordered align-middle mb-0 small">
+                <thead class="table-light">
+                  <tr>
+                    <th class="px-3 py-2">Thời lượng khách ở thực tế</th>
+                    <th>Quy tắc làm tròn</th>
+                    <th class="text-center">Số giờ tính tiền</th>
+                    <th>Ví dụ minh họa</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="px-3 fw-semibold">Từ 1 phút đến 60 phút (≤ 1h00p)</td>
+                    <td>Tính mức tối thiểu 1 giờ đầu</td>
+                    <td class="text-center"><span class="badge bg-primary">1 giờ</span></td>
+                    <td class="text-muted">Thuê 2h nhưng mới vào 5p hoặc 45p trả phòng → Tính <strong>1 giờ</strong></td>
+                  </tr>
+                  <tr>
+                    <td class="px-3 fw-semibold">Giờ tiếp theo: lẻ từ 1 đến 15 phút</td>
+                    <td class="text-success fw-semibold">Trong 15 phút ân hạn → Miễn phí phút lẻ</td>
+                    <td class="text-center"><span class="badge bg-success">Giữ nguyên H giờ</span></td>
+                    <td class="text-muted">Ở 1h05p hoặc 1h15p → Tính <strong>1 giờ</strong>; Ở 2h12p → Tính <strong>2 giờ</strong></td>
+                  </tr>
+                  <tr>
+                    <td class="px-3 fw-semibold">Giờ tiếp theo: lẻ từ 16 phút trở lên</td>
+                    <td class="text-danger fw-semibold">Vượt quá 15 phút ân hạn → Làm tròn +1 giờ</td>
+                    <td class="text-center"><span class="badge bg-danger">H + 1 giờ</span></td>
+                    <td class="text-muted">Ở 1h16p hoặc 1h30p → Tính <strong>2 giờ</strong>; Ở 2h20p → Tính <strong>3 giờ</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Bảng 2: Thuê qua đêm / ngày -->
+            <h6 class="fw-bold text-primary mb-2">
+              <i class="fas fa-moon me-2"></i>2. Hình thức Thuê qua đêm / Ngày (DAILY) — Chuẩn VTOS (14:00 - 12:00)
+            </h6>
+            <div class="row g-3 small">
+              <div class="col-md-6">
+                <div class="border rounded-3 p-3 h-100 bg-light">
+                  <div class="fw-bold text-dark mb-2"><i class="fas fa-sun text-warning me-1"></i>Phụ thu Nhận phòng sớm (Trước 14:00)</div>
+                  <ul class="mb-0 ps-3">
+                    <li class="mb-1">Trước <strong>05:00 sáng</strong>: Phụ thu <strong class="text-danger">+100%</strong> giá ngày</li>
+                    <li class="mb-1">Từ <strong>05:00 đến trước 09:00</strong>: Phụ thu <strong class="text-danger">+50%</strong> giá ngày</li>
+                    <li class="mb-1">Từ <strong>09:00 đến trước 14:00</strong>: Phụ thu <strong class="text-danger">+30%</strong> giá ngày</li>
+                    <li>Từ <strong>14:00 trở đi</strong>: Không phụ thu (0%)</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="border rounded-3 p-3 h-100 bg-light">
+                  <div class="fw-bold text-dark mb-2"><i class="fas fa-hourglass-end text-danger me-1"></i>Phụ thu Trả phòng muộn (Sau 12:00 trưa)</div>
+                  <ul class="mb-0 ps-3">
+                    <li class="mb-1">Từ <strong>12:00 trở về trước</strong>: Không phụ thu (0%)</li>
+                    <li class="mb-1">Từ <strong>sau 12:00 đến 15:00</strong>: Phụ thu <strong class="text-danger">+30%</strong> giá ngày</li>
+                    <li class="mb-1">Từ <strong>sau 15:00 đến 18:00</strong>: Phụ thu <strong class="text-danger">+50%</strong> giá ngày</li>
+                    <li>Sau <strong>18:00 tối</strong>: Phụ thu <strong class="text-danger">+100%</strong> (Tính thêm 1 đêm)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer bg-light border-0">
+            <button type="button" class="btn btn-primary fw-bold px-4" @click="showPricingRuleModal = false">Đã hiểu</button>
+          </div>
         </div>
       </div>
     </div>
@@ -188,17 +398,15 @@
               <div class="col-md-6 border-start-md">
                 <div class="small text-muted text-uppercase fw-bold mb-1">Chi tiết thời gian lưu trú</div>
                 <div class="small">
-                  <strong>Nhận phòng:</strong> {{ formatDateTime(selectedRentalForInvoice.rentalDetails?.[0]?.checkinDate) }}
+                  <strong>Nhận phòng thực tế:</strong> {{ formatDateTime(selectedRentalForInvoice.rentalDetails?.[0]?.checkinDate) }}
                 </div>
                 <div class="small">
-                  <strong>Trả phòng (Thực tế):</strong> {{ formatDateTime(new Date()) }}
+                  <strong>Trả phòng thực tế:</strong> {{ formatDateTime(new Date()) }}
                 </div>
                 <div class="small mt-1">
-                  <strong>Hình thức thuê:</strong>
-                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-1">
-                    {{ selectedRentalForInvoice.rentalDetails?.[0]?.rentalType === 'DAILY' ? 'Thuê qua đêm / Ngày' : 'Thuê theo giờ' }}
-                  </span>
-                  <span class="ms-2">Tổng giờ ở: <strong>{{ currentInvoiceSummary?.actualStayHours || 1 }} giờ</strong></span>
+                  <strong>Thời lượng thực tế:</strong>
+                  <span class="badge bg-dark text-warning font-monospace ms-1">{{ getLiveStayMetrics(selectedRentalForInvoice).digitalClock }}</span>
+                  <span class="ms-2">Tính đơn: <strong class="text-primary">{{ getLiveStayMetrics(selectedRentalForInvoice).roundedBillableLabel }}</strong></span>
                 </div>
               </div>
             </div>
@@ -225,7 +433,7 @@
                   </tr>
                   <tr>
                     <td class="px-3 fw-semibold">Tiền phòng gốc</td>
-                    <td class="text-muted">Tính theo thời gian lưu trú thực tế ({{ currentInvoiceSummary?.actualStayHours || 1 }} giờ)</td>
+                    <td class="text-muted">Tính theo thời gian lưu trú đã làm tròn ({{ getLiveStayMetrics(selectedRentalForInvoice).roundedBillableLabel }})</td>
                     <td class="text-end px-3 fw-bold text-dark">{{ formatPrice(invoiceBaseRoomAmount) }}</td>
                   </tr>
                   <tr v-if="(currentInvoiceSummary?.earlyCheckinSurcharge || 0) > 0" class="table-warning">
@@ -442,21 +650,34 @@
                     <th class="px-3">Thời gian</th>
                     <th>Dịch vụ</th>
                     <th class="text-center">SL</th>
-                    <th class="text-end px-3">Thành tiền</th>
+                    <th class="text-end">Thành tiền</th>
+                    <th class="text-center px-3">Hủy</th>
                   </tr>
                 </thead>
                 <tbody>
+                  <tr v-if="currentRoomServices.length === 0">
+                    <td colspan="5" class="text-center text-muted py-3">Chưa có dịch vụ nào.</td>
+                  </tr>
                   <tr v-for="svc in currentRoomServices" :key="svc.id">
                     <td class="px-3 small text-muted">{{ formatTime(svc.time) }}</td>
                     <td class="fw-bold">{{ svc.service?.name }}</td>
                     <td class="text-center">{{ svc.count }}</td>
-                    <td class="text-end px-3 fw-bold text-danger">{{ formatPrice(svc.count * svc.unitPrice) }}</td>
+                    <td class="text-end fw-bold text-danger">{{ formatPrice(svc.count * svc.unitPrice) }}</td>
+                    <td class="text-center px-3">
+                      <button type="button"
+                              class="btn btn-sm btn-outline-danger py-0 px-2"
+                              title="Hủy dịch vụ này (chưa thanh toán)"
+                              :disabled="isProcessing"
+                              @click="removeServiceUsage(svc)">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                    </td>
                   </tr>
                 </tbody>
                 <tfoot class="table-light">
                   <tr>
                     <td colspan="3" class="text-end fw-bold">Tổng cộng:</td>
-                    <td class="text-end px-3 fw-bold text-danger fs-5">
+                    <td colspan="2" class="text-end px-3 fw-bold text-danger fs-5">
                       {{ formatPrice(currentRoomServices.reduce((sum, s) => sum + (s.count * s.unitPrice), 0)) }}
                     </td>
                   </tr>
@@ -543,7 +764,7 @@
     </div>
 
     <!-- MODAL CONFIRM -->
-    <div v-if="showConfirmModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5); z-index: 1080;">
+    <div v-if="showConfirmModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5); z-index: 1095;">
       <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content border-0 shadow-lg rounded-4 bg-body">
           <div class="modal-header border-0 pb-0 justify-content-center mt-3">
@@ -569,7 +790,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import api from '../../utils/axios'
 import { formatPrice, formatDate, formatTime, formatDateTime } from '../../utils/formatters'
 
@@ -583,6 +804,45 @@ const allIncidents = ref([])
 const allServiceUsages = ref([])
 const isLoading = ref(true)
 const isProcessing = ref(false)
+
+// Tìm kiếm & lọc đơn
+const searchQuery = ref('')
+const stayFilterType = ref('ALL')
+
+// Đồng hồ thời gian thực & Popup chi tiết giờ lưu trú
+const nowTick = ref(Date.now())
+let clockInterval = null
+const hoveredStayInfoId = ref(null)
+const pinnedStayInfoId = ref(null)
+const popoverDirectionClass = ref('open-down')
+const showPricingRuleModal = ref(false)
+
+// Tự động tính toán khoảng trống màn hình để quyết định mở popup xuống dưới hay lên trên
+const updatePopoverDirection = (event) => {
+  if (!event || !event.currentTarget) {
+    popoverDirectionClass.value = 'open-down'
+    return
+  }
+  const rect = event.currentTarget.getBoundingClientRect()
+  const spaceAbove = rect.top
+  const spaceBelow = window.innerHeight - rect.bottom
+  // Nếu phía dưới còn đủ chỗ (>= 280px) hoặc phía trên quá hẹp (< 300px) -> ưu tiên xổ xuống dưới để không đụng thanh địa chỉ Chrome
+  if (spaceBelow >= 280 || spaceAbove < 300) {
+    popoverDirectionClass.value = 'open-down'
+  } else {
+    popoverDirectionClass.value = 'open-up'
+  }
+}
+
+const handleHoverStayInfo = (event, rentalId) => {
+  updatePopoverDirection(event)
+  hoveredStayInfoId.value = rentalId
+}
+
+const handleTogglePinnedStayInfo = (event, rentalId) => {
+  updatePopoverDirection(event)
+  pinnedStayInfoId.value = pinnedStayInfoId.value === rentalId ? null : rentalId
+}
 
 const serviceForm = ref({})
 const paymentForm = ref({})
@@ -607,6 +867,7 @@ const editingRoomMaxChildren = computed(() => editingRoomDetail.value?.room?.roo
 const currentRoomIncidents = ref([])
 const currentRoomServices = ref([])
 const currentServiceRoomName = ref('')
+const currentViewingRental = ref(null)
 const incidentRoomName = ref('')
 const incidentForm = ref({ rentalDetailId: '', name: '', occurTime: '', description: '' })
 const notification = ref({ type: '', message: '' })
@@ -617,10 +878,108 @@ const confirmConfig = ref({ title: '', message: '', type: 'primary', icon: '', a
 
 const allActiveRentals = computed(() => [...overdueRentals.value, ...checkedInRentals.value])
 
-const isOverdue = (r) => r.rentalDetails[0]?.status === 'OVERDUE'
+// Lọc danh sách khách đang ở theo từ khóa và loại hình thuê
+const filteredActiveRentals = computed(() => {
+  let list = allActiveRentals.value
+
+  if (stayFilterType.value === 'HOURLY') {
+    list = list.filter(r => (r.rentalDetails?.[0]?.rentalType || 'HOURLY') === 'HOURLY')
+  } else if (stayFilterType.value === 'DAILY') {
+    list = list.filter(r => r.rentalDetails?.[0]?.rentalType === 'DAILY')
+  } else if (stayFilterType.value === 'OVERDUE') {
+    list = list.filter(r => isOverdue(r))
+  }
+
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return list
+
+  return list.filter(r => {
+    const idMatch = r.id?.toLowerCase().includes(q)
+    const fullName = `${r.customer?.user?.lastName || ''} ${r.customer?.user?.firstName || ''}`.toLowerCase()
+    const phone = (r.customer?.user?.phoneNumber || '').toLowerCase()
+    const pid = (r.customer?.user?.pid || '').toLowerCase()
+    const roomMatch = (r.rentalDetails || []).some(d =>
+      d.room?.name?.toLowerCase().includes(q) ||
+      (d.rentalGuests || []).some(g => g.fullName?.toLowerCase().includes(q) || g.pid?.toLowerCase().includes(q))
+    )
+    return idMatch || fullName.includes(q) || phone.includes(q) || pid.includes(q) || roomMatch
+  })
+})
+
+const filteredCleaningRentals = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return checkedOutRentals.value
+  return checkedOutRentals.value.filter(r => {
+    const roomName = (r.rentalDetails?.[0]?.room?.name || '').toLowerCase()
+    const fullName = `${r.customer?.user?.lastName || ''} ${r.customer?.user?.firstName || ''}`.toLowerCase()
+    return roomName.includes(q) || fullName.includes(q) || (r.id || '').toLowerCase().includes(q)
+  })
+})
+
+const isOverdue = (r) => r.rentalDetails?.[0]?.status === 'OVERDUE'
 const isSettled = (rentalId) => false 
 
 const getBillingSummary = (id) => billingSummaries.value[id]
+
+// Hiển thị thời lượng đăng ký trên đơn (VD: "2 giờ" hoặc "1 đêm (22h)")
+const getPlannedDurationLabel = (r) => {
+  const d = r?.rentalDetails?.[0]
+  if (!d) return '1 giờ'
+  const hours = d.lengthOfStay || 1
+  if (d.rentalType === 'DAILY') {
+    const nights = Math.max(1, Math.round(hours / 22))
+    return `${nights} đêm (${hours}h)`
+  }
+  return `${hours} giờ`
+}
+
+// Tính toán đồng hồ số (HH:MM:SS) & giải thích làm tròn theo thời gian thực
+const getLiveStayMetrics = (r) => {
+  const _tick = nowTick.value
+  const d = r?.rentalDetails?.[0]
+  const rentalType = d?.rentalType || 'HOURLY'
+  const checkinRaw = d?.checkinDate ? new Date(d.checkinDate) : new Date()
+  const plannedHours = d?.lengthOfStay || 1
+  const expectedOut = new Date(checkinRaw.getTime() + plannedHours * 3600 * 1000)
+
+  const diffMs = Math.max(0, _tick - checkinRaw.getTime())
+  const totalSeconds = Math.floor(diffMs / 1000)
+  const hrs = Math.floor(totalSeconds / 3600)
+  const mins = Math.floor((totalSeconds % 3600) / 60)
+  const secs = totalSeconds % 60
+
+  const pad = (n) => String(n).padStart(2, '0')
+  const digitalClock = `${pad(hrs)} giờ ${pad(mins)} phút ${pad(secs)} giây`
+
+  const totalMinutes = Math.floor(totalSeconds / 60)
+  let roundedHours = 1
+  let roundingRuleNote = ''
+
+  if (totalMinutes <= 60) {
+    roundedHours = 1
+    roundingRuleNote = 'Mới ở dưới 60 phút → Tính tối thiểu 1 giờ đầu.'
+  } else {
+    const fullH = Math.floor(totalMinutes / 60)
+    const remM = totalMinutes % 60
+    if (remM <= 15) {
+      roundedHours = fullH
+      roundingRuleNote = `Lẻ ${remM} phút (≤ 15p ân hạn) → Làm tròn xuống ${fullH} giờ.`
+    } else {
+      roundedHours = fullH + 1
+      roundingRuleNote = `Lẻ ${remM} phút (> 15p ân hạn) → Làm tròn lên ${fullH + 1} giờ.`
+    }
+  }
+
+  return {
+    typeLabel: rentalType === 'DAILY' ? 'Thuê qua đêm / Ngày' : 'Thuê theo giờ',
+    checkinStr: formatDateTime(checkinRaw),
+    expectedCheckoutStr: formatDateTime(expectedOut),
+    digitalClock,
+    roundedHours,
+    roundedBillableLabel: `${roundedHours}h`,
+    roundingRuleNote
+  }
+}
 
 // Lấy toàn bộ detailIds thuộc 1 Rental (hỗ trợ cả đơn nhiều phòng)
 const getDetailIdsOfRental = (rental) => {
@@ -786,10 +1145,37 @@ const addService = async (rentalId) => {
 }
 
 const viewServiceHistory = (rental) => {
+  currentViewingRental.value = rental
   currentServiceRoomName.value = (rental.rentalDetails || []).map(d => d.room?.name).join(', ')
   const ids = getDetailIdsOfRental(rental)
   currentRoomServices.value = allServiceUsages.value.filter(s => ids.includes(s.rentalDetailId))
   showServiceHistoryModal.value = true
+}
+
+const removeServiceUsage = (svc) => {
+  const serviceName = svc.service?.name || 'dịch vụ này'
+  openConfirm(
+    'Hủy dịch vụ',
+    `Xác nhận hủy <strong>${svc.count}x ${serviceName}</strong> khỏi đơn thuê? (Chỉ áp dụng khi đơn chưa thanh toán tất toán)`,
+    'danger',
+    'fas fa-trash-alt',
+    async () => {
+      try {
+        const res = await api.delete(`/api/staff/service-usages/${svc.id}`)
+        showNotification('success', res.data.message || 'Đã hủy dịch vụ thành công.')
+        await fetchData()
+        if (currentViewingRental.value) {
+          const ids = getDetailIdsOfRental(currentViewingRental.value)
+          currentRoomServices.value = allServiceUsages.value.filter(s => ids.includes(s.rentalDetailId))
+          if (currentRoomServices.value.length === 0) {
+            showServiceHistoryModal.value = false
+          }
+        }
+      } catch (error) {
+        showNotification('danger', error.response?.data?.error || 'Lỗi khi hủy dịch vụ.')
+      }
+    }
+  )
 }
 
 // ---- QUẢN LÝ MODAL HÓA ĐƠN TẤT TOÁN CHI TIẾT ----
@@ -851,7 +1237,7 @@ const printInvoiceReceipt = () => {
       <h2>KHÁCH SẠN ITHOTEL</h2>
       <div>HÓA ĐƠN TẤT TOÁN & TRẢ PHÒNG (#${r.id})</div>
     </div>
-    <p><strong>Khách hàng:</strong> ${customerName} | <strong>Phòng:</strong> ${roomsText} | <strong>Số giờ ở:</strong> ${s.actualStayHours || 1}h</p>
+    <p><strong>Khách hàng:</strong> ${customerName} | <strong>Phòng:</strong> ${roomsText} | <strong>Số giờ tính đơn:</strong> ${getLiveStayMetrics(r).roundedBillableLabel}</p>
     <h4>1. Tiền phòng & Phụ thu</h4>
     <table>
       <tr><td>Tiền phòng gốc</td><td style="text-align:right">${formatPrice(invoiceBaseRoomAmount.value)}</td></tr>
@@ -935,5 +1321,35 @@ const viewIncidentHistory = (rental) => {
   showIncidentHistoryModal.value = true
 }
 
-onMounted(() => fetchData())
+onMounted(() => {
+  fetchData()
+  clockInterval = setInterval(() => {
+    nowTick.value = Date.now()
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (clockInterval) clearInterval(clockInterval)
+})
 </script>
+
+<style scoped>
+.stay-time-popover {
+  position: absolute;
+  right: 0;
+  width: 315px;
+  z-index: 1055;
+}
+
+/* Khi dòng nằm gần phía trên màn hình -> tự động xổ xuống dưới */
+.stay-time-popover.open-down {
+  top: calc(100% + 8px);
+  bottom: auto;
+}
+
+/* Khi dòng nằm ở sát đáy màn hình -> tự động bung ngược lên trên */
+.stay-time-popover.open-up {
+  bottom: calc(100% + 8px);
+  top: auto;
+}
+</style>

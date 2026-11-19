@@ -1,5 +1,15 @@
 <template>
   <div>
+    <!-- THÔNG BÁO TOAST HIỆN ĐẠI (THAY THẾ POPUP ALERT MẶC ĐỊNH) -->
+    <div v-if="notification.message"
+         :class="`alert alert-${notification.type} alert-dismissible fade show shadow position-fixed top-0 end-0 m-4`"
+         role="alert"
+         style="z-index: 2000; min-width: 320px; max-width: 460px;">
+      <i :class="notification.type === 'success' ? 'fas fa-check-circle me-2' : (notification.type === 'warning' ? 'fas fa-exclamation-circle me-2' : 'fas fa-exclamation-triangle me-2')"></i>
+      <span class="fw-semibold">{{ notification.message }}</span>
+      <button type="button" class="btn-close" @click="notification.message = ''"></button>
+    </div>
+
     <!-- BẢNG TIMELINE PHÒNG (ĐÃ NÂNG CẤP BỘ LỌC) -->
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-body-tertiary">
       <div class="card-header bg-transparent border-0 pt-4 pb-0">
@@ -13,7 +23,7 @@
           <!-- ĐIỀU KHIỂN BỘ LỌC VÀ NHẢY THỜI GIAN -->
           <div class="d-flex align-items-center gap-2 flex-wrap">
             
-            <!-- MỚI: Bộ lọc theo Loại phòng -->
+            <!-- Bộ lọc theo Loại phòng -->
             <select v-model="filterRoomType" class="form-select form-select-sm bg-body text-body-emphasis shadow-sm" style="width: 140px;">
               <option value="ALL">Mọi hạng phòng</option>
               <option v-for="type in uniqueRoomTypes" :key="type" :value="type">{{ type }}</option>
@@ -57,9 +67,7 @@
             <thead class="table-secondary position-sticky top-0" style="z-index: 10;">
               <tr>
                 <th class="sticky-col bg-body-secondary text-start px-3" style="min-width: 120px; left: 0; z-index: 11;">Phòng</th>
-                <!-- CỘT BẢNG GIÁ MỚI THÊM VÀO GIỮA -->
                 <th class="sticky-col bg-body-secondary text-end px-2" style="min-width: 110px; left: 120px; z-index: 11;">Bảng giá</th>
-                <!-- DỊCH CỘT TRẠNG THÁI RA SAU -->
                 <th class="sticky-col-2 bg-body-secondary px-2" style="min-width: 100px; left: 230px; z-index: 11;">Trạng thái</th>
                 <th v-for="(slot, idx) in roomTimelineSlots" :key="idx" class="small text-body-secondary bg-body-secondary" style="min-width: 40px;">
                   {{ slot.label }}
@@ -304,6 +312,17 @@ import { formatPrice, formatDate, formatTime, formatDateTime } from '../../utils
 
 const router = useRouter()
 
+// Quản lý Toast Notification thay cho alert()
+const notification = ref({ type: 'success', message: '' })
+const showNotification = (type, message) => {
+  notification.value = { type, message }
+  setTimeout(() => {
+    if (notification.value.message === message) {
+      notification.value.message = ''
+    }
+  }, 4000)
+}
+
 // Data Timeline
 const isLoadingTimeline = ref(true)
 const timelineStart = ref(null)
@@ -316,11 +335,10 @@ const maintenanceRoomCount = ref(0)
 
 // QUẢN LÝ LỌC & NHẢY THỜI GIAN TIMELINE
 const filterStartTime = ref('') 
-const filterRoomType = ref('ALL') // MỚI: Biến chọn loại phòng
+const filterRoomType = ref('ALL')
 const searchRoomQuery = ref('')
 const timelineDurationHours = ref(24) 
 
-// MỚI: Tự động trích xuất các hạng phòng duy nhất từ danh sách phòng 
 const uniqueRoomTypes = computed(() => {
   const types = new Set()
   roomTimelineRows.value.forEach(row => {
@@ -331,7 +349,6 @@ const uniqueRoomTypes = computed(() => {
   return Array.from(types).sort()
 })
 
-// MỚI: Cập nhật hàm lọc timeline để lọc thêm cả loại phòng
 const filteredRoomTimelineRows = computed(() => {
   let result = roomTimelineRows.value
   
@@ -350,13 +367,11 @@ const filteredRoomTimelineRows = computed(() => {
   return result
 })
 
-// 3 biến thiết lập form WalkIn
 const isLoadingWalkIn = ref(false)
 const isSubmitting = ref(false)
 const walkInRooms = ref([])
 const showNotFoundModal = ref(false) 
 
-// Khởi tạo thời gian Check-in hiện tại
 const getInitCheckIn = () => {
   const now = new Date()
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
@@ -377,7 +392,6 @@ const setWalkInType = (type) => {
   fetchWalkInRooms()
 }
 
-// LOGIC CẢNH BÁO PHỤ THU GIAO DIỆN
 const earlyCheckInPreview = computed(() => {
   if (walkInForm.value.rentalType !== 'DAILY' || !walkInForm.value.checkIn) return null;
   
@@ -391,7 +405,6 @@ const earlyCheckInPreview = computed(() => {
   
   if (percent === 0) return null;
   
-  // ÉP ĐỊNH DẠNG 24H Ở ĐÂY
   const timeStr = ciDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false });
   return {
     percent: percent,
@@ -399,7 +412,6 @@ const earlyCheckInPreview = computed(() => {
   };
 })
 
-// Tính giờ trả phòng dự kiến hiển thị trên UI
 const expectedCheckOutTime = computed(() => {
   if (!walkInForm.value.checkIn || !walkInForm.value.lengthOfStay) return ''
   const start = new Date(walkInForm.value.checkIn)
@@ -415,11 +427,10 @@ const expectedCheckOutTime = computed(() => {
     out = new Date(start.getTime() + walkInForm.value.lengthOfStay * 60 * 60 * 1000)
   }
 
-  // ÉP ĐỊNH DẠNG 24H Ở ĐÂY
   return out.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
 })
 
-// TÍNH TỔNG TIỀN TẠM TÍNH TỰ ĐỘNG
+// TÍNH TỔNG TIỀN TẠM TÍNH TỰ ĐỘNG (ĐỒNG BỘ ÂN HẠN 15 PHÚT CHO THUÊ GIỜ & CHUẨN VTOS CHO THUÊ NGÀY)
 const estimatedTotal = computed(() => {
   if (walkInForm.value.selectedRooms.length === 0 || !walkInForm.value.checkIn) return 0;
 
@@ -435,7 +446,7 @@ const estimatedTotal = computed(() => {
     const ciDateOnly = new Date(ciDate.getFullYear(), ciDate.getMonth(), ciDate.getDate());
     const coDateOnly = new Date(coDate.getFullYear(), coDate.getMonth(), coDate.getDate());
     let baseNights = Math.round((coDateOnly - ciDateOnly) / (1000 * 60 * 60 * 24));
-    baseNights = Math.max(0, baseNights);
+    baseNights = Math.max(1, baseNights);
 
     const ciHour = ciDate.getHours();
     let earlyCiSurcharge = 0;
@@ -444,7 +455,6 @@ const estimatedTotal = computed(() => {
     else if (ciHour < 14) earlyCiSurcharge = 0.3;
 
     let totalMultiplier = baseNights + earlyCiSurcharge;
-    if (totalMultiplier <= 0) totalMultiplier = 1.0;
 
     walkInForm.value.selectedRooms.forEach(r => {
        total += r.dailyPrice * totalMultiplier;
@@ -455,7 +465,7 @@ const estimatedTotal = computed(() => {
     const stayMinutes = Math.round((coDate - ciDate) / (1000 * 60));
     const fullHours = Math.floor(stayMinutes / 60);
     const remainder = stayMinutes % 60;
-    let finalHours = fullHours + (remainder > 30 ? 1 : 0);
+    let finalHours = fullHours + (remainder > 15 ? 1 : 0);
     if (finalHours < 1) finalHours = 1;
 
     walkInForm.value.selectedRooms.forEach(r => {
@@ -485,25 +495,23 @@ const fetchCustomerInfo = async () => {
       if (customer.user?.dateOfBirth) {
         walkInForm.value.dateOfBirth = customer.user.dateOfBirth.substring(0, 10) 
       }
+      showNotification('success', 'Đã tìm thấy và tự động điền hồ sơ khách hàng.')
     }
   } catch (error) {
     if (error.response && error.response.status === 404) {
       showNotFoundModal.value = true
-      
       walkInForm.value.pid = pid 
-      
       walkInForm.value.lastName = ''
       walkInForm.value.firstName = ''
       walkInForm.value.phoneNumber = ''
       walkInForm.value.email = ''
     } else {
-      alert('Có lỗi xảy ra khi kiểm tra CCCD.')
+      showNotification('danger', 'Có lỗi xảy ra khi kiểm tra CCCD.')
       console.error('Lỗi khi fetch khách hàng:', error)
     }
   }
 }
 
-// HÀM MAP CSS MÀU
 const getCssClassForSegment = (cssClass) => {
   const map = {
     'available': 'bg-body-secondary text-body border',
@@ -517,7 +525,6 @@ const getCssClassForSegment = (cssClass) => {
   return map[cssClass] || 'bg-secondary text-white'
 }
 
-// GỌI API KÈM START_TIME & DURATION
 const fetchTimeline = async (startISO = null) => {
   isLoadingTimeline.value = true
   try {
@@ -584,7 +591,7 @@ const fetchWalkInRooms = async () => {
 
 const addRoomToForm = (room) => {
   if (walkInForm.value.selectedRooms.find(s => s.roomId === room.id)) {
-    alert('Phòng này đã được chọn!')
+    showNotification('warning', `Phòng ${room.name} đã có trong danh sách chọn!`)
     return
   }
   walkInForm.value.selectedRooms.push({
@@ -625,16 +632,18 @@ const submitWalkIn = async () => {
       dateOfBirth: walkInForm.value.dateOfBirth
     }
     
-    await api.post('/api/staff/walk-in', payload)
-    alert('Tạo đơn Walk-in thành công!')
+    const res = await api.post('/api/staff/walk-in', payload)
+    showNotification('success', res.data?.message || 'Tạo đơn Walk-in thành công!')
     
     fetchTimeline(filterStartTime.value) 
     fetchWalkInRooms()
     walkInForm.value.selectedRooms = []
     
-    router.push('/employee/staff/bookings')
+    setTimeout(() => {
+      router.push('/employee/staff/bookings')
+    }, 900)
   } catch (error) {
-    alert(error.response?.data?.error || 'Lỗi khi tạo đơn walk-in.')
+    showNotification('danger', error.response?.data?.error || 'Lỗi khi tạo đơn walk-in.')
   } finally {
     isSubmitting.value = false
   }
@@ -648,14 +657,11 @@ onMounted(() => {
 
 <style scoped>
 .sticky-col { position: sticky; }
-/* Cột bảng giá (thứ 2) */
 .sticky-col:nth-child(2) { left: 120px !important; z-index: 12; border-right: 1px solid var(--bs-border-color); }
-/* Cột trạng thái (thứ 3) */
 .sticky-col-2 { position: sticky; left: 230px !important; z-index: 11; border-right: 1px solid var(--bs-border-color); }
 
 .table-row-hover:hover .bg-body {
   background-color: var(--bs-secondary-bg) !important;
 }
-/* Fix viền timeline */
 .staff-timeline-wrapper th { box-shadow: inset 0 -1px 0 var(--bs-border-color); }
 </style>
