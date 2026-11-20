@@ -65,7 +65,7 @@ export const handleImageError = (e, fallback = DEFAULT_IMAGES.ROOM) => {
 // 4. Tính giá phòng qua đêm (Dùng chung cho Home.vue, Rooms.vue, Booking.vue)
 export const getDailyPrice = (roomType) => {
   if (!roomType) return 0
-  return roomType.dailyPrice || ((roomType.basePrice || 0) * 22)
+  return roomType.dailyPrice || 0
 }
 
 export const getDiscountedDailyPrice = (item) => {

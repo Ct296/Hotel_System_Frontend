@@ -118,7 +118,7 @@
 
                 <td class="text-end">
                   <div class="fw-semibold text-success">{{ formatPrice(rt.basePrice) }}/h</div>
-                  <div class="small text-primary fw-bold">{{ formatPrice(rt.dailyPrice || (rt.basePrice * 22)) }}/đêm</div>
+                  <div class="small text-primary fw-bold">{{ formatPrice(rt.dailyPrice || 0) }}/đêm</div>
                 </td>
                 <td class="text-end px-4">
                    <!-- Nút hành động dạng Dropdown -->
@@ -385,7 +385,7 @@ const openEditModal = (rt) => {
     childrenMax: rt.childrenMax,
     area: rt.area,
     basePrice: rt.basePrice,
-    dailyPrice: rt.dailyPrice || (rt.basePrice * 22),
+    dailyPrice: rt.dailyPrice || 0,
     depositPercent: rt.depositPercent,
     description: rt.description || ''
   }

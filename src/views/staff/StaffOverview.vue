@@ -205,7 +205,7 @@
 
                 <div class="bg-body p-3 rounded-3 border border-secondary-subtle mb-3">
                     <p class="mb-1 small"><strong>Giá theo giờ:</strong> <span class="text-success fw-bold ms-2">{{ formatPrice(selectedRoom.roomType?.basePrice) }}/h</span></p>
-                    <p class="mb-1 small"><strong>Giá qua đêm:</strong> <span class="text-primary fw-bold ms-2">{{ formatPrice(selectedRoom.roomType?.dailyPrice || (selectedRoom.roomType?.basePrice * 22)) }}/đêm</span></p>
+                    <p class="mb-1 small"><strong>Giá qua đêm:</strong> <span class="text-primary fw-bold ms-2">{{ formatPrice(selectedRoom.roomType?.dailyPrice || 0) }}/đêm</span></p>
                     <p class="mb-0 small"><strong>Tiền cọc:</strong> <span class="text-danger fw-bold ms-2">{{ selectedRoom.roomType?.depositPercent }}%</span></p>
                 </div>
 

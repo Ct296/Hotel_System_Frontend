@@ -158,9 +158,9 @@
                   <input v-model="form.name" type="text" class="form-control bg-body text-body-emphasis" required placeholder="VD: Hỏng tivi, Rách ga giường...">
                 </div>
                 <div class="col-md-4">
-                  <label class="form-label fw-semibold text-body-secondary small">Phòng xảy ra</label>
-                  <select v-model="form.rentalDetailId" class="form-select bg-body text-body-emphasis">
-                    <option value="">-- Không xác định --</option>
+                  <label class="form-label fw-semibold text-body-secondary small">Phòng xảy ra <span class="text-danger">*</span></label>
+                  <select v-model="form.rentalDetailId" class="form-select bg-body text-body-emphasis" :required="!form.id">
+                    <option value="" disabled>-- Chọn phòng đang lưu trú --</option>
                     <option v-for="rt in activeRentals" :key="rt.id" :value="rt.id">Phòng {{ rt.roomName }}</option>
                   </select>
                 </div>

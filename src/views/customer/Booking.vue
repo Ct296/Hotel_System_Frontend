@@ -85,7 +85,7 @@
                   <div class="pt-2 border-top border-secondary-subtle d-flex justify-content-between align-items-end">
                     <div class="small">
                       <div class="fw-bold text-body-emphasis">{{ formatPrice(room.roomType?.basePrice) }}<span class="fw-normal text-body-secondary">/giờ</span></div>
-                      <div class="fw-semibold text-primary" style="font-size: 0.78rem;">{{ formatPrice(room.roomType?.dailyPrice || (room.roomType?.basePrice * 22)) }}<span class="fw-normal text-body-secondary">/đêm</span></div>
+                      <div class="fw-semibold text-primary" style="font-size: 0.78rem;">{{ formatPrice(room.roomType?.dailyPrice || 0) }} <span class="fw-normal text-body-secondary">/đêm</span></div>
                     </div>
                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
                       Cần cọc: {{ room.roomType?.depositPercent }}%

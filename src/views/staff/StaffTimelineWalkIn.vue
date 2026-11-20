@@ -87,7 +87,7 @@
                 <!-- Cột Bảng giá -->
                 <td class="sticky-col bg-body text-end px-2 py-2" style="left: 120px; z-index: 1;">
                   <div class="small fw-bold text-success">{{ formatPrice(row.room.roomType?.basePrice) }}/h</div>
-                  <div class="small text-primary fw-semibold" style="font-size: 0.75rem;">{{ formatPrice(row.room.roomType?.dailyPrice || (row.room.roomType?.basePrice * 22)) }}/đ</div>
+                  <div class="small text-primary fw-semibold" style="font-size: 0.75rem;">{{ formatPrice(row.room.roomType?.dailyPrice || 0) }}/đ</div>
                 </td>
                 <!-- Cột Trạng thái -->
                 <td class="sticky-col-2 bg-body px-2 py-2" style="left: 230px; z-index: 1;">
@@ -200,7 +200,7 @@
                           <div v-else class="text-muted fst-italic">-</div>
                         </td>
                         <td class="text-danger fw-bold small">
-                          {{ walkInForm.rentalType === 'HOURLY' ? formatPrice(room.roomType?.basePrice) + '/h' : formatPrice(room.roomType?.dailyPrice || room.roomType?.basePrice * 22) + '/đêm' }}
+                          {{ walkInForm.rentalType === 'HOURLY' ? formatPrice(room.roomType?.basePrice) + '/h' : formatPrice(room.roomType?.dailyPrice || 0) + '/đêm' }}
                         </td>
                         <td class="text-end pe-2">
                           <button type="button" class="btn btn-sm btn-outline-primary py-0" @click="addRoomToForm(room)">Chọn</button>
@@ -603,7 +603,7 @@ const addRoomToForm = (room) => {
     maxAdult: room.roomType?.adultMax || 2,
     maxChild: room.roomType?.childrenMax || 1,
     basePrice: room.roomType?.basePrice || 0,
-    dailyPrice: room.roomType?.dailyPrice || (room.roomType?.basePrice * 22) || 0
+    dailyPrice: room.roomType?.dailyPrice || 0
   })
 }
 
