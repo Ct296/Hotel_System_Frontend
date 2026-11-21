@@ -153,16 +153,56 @@
           <form @submit.prevent="submitForm">
             <div class="modal-body p-4" style="max-height: 75vh; overflow-y: auto;">
               <div class="row g-3">
-                <div class="col-md-8">
+                <div class="col-md-7">
                   <label class="form-label fw-semibold text-body-secondary small">Tên sự cố <span class="text-danger">*</span></label>
                   <input v-model="form.name" type="text" class="form-control bg-body text-body-emphasis" required placeholder="VD: Hỏng tivi, Rách ga giường...">
                 </div>
-                <div class="col-md-4">
-                  <label class="form-label fw-semibold text-body-secondary small">Phòng xảy ra <span class="text-danger">*</span></label>
-                  <select v-model="form.rentalDetailId" class="form-select bg-body text-body-emphasis" :required="!form.id">
-                    <option value="" disabled>-- Chọn phòng đang lưu trú --</option>
-                    <option v-for="rt in activeRentals" :key="rt.id" :value="rt.id">Phòng {{ rt.roomName }}</option>
+                <div class="col-md-5">
+                  <label class="form-label fw-semibold text-body-secondary small">Phòng đang lưu trú <span class="text-danger">*</span></label>
+                  <select v-model="form.rentalDetailId"
+                          class="form-select bg-body text-body-emphasis"
+                          :disabled="isEditMode"
+                          required>
+                    <option value="" disabled>-- Chọn phòng đang ở --</option>
+                    <option v-if="isEditMode && selectedRentalInfo && !activeRentals.some(r => r.id === form.rentalDetailId)"
+                            :value="form.rentalDetailId">
+                      Phòng {{ selectedRentalInfo.roomName }} (#{{ selectedRentalInfo.rentalId }})
+                    </option>
+                    <option v-for="rt in activeRentals" :key="rt.id" :value="rt.id">
+                      P.{{ rt.roomName }} - {{ rt.customerName }} (#{{ rt.rentalId }})
+                    </option>
                   </select>
+                  <small v-if="!isEditMode && activeRentals.length === 0" class="text-danger" style="font-size: 0.75rem;">
+                    Hiện không có phòng nào đang lưu trú chưa tất toán.
+                  </small>
+                </div>
+
+                <!-- Khung tự động fill thông tin đơn thuê -->
+                <div v-if="selectedRentalInfo" class="col-md-12">
+                  <div class="p-3 rounded-3 bg-body border border-primary-subtle small">
+                    <div class="fw-bold text-primary mb-2">
+                      <i class="fas fa-info-circle me-1"></i>Thông tin đơn thuê đã chọn (Tự động điền)
+                    </div>
+                    <div class="row g-2">
+                      <div class="col-md-3">
+                        <span class="text-body-secondary d-block">Mã đơn thuê</span>
+                        <strong class="text-body-emphasis">#{{ selectedRentalInfo.rentalId || 'N/A' }}</strong>
+                      </div>
+                      <div class="col-md-3">
+                        <span class="text-body-secondary d-block">Phòng</span>
+                        <strong class="text-primary">Phòng {{ selectedRentalInfo.roomName || 'N/A' }}</strong>
+                      </div>
+                      <div class="col-md-3">
+                        <span class="text-body-secondary d-block">Khách hàng</span>
+                        <strong class="text-body-emphasis">{{ selectedRentalInfo.customerName || 'N/A' }}</strong>
+                        <span v-if="selectedRentalInfo.phoneNumber" class="text-body-secondary d-block">{{ selectedRentalInfo.phoneNumber }}</span>
+                      </div>
+                      <div class="col-md-3">
+                        <span class="text-body-secondary d-block">Giờ nhận phòng</span>
+                        <strong class="text-success">{{ formatDate(selectedRentalInfo.checkinDate) || 'N/A' }}</strong>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="col-md-4">
@@ -242,6 +282,7 @@ const isLoading = ref(true)
 const isProcessing = ref(false)
 const showModal = ref(false)
 const isEditMode = ref(false)
+const editingIncidentMeta = ref(null)
 const notification = ref({ type: '', message: '' })
 
 const searchQuery = ref('')
@@ -284,6 +325,14 @@ const filteredAndSortedIncidents = computed(() => {
 const form = ref({
   id: '', name: '', rentalDetailId: '', occurTime: '',
   responsible: 'HOTEL', status: 'PENDING', description: '', money: 0, handle: ''
+})
+
+const selectedRentalInfo = computed(() => {
+  if (!form.value.rentalDetailId) return null
+  const found = activeRentals.value.find(rt => rt.id === form.value.rentalDetailId)
+  if (found) return found
+  if (isEditMode.value && editingIncidentMeta.value) return editingIncidentMeta.value
+  return null
 })
 
 const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price)
@@ -337,6 +386,7 @@ const fetchData = async () => {
 
 const openCreateModal = () => {
   isEditMode.value = false
+  editingIncidentMeta.value = null
   const now = new Date()
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
 
@@ -350,6 +400,13 @@ const openCreateModal = () => {
 
 const openEditModal = (ic) => {
   isEditMode.value = true
+  editingIncidentMeta.value = {
+    roomName: ic.roomName,
+    rentalId: ic.rentalId,
+    customerName: ic.customerName,
+    phoneNumber: ic.phoneNumber,
+    checkinDate: ic.checkinDate
+  }
   const resp = ['CUSTOMER', 'HOTEL', 'NONE'].includes(ic.responsible) ? ic.responsible : 'NONE'
   form.value = { ...ic, responsible: resp, rentalDetailId: ic.rentalDetailId || '' }
   if (form.value.occurTime) {

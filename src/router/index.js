@@ -167,6 +167,10 @@ const routes = [
       { path: 'staff/history', name: 'StaffHistory', 
         component: () => import('../views/staff/StaffHistory.vue'), 
         meta: { roles: ['STAFF'] } 
+      },
+      {
+        path: 'staff/rules', name: 'StaffRules',
+        component: () => import('../views/staff/StaffRules.vue')
       }
     ]
   },

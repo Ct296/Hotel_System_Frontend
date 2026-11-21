@@ -122,6 +122,12 @@
               <i class="fas fa-clock-rotate-left me-2"></i> Lịch sử
             </router-link>
           </li>
+          <li class="nav-item">
+            <router-link to="/employee/staff/rules" class="nav-link text-white rounded menu-item">
+              <i class="fas fa-book me-2"></i> Quy định lễ tân
+            </router-link>
+          </li>
+  
         </template>
 
         <li class="nav-item mt-4">

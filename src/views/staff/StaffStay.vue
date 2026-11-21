@@ -5,11 +5,6 @@
       <h5 class="fw-bold mb-0 text-body-emphasis">
         <i class="fas fa-bed me-2 text-primary"></i>Quản lý Lưu trú & Dọn dẹp
       </h5>
-      <button type="button"
-              class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-3 shadow-sm d-flex align-items-center gap-2"
-              @click="showPricingRuleModal = true">
-        <i class="fas fa-info-circle fs-6"></i> Quy tắc tính giờ & Phụ thu
-      </button>
     </div>
 
     <div class="card-body">
@@ -76,188 +71,233 @@
 
       <div v-else class="tab-content border border-secondary-subtle rounded bg-body">
         <!-- TAB 1: KHÁCH ĐANG Ở -->
-        <div v-if="activeTab === 'stay'" class="table-responsive p-2" style="overflow: visible;">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="adaptive-thead">
+        <div v-if="activeTab === 'stay'" class="table-responsive" style="overflow: visible;">
+          <table class="table align-middle mb-0">
+            <thead class="text-body-secondary border-bottom border-secondary-subtle" style="font-size: 0.75rem;">
               <tr>
-                <th>Chủ đơn / Mã</th>
-                <th>Phòng & Khách lưu trú</th>
-                <th>Thời gian</th>
-                <th>Dịch vụ</th>
-                <th class="text-center px-2">Sự cố</th>
-                <th class="text-end px-3">Tất toán & Out</th>
+                <th class="ps-3 py-3 fw-bold border-0 text-uppercase">Chủ đơn / Mã</th>
+                <th class="py-3 fw-bold border-0 text-uppercase">Phòng & Trạng thái</th>
+                <th class="py-3 fw-bold border-0 text-uppercase">Thời gian lưu trú</th>
+                <th class="py-3 fw-bold border-0 text-uppercase text-center">Dịch vụ / Sự cố</th>
+                <th class="py-3 fw-bold border-0 text-uppercase text-end text-nowrap">Tạm tính</th>
+                <th class="py-3 fw-bold border-0 text-end pe-4" style="width: 60px;"></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="border-top-0">
               <tr v-if="filteredActiveRentals.length === 0">
-                <td colspan="6" class="text-center text-body-secondary py-4">
+                <td colspan="6" class="text-center text-body-secondary py-5 border-0">
                   <span v-if="searchQuery || stayFilterType !== 'ALL'">Không tìm thấy đơn lưu trú nào khớp với bộ lọc.</span>
                   <span v-else>Hiện không có khách lưu trú.</span>
                 </td>
               </tr>
-              <tr v-for="r in filteredActiveRentals" :key="r.id" :class="{'table-danger': isOverdue(r)}">
-                <td>
+              <tr v-for="r in filteredActiveRentals" :key="r.id" class="border-bottom border-secondary-subtle" :class="{'table-danger': isOverdue(r)}">
+                <!-- Cột 1: Chủ đơn -->
+                <td class="ps-3 py-3">
                   <div class="fw-bold text-body-emphasis">{{ r.customer?.user?.lastName }} {{ r.customer?.user?.firstName }}</div>
-                  <div class="small text-body-secondary">{{ r.id }}</div>
-                  <div v-if="r.customer?.user?.phoneNumber" class="small text-body-secondary">
-                    <i class="fas fa-phone-alt me-1" style="font-size: 0.7rem;"></i>{{ r.customer.user.phoneNumber }}
+                  <div class="small text-body-secondary mt-1">
+                    {{ r.id }}
+                    <span v-if="r.customer?.user?.phoneNumber"> • {{ r.customer.user.phoneNumber }}</span>
                   </div>
                 </td>
-                <td>
-                  <div v-for="detail in r.rentalDetails" :key="detail.id" class="d-flex align-items-center flex-wrap gap-1 mb-1">
-                    <template v-if="detail.status === 'MOVED'">
-                      <span class="badge bg-body-tertiary text-body-secondary border border-secondary-subtle text-decoration-line-through" :title="detail.note">P.{{ detail.room?.name }}</span>
-                      <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size: 0.68rem;">Đã chuyển</span>
-                    </template>
-                    <template v-else-if="detail.status !== 'CANCELLED'">
-                      <span class="badge" :class="detail.status === 'OVERDUE' ? 'bg-danger' : 'bg-secondary'">P.{{ detail.room?.name }}</span>
-                      <button type="button" @click="openGuestListModal(detail)" class="btn btn-sm btn-outline-secondary text-body-emphasis py-0 px-2 small shadow-sm" title="Xem / Cập nhật danh sách khách ở phòng này">
-                        <i class="fas fa-users text-primary me-1"></i>
-                        {{ detail.rentalGuests?.length || (detail.adultCount + detail.childrenCount) }} khách
-                      </button>
-                      <button type="button" @click="openChangeRoomModal(detail)" class="btn btn-sm btn-outline-primary py-0 px-2 small shadow-sm" title="Đổi phòng cho khách đang ở">
-                        <i class="fas fa-exchange-alt"></i>
-                      </button>
+
+                <!-- Cột 2: Phòng & Trạng thái -->
+                <td class="py-3">
+                  <div class="d-flex align-items-center flex-wrap gap-1 mb-1">
+                    <template v-for="detail in r.rentalDetails" :key="detail.id">
+                      <span v-if="detail.status === 'MOVED'"
+                            class="badge bg-body-tertiary text-body-secondary border border-secondary-subtle text-decoration-line-through fw-normal"
+                            :title="detail.note">
+                        P.{{ detail.room?.name }}
+                      </span>
+                      <template v-else-if="detail.status !== 'CANCELLED'">
+                        <span class="badge border fw-semibold"
+                              :class="detail.status === 'OVERDUE' ? 'bg-danger text-white border-danger' : 'bg-body-tertiary text-body-emphasis border-secondary-subtle'">
+                          P.{{ detail.room?.name }}
+                        </span>
+                        <span class="badge bg-body-tertiary text-body-secondary border border-secondary-subtle fw-normal">
+                          <i class="fas fa-users me-1"></i>{{ detail.rentalGuests?.length || (detail.adultCount + detail.childrenCount) }} khách
+                        </span>
+                      </template>
                     </template>
                   </div>
+                  <div>
+                    <span class="badge rounded-pill fw-semibold d-inline-flex align-items-center gap-1"
+                          :class="getStayStatusBadge(r).badgeClass"
+                          style="font-size: 0.72rem;">
+                      <i :class="getStayStatusBadge(r).icon"></i>
+                      {{ getStayStatusBadge(r).text }}
+                    </span>
+                  </div>
                 </td>
-                <td>
+
+                <!-- Cột 3: Thời gian + Popover live -->
+                <td class="py-3 position-relative">
                   <div class="small fw-semibold text-success">
-                    <i class="fas fa-sign-in-alt me-1"></i>Vào: {{ formatTime(getActiveDetail(r)?.checkinDate) }}
+                    Vào: {{ formatTime(getActiveDetail(r)?.checkinDate) }}
+                    <span class="text-body-secondary fw-normal ms-1">(ĐK: {{ getPlannedDurationLabel(r) }})</span>
                   </div>
-                  <div class="small text-body-secondary">
-                    <i class="fas fa-clock me-1"></i>ĐK:
-                    <strong class="text-body-emphasis">{{ getPlannedDurationLabel(r) }}</strong>
-                  </div>
-                </td>
+                  <div class="small text-body-secondary mt-1 d-flex align-items-center gap-1">
+                    <span>Đã ở: <strong class="text-body-emphasis">{{ getLiveStayMetrics(r).roundedBillableLabel }}</strong></span>
+                    <div class="position-relative d-inline-block"
+                         @mouseenter="handleHoverStayInfo($event, r.id)"
+                         @mouseleave="hoveredStayInfoId = null">
+                      <button type="button"
+                              class="btn btn-link p-0 text-primary border-0 d-inline-flex align-items-center"
+                              style="text-decoration: none;"
+                              @click.stop="handleTogglePinnedStayInfo($event, r.id)"
+                              title="Xem chi tiết thời gian lưu trú & làm tròn">
+                        <i class="fas fa-info-circle"></i>
+                      </button>
 
-                <!-- CỘT DỊCH VỤ -->
-                <td>
-                  <div class="d-flex flex-column gap-2" style="width: 230px;">
-                    <form v-if="serviceForm[r.id]" @submit.prevent="addService(r.id)" class="d-flex gap-1 align-items-center bg-body-tertiary p-1 rounded border border-secondary-subtle shadow-sm m-0 w-100">
-                      <select v-model="serviceForm[r.id].serviceId" class="form-select form-select-sm border-0 bg-transparent text-body-emphasis px-1 text-truncate" required>
-                        <option value="">Thêm dịch vụ</option>
-                        <option v-for="s in activeServices" :key="s.id" :value="s.id">{{ s.name }}</option>
-                      </select>
-                      <input type="number" v-model="serviceForm[r.id].quantity" class="form-control form-control-sm border-0 bg-body text-body-emphasis px-1 text-center flex-shrink-0" min="1" required style="width: 45px;">
-                      <button type="submit" class="btn btn-sm btn-primary py-1 px-2 rounded flex-shrink-0" :disabled="isProcessing"><i class="fas fa-plus"></i></button>
-                    </form>
-
-                    <button v-if="getRentalServiceCount(r) > 0" @click="viewServiceHistory(r)" class="btn btn-sm btn-outline-primary shadow-sm fw-bold w-100">
-                      <i class="fas fa-list-ul me-1"></i> Lịch sử dịch vụ ({{ getRentalServiceCount(r) }})
-                    </button>
-                  </div>
-                </td>
-
-                <!-- CỘT SỰ CỐ -->
-                <td class="text-center px-2">
-                  <div class="d-flex flex-column gap-2 align-items-center">
-                    <button @click="openIncidentModal(getActiveDetail(r))" class="btn btn-sm btn-warning shadow-sm fw-bold w-100" title="Báo sự cố mới">
-                      <i class="fas fa-exclamation-triangle"></i> Báo sự cố
-                    </button>
-                    <button v-if="getRentalIncidentCount(r) > 0" @click="viewIncidentHistory(r)" class="btn btn-sm btn-outline-info shadow-sm fw-bold w-100">
-                      <i class="fas fa-history"></i> Lịch sử ({{ getRentalIncidentCount(r) }})
-                    </button>
-                  </div>
-                </td>
-
-                <!-- CỘT TẤT TOÁN & TRẠNG THÁI LIVE -->
-                <td class="text-end px-3 position-relative" style="min-width: 270px;">
-                  <div v-if="!isSettled(r.id)" class="d-flex flex-column align-items-end gap-1">
-                    <div class="small text-body-secondary mb-1 d-flex align-items-center justify-content-end gap-1 flex-wrap">
-                      <span>Đã ở:</span>
-                      <strong class="text-body-emphasis">{{ getLiveStayMetrics(r).roundedBillableLabel }}</strong>
-
-                      <div class="position-relative d-inline-block ms-1"
-                           @mouseenter="handleHoverStayInfo($event, r.id)"
-                           @mouseleave="hoveredStayInfoId = null">
-                        <button type="button"
-                                class="btn btn-link p-0 text-primary border-0 d-inline-flex align-items-center"
-                                style="text-decoration: none;"
-                                @click.stop="handleTogglePinnedStayInfo($event, r.id)"
-                                title="Xem chi tiết thời gian lưu trú & làm tròn">
-                          <i class="fas fa-info-circle fs-6"></i>
-                        </button>
-
-                        <div v-if="hoveredStayInfoId === r.id || pinnedStayInfoId === r.id"
-                             class="stay-time-popover shadow-lg border border-secondary-subtle rounded-3 bg-body text-body-emphasis text-start p-3"
-                             :class="popoverDirectionClass"
-                             @click.stop>
-                          <div class="d-flex justify-content-between align-items-center border-bottom border-secondary-subtle pb-2 mb-2">
-                            <span class="fw-bold text-primary small">
-                              <i class="fas fa-stopwatch me-1"></i>Chi tiết thời gian #{{ r.id }}
-                            </span>
-                            <button v-if="pinnedStayInfoId === r.id"
-                                    type="button"
-                                    class="btn-close"
-                                    style="font-size: 0.65rem;"
-                                    @click="pinnedStayInfoId = null"></button>
-                          </div>
-
-                          <div class="small mb-1 d-flex justify-content-between">
-                            <span class="text-body-secondary">Hình thức thuê:</span>
-                            <span class="fw-bold text-body-emphasis">{{ getLiveStayMetrics(r).typeLabel }}</span>
-                          </div>
-                          <div class="small mb-1 d-flex justify-content-between">
-                            <span class="text-body-secondary">Đăng ký trên đơn:</span>
-                            <span class="fw-bold text-body-emphasis">{{ getPlannedDurationLabel(r) }}</span>
-                          </div>
-                          <div class="small mb-1 d-flex justify-content-between">
-                            <span class="text-body-secondary">Thực tế nhận phòng:</span>
-                            <span class="fw-semibold text-success">{{ getLiveStayMetrics(r).checkinStr }}</span>
-                          </div>
-                          <div class="small mb-2 d-flex justify-content-between">
-                            <span class="text-body-secondary">Dự kiến trả phòng:</span>
-                            <span class="fw-semibold text-body-secondary">{{ getLiveStayMetrics(r).expectedCheckoutStr }}</span>
-                          </div>
-
-                          <div class="bg-dark text-white rounded-3 p-2 text-center my-2 shadow-sm">
-                            <div class="text-white-50" style="font-size: 0.7rem; letter-spacing: 0.5px;">THỜI LƯỢNG ĐÃ LƯU TRÚ THỰC TẾ</div>
-                            <div class="fw-bold text-warning font-monospace" style="font-size: 1.05rem; letter-spacing: 0.5px;">
-                              <i class="far fa-clock me-1"></i>{{ getLiveStayMetrics(r).digitalClock }}
-                            </div>
-                          </div>
-
-                          <div class="small d-flex justify-content-between align-items-center pt-1 border-top border-secondary-subtle">
-                            <span class="text-body-secondary">Làm tròn tính đơn:</span>
-                            <span class="badge bg-primary fs-6">{{ getLiveStayMetrics(r).roundedBillableLabel }}</span>
-                          </div>
-                          <div class="text-body-secondary fst-italic mt-1" style="font-size: 0.73rem;">
-                            {{ getLiveStayMetrics(r).roundingRuleNote }}
+                      <div v-if="hoveredStayInfoId === r.id || pinnedStayInfoId === r.id"
+                           class="stay-time-popover shadow-lg border border-secondary-subtle rounded-3 bg-body text-body-emphasis text-start p-3"
+                           :class="popoverDirectionClass"
+                           @click.stop>
+                        <div class="d-flex justify-content-between align-items-center border-bottom border-secondary-subtle pb-2 mb-2">
+                          <span class="fw-bold text-primary small">
+                            <i class="fas fa-stopwatch me-1"></i>Chi tiết thời gian #{{ r.id }}
+                          </span>
+                          <button v-if="pinnedStayInfoId === r.id" type="button" class="btn-close" style="font-size: 0.65rem;" @click="pinnedStayInfoId = null"></button>
+                        </div>
+                        <div class="small mb-1 d-flex justify-content-between">
+                          <span class="text-body-secondary">Hình thức thuê:</span>
+                          <span class="fw-bold">{{ getLiveStayMetrics(r).typeLabel }}</span>
+                        </div>
+                        <div class="small mb-1 d-flex justify-content-between">
+                          <span class="text-body-secondary">Đăng ký trên đơn:</span>
+                          <span class="fw-bold">{{ getPlannedDurationLabel(r) }}</span>
+                        </div>
+                        <div class="small mb-1 d-flex justify-content-between">
+                          <span class="text-body-secondary">Thực tế nhận phòng:</span>
+                          <span class="fw-semibold text-success">{{ getLiveStayMetrics(r).checkinStr }}</span>
+                        </div>
+                        <div class="small mb-2 d-flex justify-content-between">
+                          <span class="text-body-secondary">Dự kiến trả phòng:</span>
+                          <span class="fw-semibold text-body-secondary">{{ getLiveStayMetrics(r).expectedCheckoutStr }}</span>
+                        </div>
+                        <div class="bg-dark text-white rounded-3 p-2 text-center my-2 shadow-sm">
+                          <div class="text-white-50" style="font-size: 0.7rem;">THỜI LƯỢNG ĐÃ LƯU TRÚ THỰC TẾ</div>
+                          <div class="fw-bold text-warning font-monospace" style="font-size: 1rem;">
+                            <i class="far fa-clock me-1"></i>{{ getLiveStayMetrics(r).digitalClock }}
                           </div>
                         </div>
+                        <div class="small d-flex justify-content-between align-items-center pt-1 border-top border-secondary-subtle">
+                          <span class="text-body-secondary">Làm tròn tính đơn:</span>
+                          <span class="badge bg-primary">{{ getLiveStayMetrics(r).roundedBillableLabel }}</span>
+                        </div>
+                        <div class="text-body-secondary fst-italic mt-1" style="font-size: 0.73rem;">
+                          {{ getLiveStayMetrics(r).roundingRuleNote }}
+                        </div>
                       </div>
-
-                      <span class="mx-1">|</span>
-                      <span v-if="getNetPayable(r.id) > 0">
-                        Cần thu: <strong class="text-danger fs-6">{{ formatPrice(getNetPayable(r.id)) }}</strong>
-                      </span>
-                      <span v-else-if="getNetPayable(r.id) === 0">
-                        <strong class="text-primary fs-6">Hòa tiền (0đ)</strong>
-                      </span>
-                      <span v-else>
-                        Cần hoàn: <strong class="text-success fs-6">{{ formatPrice(Math.abs(getNetPayable(r.id))) }}</strong>
-                      </span>
-                    </div>
-
-                    <!-- TRẠNG THÁI LƯU TRÚ THỜI GIAN THỰC + NÚT TẤT TOÁN MÀU XANH LÁ -->
-                    <div class="d-flex align-items-center justify-content-end gap-2 w-100">
-                      <span class="badge py-2 px-2 fw-semibold d-inline-flex align-items-center gap-1"
-                            :class="getStayStatusBadge(r).badgeClass"
-                            style="font-size: 0.75rem;">
-                        <i :class="getStayStatusBadge(r).icon"></i>
-                        {{ getStayStatusBadge(r).text }}
-                      </span>
-                      <button type="button" @click="openInvoiceModal(r)" class="btn btn-sm btn-success fw-bold py-1 px-3 shadow-sm flex-shrink-0" :disabled="isProcessing">
-                        <i class="fas fa-file-invoice-dollar me-1"></i> Tất toán
-                      </button>
                     </div>
                   </div>
-                  <div v-else>
-                    <span class="text-success small fw-bold mb-1 d-block"><i class="fas fa-check-circle me-1"></i> Đã tất toán</span>
-                    <button @click="checkOut(r.id)" class="btn btn-sm btn-danger w-100 py-2 shadow-sm" :disabled="isProcessing">
-                      <i class="fas fa-door-open me-1"></i> Check-out
+                </td>
+
+                <!-- Cột 4: Tóm tắt Dịch vụ & Sự cố -->
+                <td class="text-center py-3">
+                  <div class="d-flex flex-column align-items-center gap-1">
+                    <span class="badge bg-body-tertiary text-body-secondary border border-secondary-subtle fw-normal">
+                      <i class="fas fa-concierge-bell text-primary me-1"></i>{{ getRentalServiceCount(r) }} dịch vụ
+                    </span>
+                    <span v-if="getUnresolvedIncidents(r).length > 0" class="badge bg-danger text-white fw-semibold">
+                      <i class="fas fa-ban me-1"></i>{{ getUnresolvedIncidents(r).length }} sự cố chưa xong
+                    </span>
+                    <span v-else-if="getRentalIncidentCount(r) > 0" class="badge bg-info-subtle text-info-emphasis fw-normal">
+                      <i class="fas fa-history me-1"></i>{{ getRentalIncidentCount(r) }} sự cố
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Cột 5: Tạm tính / Trạng thái tất toán -->
+                <td class="text-end py-3 text-nowrap">
+                  <template v-if="!isSettled(r.id)">
+                    <div v-if="getNetPayable(r.id) > 0">
+                      <div class="fw-bold text-danger fs-6">{{ formatPrice(getNetPayable(r.id)) }}</div>
+                      <div class="small text-body-secondary" style="font-size: 0.75rem;">Cần thu thêm</div>
+                    </div>
+                    <div v-else-if="getNetPayable(r.id) === 0">
+                      <div class="fw-bold text-primary fs-6">0 đ</div>
+                      <div class="small text-body-secondary" style="font-size: 0.75rem;">Hòa tiền</div>
+                    </div>
+                    <div v-else>
+                      <div class="fw-bold text-success fs-6">{{ formatPrice(Math.abs(getNetPayable(r.id))) }}</div>
+                      <div class="small text-body-secondary" style="font-size: 0.75rem;">Cần hoàn khách</div>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2 fw-bold">
+                      <i class="fas fa-check-circle me-1"></i>ĐÃ TẤT TOÁN
+                    </span>
+                  </template>
+                </td>
+
+                <!-- Cột 6: Nút 3 gạch không viền -->
+                <td class="text-end pe-4 py-3">
+                  <div class="dropdown">
+                    <button class="btn btn-link text-body-secondary p-0 shadow-none fs-5"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            title="Thao tác">
+                      <i class="fas fa-list"></i>
                     </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-secondary-subtle rounded-3 py-2" style="min-width: 220px;">
+                      <!-- Tất toán / Check-out -->
+                      <li v-if="!isSettled(r.id)">
+                        <button class="dropdown-item py-2 fw-semibold text-success" @click="openInvoiceModal(r)">
+                          <i class="fas fa-file-invoice-dollar me-2" style="width: 18px;"></i>Tất toán & Check-out
+                        </button>
+                      </li>
+                      <li v-else>
+                        <button class="dropdown-item py-2 fw-semibold text-danger"
+                                :disabled="getUnresolvedIncidents(r).length > 0"
+                                @click="checkOut(r.id)">
+                          <i class="fas fa-door-open me-2" style="width: 18px;"></i>Check-out trả phòng
+                        </button>
+                      </li>
+
+                      <li><hr class="dropdown-divider my-1"></li>
+
+                      <!-- Dịch vụ -->
+                      <li>
+                        <button class="dropdown-item py-2 fw-semibold text-primary" @click="openAddServiceModal(r)">
+                          <i class="fas fa-plus-circle me-2" style="width: 18px;"></i>Thêm dịch vụ
+                        </button>
+                      </li>
+                      <li v-if="getRentalServiceCount(r) > 0">
+                        <button class="dropdown-item py-2 fw-semibold text-body-emphasis" @click="viewServiceHistory(r)">
+                          <i class="fas fa-list-ul text-primary me-2" style="width: 18px;"></i>Lịch sử dịch vụ ({{ getRentalServiceCount(r) }})
+                        </button>
+                      </li>
+
+                      <!-- Sự cố -->
+                      <li>
+                        <button class="dropdown-item py-2 fw-semibold text-warning" @click="openIncidentModal(getActiveDetail(r))">
+                          <i class="fas fa-exclamation-triangle me-2" style="width: 18px;"></i>Báo sự cố
+                        </button>
+                      </li>
+                      <li v-if="getRentalIncidentCount(r) > 0">
+                        <button class="dropdown-item py-2 fw-semibold text-info" @click="viewIncidentHistory(r)">
+                          <i class="fas fa-history me-2" style="width: 18px;"></i>Lịch sử sự cố ({{ getRentalIncidentCount(r) }})
+                        </button>
+                      </li>
+
+                      <li><hr class="dropdown-divider my-1"></li>
+
+                      <!-- Khách & Đổi phòng cho từng phòng đang ở -->
+                      <template v-for="detail in (r.rentalDetails || []).filter(d => d.status === 'CHECKED_IN' || d.status === 'OVERDUE')" :key="'act-' + detail.id">
+                        <li>
+                          <button class="dropdown-item py-2 fw-semibold text-body-emphasis" @click="openGuestListModal(detail)">
+                            <i class="fas fa-users text-secondary me-2" style="width: 18px;"></i>Khách lưu trú (P.{{ detail.room?.name }})
+                          </button>
+                        </li>
+                        <li>
+                          <button class="dropdown-item py-2 fw-semibold text-body-emphasis" @click="openChangeRoomModal(detail)">
+                            <i class="fas fa-exchange-alt text-primary me-2" style="width: 18px;"></i>Đổi phòng (P.{{ detail.room?.name }})
+                          </button>
+                        </li>
+                      </template>
+                    </ul>
                   </div>
                 </td>
               </tr>
@@ -285,91 +325,6 @@
               </tr>
             </tbody>
           </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== MODAL BẢNG QUY TẮC TÍNH TIỀN & LÀM TRÒN GIỜ ==================== -->
-    <div v-if="showPricingRuleModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.55); z-index: 1090;">
-      <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4 bg-body text-body-emphasis">
-          <div class="modal-header bg-primary text-white border-0">
-            <h5 class="modal-title fw-bold">
-              <i class="fas fa-calculator me-2"></i>Bảng Quy Tắc Tính Giờ Lưu Trú & Phụ Thu Khách Sạn
-            </h5>
-            <button type="button" class="btn-close btn-close-white" @click="showPricingRuleModal = false"></button>
-          </div>
-          <div class="modal-body p-4">
-            <h6 class="fw-bold text-primary mb-2">
-              <i class="fas fa-clock me-2"></i>1. Hình thức Thuê theo giờ (HOURLY) — Ân hạn 15 phút
-            </h6>
-            <p class="small text-body-secondary mb-2">
-              Thời gian lưu trú thực tế được tính từ thời điểm bấm <strong>Check-in thực tế</strong> đến thời điểm trả phòng. Nếu khách nhận phòng sớm hơn giờ hẹn, mốc giờ trả phòng dự kiến ban đầu vẫn được giữ nguyên.
-            </p>
-            <div class="table-responsive border border-secondary-subtle rounded-3 mb-4">
-              <table class="table table-sm table-bordered align-middle mb-0 small">
-                <thead class="adaptive-thead">
-                  <tr>
-                    <th class="px-3 py-2">Thời lượng khách ở thực tế</th>
-                    <th>Quy tắc làm tròn</th>
-                    <th class="text-center">Số giờ tính tiền</th>
-                    <th>Ví dụ minh họa</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="px-3 fw-semibold">Từ 1 phút đến 60 phút (≤ 1h00p)</td>
-                    <td>Tính mức tối thiểu 1 giờ đầu</td>
-                    <td class="text-center"><span class="badge bg-primary">1 giờ</span></td>
-                    <td class="text-body-secondary">Thuê 2h nhưng mới vào 5p hoặc 45p trả phòng → Tính <strong>1 giờ</strong></td>
-                  </tr>
-                  <tr>
-                    <td class="px-3 fw-semibold">Giờ tiếp theo: lẻ từ 1 đến 15 phút</td>
-                    <td class="text-success fw-semibold">Trong 15 phút ân hạn → Miễn phí phút lẻ</td>
-                    <td class="text-center"><span class="badge bg-success">Giữ nguyên H giờ</span></td>
-                    <td class="text-body-secondary">Ở 1h05p hoặc 1h15p → Tính <strong>1 giờ</strong>; Ở 2h12p → Tính <strong>2 giờ</strong></td>
-                  </tr>
-                  <tr>
-                    <td class="px-3 fw-semibold">Giờ tiếp theo: lẻ từ 16 phút trở lên</td>
-                    <td class="text-danger fw-semibold">Vượt quá 15 phút ân hạn → Làm tròn +1 giờ</td>
-                    <td class="text-center"><span class="badge bg-danger">H + 1 giờ</span></td>
-                    <td class="text-body-secondary">Ở 1h16p hoặc 1h30p → Tính <strong>2 giờ</strong>; Ở 2h20p → Tính <strong>3 giờ</strong></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <h6 class="fw-bold text-primary mb-2">
-              <i class="fas fa-moon me-2"></i>2. Hình thức Thuê qua đêm / Ngày (DAILY) — Chuẩn VTOS (14:00 - 12:00)
-            </h6>
-            <div class="row g-3 small">
-              <div class="col-md-6">
-                <div class="border border-secondary-subtle rounded-3 p-3 h-100 bg-body-tertiary">
-                  <div class="fw-bold text-body-emphasis mb-2"><i class="fas fa-sun text-warning me-1"></i>Phụ thu Nhận phòng sớm (Trước 14:00)</div>
-                  <ul class="mb-0 ps-3">
-                    <li class="mb-1">Trước <strong>05:00 sáng</strong>: Phụ thu <strong class="text-danger">+100%</strong> giá ngày</li>
-                    <li class="mb-1">Từ <strong>05:00 đến trước 09:00</strong>: Phụ thu <strong class="text-danger">+50%</strong> giá ngày</li>
-                    <li class="mb-1">Từ <strong>09:00 đến trước 14:00</strong>: Phụ thu <strong class="text-danger">+30%</strong> giá ngày</li>
-                    <li>Từ <strong>14:00 trở đi</strong>: Không phụ thu (0%)</li>
-                  </ul>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="border border-secondary-subtle rounded-3 p-3 h-100 bg-body-tertiary">
-                  <div class="fw-bold text-body-emphasis mb-2"><i class="fas fa-hourglass-end text-danger me-1"></i>Phụ thu Trả phòng muộn (Sau 12:00 trưa)</div>
-                  <ul class="mb-0 ps-3">
-                    <li class="mb-1">Từ <strong>12:00 trở về trước</strong>: Không phụ thu (0%)</li>
-                    <li class="mb-1">Từ <strong>sau 12:00 đến 15:00</strong>: Phụ thu <strong class="text-danger">+30%</strong> giá ngày</li>
-                    <li class="mb-1">Từ <strong>sau 15:00 đến 18:00</strong>: Phụ thu <strong class="text-danger">+50%</strong> giá ngày</li>
-                    <li>Sau <strong>18:00 tối</strong>: Phụ thu <strong class="text-danger">+100%</strong> (Tính thêm 1 đêm)</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer bg-body-tertiary border-0 rounded-bottom-4">
-            <button type="button" class="btn btn-primary fw-bold px-4" @click="showPricingRuleModal = false">Đã hiểu</button>
-          </div>
         </div>
       </div>
     </div>
@@ -535,6 +490,22 @@
               </div>
             </div>
 
+            <!-- CẢNH BÁO CHẶN TẤT TOÁN NẾU CÒN SỰ CỐ CHƯA GIẢI QUYẾT -->
+            <div v-if="unresolvedIncidentsForInvoice.length > 0" class="alert alert-danger border-danger shadow-sm mb-3">
+              <div class="fw-bold mb-1">
+                <i class="fas fa-exclamation-circle me-1"></i>
+                Không thể tất toán & Check-out: Còn {{ unresolvedIncidentsForInvoice.length }} sự cố chưa giải quyết xong!
+              </div>
+              <div class="small">
+                Vui lòng liên hệ Quản lý vận hành duyệt và chuyển trạng thái các sự cố sau sang <strong>Đã giải quyết (RESOLVED)</strong> trước khi thu tiền:
+                <ul class="mb-0 mt-1 ps-3">
+                  <li v-for="ic in unresolvedIncidentsForInvoice" :key="ic.id">
+                    <strong>{{ ic.name }}</strong> (Phòng {{ ic.roomName || 'N/A' }} - Trạng thái: {{ ic.status }})
+                  </li>
+                </ul>
+              </div>
+            </div>
+
             <!-- Khối 5: Bảng Tổng kết Hóa đơn (3 nhánh: Thu thêm / Hòa 0đ / Hoàn tiền) -->
             <div class="p-3 rounded-3 border border-2 bg-body-tertiary"
                  :class="getNetPayable(selectedRentalForInvoice.id) < 0 ? 'border-success' : (getNetPayable(selectedRentalForInvoice.id) === 0 ? 'border-primary' : 'border-warning')">
@@ -607,7 +578,8 @@
               <button type="button"
                       class="btn px-4 fw-bold shadow-sm"
                       :class="getNetPayable(selectedRentalForInvoice.id) === 0 ? 'btn-primary' : 'btn-success'"
-                      @click="confirmFinalPaymentAndCheckout" :disabled="isProcessing">
+                      @click="confirmFinalPaymentAndCheckout"
+                      :disabled="isProcessing || unresolvedIncidentsForInvoice.length > 0">
                 <span v-if="isProcessing" class="spinner-border spinner-border-sm me-1"></span>
                 <i v-else class="fas fa-check-double me-1"></i>
                 {{ getNetPayable(selectedRentalForInvoice.id) < 0 ? 'Xác nhận Hoàn tiền & Check-out' : (getNetPayable(selectedRentalForInvoice.id) === 0 ? 'Xác nhận Đóng đơn 0đ & Check-out' : 'Xác nhận Thu tiền & Check-out') }}
@@ -723,6 +695,44 @@
               <button type="button" class="btn btn-secondary fw-semibold" @click="showChangeRoomModal = false" :disabled="isProcessing">Hủy</button>
               <button type="submit" class="btn btn-primary fw-bold px-4" :disabled="isProcessing || !changeRoomForm.newRoomId">
                 <span v-if="isProcessing" class="spinner-border spinner-border-sm me-1"></span> Xác nhận chuyển phòng
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- MODAL THÊM DỊCH VỤ -->
+    <div v-if="showAddServiceModal && selectedRentalForService" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5); z-index: 1065;">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 bg-body text-body-emphasis">
+          <div class="modal-header bg-primary text-white border-0">
+            <h5 class="modal-title fw-bold">
+              <i class="fas fa-concierge-bell me-2"></i>Thêm dịch vụ — #{{ selectedRentalForService.id }}
+            </h5>
+            <button type="button" class="btn-close btn-close-white" @click="showAddServiceModal = false"></button>
+          </div>
+          <form @submit.prevent="submitAddServiceModal">
+            <div class="modal-body p-4">
+              <div class="mb-3">
+                <label class="form-label fw-semibold small text-body-secondary">Chọn dịch vụ <span class="text-danger">*</span></label>
+                <select v-model="serviceForm[selectedRentalForService.id].serviceId" class="form-select bg-body text-body-emphasis" required>
+                  <option value="" disabled>-- Chọn dịch vụ --</option>
+                  <option v-for="s in activeServices" :key="s.id" :value="s.id">
+                    {{ s.name }} ({{ formatPrice(s.basePrice) }} / {{ s.unit || 'lần' }})
+                  </option>
+                </select>
+              </div>
+              <div class="mb-0">
+                <label class="form-label fw-semibold small text-body-secondary">Số lượng <span class="text-danger">*</span></label>
+                <input type="number" v-model="serviceForm[selectedRentalForService.id].quantity" class="form-control bg-body text-body-emphasis" min="1" required>
+              </div>
+            </div>
+            <div class="modal-footer bg-body-tertiary border-0 rounded-bottom-4">
+              <button type="button" class="btn btn-secondary fw-semibold" @click="showAddServiceModal = false">Hủy</button>
+              <button type="submit" class="btn btn-primary fw-bold px-4" :disabled="isProcessing">
+                <span v-if="isProcessing" class="spinner-border spinner-border-sm me-1"></span> Thêm vào đơn
               </button>
             </div>
           </form>
@@ -910,7 +920,6 @@ let clockInterval = null
 const hoveredStayInfoId = ref(null)
 const pinnedStayInfoId = ref(null)
 const popoverDirectionClass = ref('open-down')
-const showPricingRuleModal = ref(false)
 
 const updatePopoverDirection = (event) => {
   if (!event || !event.currentTarget) {
@@ -1129,6 +1138,16 @@ const getRentalIncidentCount = (rental) => {
   return allIncidents.value.filter(ic => ids.includes(ic.rentalDetailId)).length
 }
 
+const getUnresolvedIncidents = (rental) => {
+  if (!allIncidents.value || !rental) return []
+  const ids = getDetailIdsOfRental(rental)
+  return allIncidents.value.filter(ic => ids.includes(ic.rentalDetailId) && ic.status !== 'RESOLVED')
+}
+
+const unresolvedIncidentsForInvoice = computed(() => {
+  return getUnresolvedIncidents(selectedRentalForInvoice.value)
+})
+
 const getRentalServiceCount = (rental) => {
   if (!allServiceUsages.value) return 0
   const ids = getDetailIdsOfRental(rental)
@@ -1276,6 +1295,24 @@ const submitChangeRoom = async () => {
     isProcessing.value = false
   }
 }
+
+const showAddServiceModal = ref(false)
+const selectedRentalForService = ref(null)
+
+const openAddServiceModal = (rental) => {
+  if (!serviceForm.value[rental.id]) {
+    serviceForm.value[rental.id] = { serviceId: '', quantity: 1 }
+  }
+  selectedRentalForService.value = rental
+  showAddServiceModal.value = true
+}
+
+const submitAddServiceModal = async () => {
+  if (!selectedRentalForService.value) return
+  await addService(selectedRentalForService.value.id)
+  showAddServiceModal.value = false
+}
+
 
 const addService = async (rentalId) => {
   const form = serviceForm.value[rentalId]

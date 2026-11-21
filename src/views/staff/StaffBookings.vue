@@ -46,84 +46,277 @@
       <div v-if="isLoading" class="text-center py-4"><div class="spinner-border text-primary"></div></div>
 
       <!-- Bảng danh sách -->
-      <div v-else class="table-responsive border border-secondary-subtle rounded bg-body">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="adaptive-thead">
+      <!-- Bảng danh sách -->
+      <div v-else class="table-responsive" style="overflow: visible;">
+        <table class="table align-middle mb-0">
+          <thead class="text-body-secondary border-bottom border-secondary-subtle" style="font-size: 0.75rem;">
             <tr>
-              <th>Mã Booking / Chủ đơn</th>
-              <th>Phòng & Người đại diện nhận</th>
-              <th>Giờ nhận phòng</th>
-              <th class="text-center">Trạng thái</th>
-              <th class="text-end">Tiền cọc</th>
-              <th class="text-end px-3">Thao tác</th>
+              <th class="ps-3 py-3 fw-bold border-0 text-uppercase">Mã Booking / Chủ đơn</th>
+              <th class="py-3 fw-bold border-0 text-uppercase">Phòng & Khách nhận</th>
+              <th class="py-3 fw-bold border-0 text-uppercase text-nowrap">Giờ nhận phòng</th>
+              <th class="py-3 fw-bold border-0 text-uppercase text-center text-nowrap">Trạng thái</th>
+              <th class="py-3 fw-bold border-0 text-uppercase text-end text-nowrap">Tiền cọc</th>
+              <th class="py-3 fw-bold border-0 text-end pe-4" style="width: 60px;"></th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="border-top-0">
             <tr v-if="filteredBookings.length === 0">
-              <td colspan="6" class="text-center text-body-secondary py-4">
+              <td colspan="6" class="text-center text-body-secondary py-5 border-0">
                 <span v-if="searchQuery">Không tìm thấy lượt đặt nào khớp với "<strong class="text-body-emphasis">{{ searchQuery }}</strong>".</span>
                 <span v-else-if="activeTab === 'today'">Hôm nay không có booking chờ xử lý. Hãy chuyển sang thẻ <strong class="text-body-emphasis">Toàn bộ lượt đặt</strong> để xem các ngày khác.</span>
                 <span v-else>Hiện không có lượt đặt phòng nào đang chờ.</span>
               </td>
             </tr>
-            <tr v-else v-for="b in filteredBookings" :key="b.id">
-              <td>
+            <tr v-else v-for="b in filteredBookings" :key="b.id" class="border-bottom border-secondary-subtle">
+              <!-- Cột 1: Mã & Chủ đơn -->
+              <td class="ps-3 py-3">
                 <div class="fw-bold text-body-emphasis">{{ b.id }}</div>
-                <div class="small text-body-secondary">
-                  <i class="fas fa-user me-1"></i>{{ b.customer?.user?.lastName }} {{ b.customer?.user?.firstName }}
+                <div class="small text-body-secondary mt-1">
+                  {{ b.customer?.user?.lastName }} {{ b.customer?.user?.firstName }}
+                  <span v-if="b.customer?.user?.pid"> • {{ b.customer.user.pid }}</span>
                 </div>
-                <div v-if="b.customer?.user?.pid" class="small text-body-secondary" style="font-size: 0.75rem;">
-                  <i class="fas fa-id-card me-1"></i>CCCD: <strong class="text-body-emphasis">{{ b.customer.user.pid }}</strong>
-                </div>
-              </td>
-              <td>
-                <div v-for="(d, i) in b.rentalDetails" :key="i" class="mb-1 d-flex align-items-center flex-wrap gap-1">
-                  <span class="badge bg-secondary">P.{{ d.room?.name || 'N/A' }}</span>
-                  <span class="small text-body-secondary">({{ d.adultCount }} NL, {{ d.childrenCount }} TE)</span>
-                  <button v-if="d.status === 'PENDING'" type="button" @click="openChangeRoomModal(d)"
-                          class="btn btn-outline-primary py-0 px-2" style="font-size: 0.72rem;" title="Đổi phòng trước khi nhận">
-                    <i class="fas fa-exchange-alt me-1"></i>Đổi phòng
-                  </button>
-                  <span v-if="d.rentalGuests && d.rentalGuests.length > 0" class="small text-primary fw-semibold">
-                    - Đại diện: {{ d.rentalGuests[0].fullName }}
-                    <span v-if="d.rentalGuests[0].pid" class="text-body-emphasis fw-normal">[CCCD: {{ d.rentalGuests[0].pid }}]</span>
-                    <span v-else-if="d.rentalGuests[0].phoneNumber" class="text-body-secondary fw-normal">({{ d.rentalGuests[0].phoneNumber }})</span>
-                  </span>
+                <div v-if="b.customer?.user?.phoneNumber" class="small text-body-secondary" style="font-size: 0.78rem;">
+                  {{ b.customer.user.phoneNumber }}
                 </div>
               </td>
-              <td class="small fw-semibold" :class="b.status === 'CONFIRMED' ? 'text-primary' : 'text-body-emphasis'">
+
+              <!-- Cột 2: Phòng & Đại diện -->
+              <td class="py-3">
+                <div v-for="(d, i) in b.rentalDetails" :key="i" class="mb-1">
+                  <div class="d-flex align-items-center flex-wrap gap-1">
+                    <span class="badge bg-body-tertiary text-body-emphasis border border-secondary-subtle fw-semibold">P.{{ d.room?.name || 'N/A' }}</span>
+                    <span class="badge bg-body-tertiary text-body-secondary border border-secondary-subtle fw-normal">{{ d.room?.roomType?.name }}</span>
+                    <span class="badge bg-body-tertiary text-body-secondary border border-secondary-subtle fw-normal">
+                      <i class="fas fa-user me-1"></i>{{ d.adultCount }}
+                      <i class="fas fa-child ms-2 me-1"></i>{{ d.childrenCount }}
+                    </span>
+                    <span class="badge bg-body-tertiary text-primary border border-secondary-subtle fw-normal">
+                      {{ d.rentalType === 'DAILY' ? 'Qua đêm' : 'Theo giờ' }}
+                    </span>
+                  </div>
+                  <div v-if="d.rentalGuests && d.rentalGuests.length > 0" class="small text-body-secondary mt-1" style="font-size: 0.8rem;">
+                    Đại diện: <strong class="text-body-emphasis">{{ d.rentalGuests[0].fullName }}</strong>
+                    <span v-if="d.rentalGuests[0].pid"> ({{ d.rentalGuests[0].pid }})</span>
+                  </div>
+                </div>
+                <div v-if="b.note" class="small text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded px-2 py-1 mt-1" style="font-size: 0.78rem;">
+                  <i class="fas fa-sticky-note me-1"></i><strong>Ghi chú khách:</strong> {{ b.note }}
+                </div>
+              </td>
+
+              <!-- Cột 3: Giờ nhận phòng -->
+              <td class="small fw-semibold text-nowrap" :class="b.status === 'CONFIRMED' ? 'text-primary' : 'text-body-secondary'">
                 {{ formatDateTime(b.rentalDetails[0]?.checkinDate) }}
               </td>
-              <td class="text-center">
-                <span v-if="b.status === 'PENDING'" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Chờ cọc</span>
-                <span v-else class="badge bg-primary-subtle text-primary border border-primary-subtle">Đã xác nhận</span>
+
+              <!-- Cột 4: Trạng thái -->
+              <td class="text-center text-nowrap">
+                <span v-if="b.status === 'PENDING'" class="badge rounded-pill bg-warning-subtle text-warning-emphasis px-3 py-2 fw-bold">
+                  CHỜ CỌC
+                </span>
+                <span v-else class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2 fw-bold">
+                  ĐÃ XÁC NHẬN
+                </span>
               </td>
-              <td class="text-end fw-bold text-danger">
+
+              <!-- Cột 5: Tiền cọc -->
+              <td class="text-end fw-bold text-success text-nowrap fs-6">
                 {{ b.depositAmount ? formatPrice(b.depositAmount) : (b.status === 'PENDING' ? 'Chưa tính' : 'Đã thu') }}
               </td>
-              <td class="text-end px-3">
-                <template v-if="b.status === 'PENDING'">
-                  <button @click="payDeposit(b)" class="btn btn-sm btn-success py-1 px-2 me-2 shadow-sm" title="Thu tiền cọc">
-                    <i class="fas fa-money-bill-wave me-1"></i> Thu cọc
+
+              <!-- Cột 6: Nút 3 gạch không viền giống trang Hạng phòng -->
+              <td class="text-end pe-4">
+                <div class="dropdown">
+                  <button class="btn btn-link text-body-secondary p-0 shadow-none fs-5"
+                          type="button"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                          title="Thao tác">
+                    <i class="fas fa-list"></i>
                   </button>
-                  <button @click="cancelBooking(b)" class="btn btn-sm btn-outline-danger py-1 px-2 shadow-sm" title="Hủy">
-                    <i class="fas fa-times"></i>
-                  </button>
-                </template>
-                <template v-else>
-                  <div class="d-flex justify-content-end gap-1">
-                    <button @click="openCheckInModal(b)" class="btn btn-sm btn-primary shadow-sm py-1 px-3 fw-bold">
-                      <i class="fas fa-id-card-clip me-1"></i> Check-in
-                    </button>
-                    <button @click="openCancelRefundModal(b)" class="btn btn-sm btn-outline-danger shadow-sm py-1 px-2" title="Hủy đơn & Hoàn 100% cọc (Lỗi khách sạn)">
-                      <i class="fas fa-undo-alt"></i>
-                    </button>
-                  </div>
-                </template>
+                  <ul class="dropdown-menu dropdown-menu-end shadow-sm border-secondary-subtle rounded-3 py-2" style="min-width: 210px;">
+                    <li>
+                      <button class="dropdown-item py-2 fw-semibold text-info" @click="openDetailModal(b)">
+                        <i class="fas fa-eye me-2" style="width: 18px;"></i>Xem chi tiết đơn
+                      </button>
+                    </li>
+
+                    <!-- Nhánh PENDING (Chờ cọc) -->
+                    <li v-if="b.status === 'PENDING'">
+                      <button class="dropdown-item py-2 fw-semibold text-success" @click="payDeposit(b)">
+                        <i class="fas fa-money-bill-wave me-2" style="width: 18px;"></i>Thu tiền cọc
+                      </button>
+                    </li>
+
+                    <!-- Nhánh CONFIRMED (Đã xác nhận -> Check-in) -->
+                    <li v-else>
+                      <button class="dropdown-item py-2 fw-semibold text-primary" @click="openCheckInModal(b)">
+                        <i class="fas fa-id-card-clip me-2" style="width: 18px;"></i>Check-in nhận phòng
+                      </button>
+                    </li>
+
+                    <!-- Đổi phòng -->
+                    <li v-for="d in (b.rentalDetails || []).filter(item => item.status === 'PENDING')" :key="'chg-' + d.id">
+                      <button class="dropdown-item py-2 fw-semibold text-body-emphasis" @click="openChangeRoomModal(d)">
+                        <i class="fas fa-exchange-alt text-primary me-2" style="width: 18px;"></i>
+                        {{ (b.rentalDetails || []).filter(item => item.status === 'PENDING').length > 1 ? `Đổi phòng P.${d.room?.name}` : 'Đổi phòng' }}
+                      </button>
+                    </li>
+
+                    <!-- Hủy đơn -->
+                    <li v-if="b.status === 'PENDING'">
+                      <button class="dropdown-item py-2 fw-semibold text-danger" @click="cancelBooking(b)">
+                        <i class="fas fa-trash-alt me-2" style="width: 18px;"></i>Hủy đơn đặt
+                      </button>
+                    </li>
+                    <li v-else>
+                      <button class="dropdown-item py-2 fw-semibold text-danger" @click="openCancelRefundModal(b)">
+                        <i class="fas fa-undo-alt me-2" style="width: 18px;"></i>Hủy đơn & Hoàn cọc
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL XEM CHI TIẾT ĐƠN ĐẶT PHÒNG ==================== -->
+    <div v-if="showDetailModal && selectedBookingDetail" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.55); z-index: 1060;">
+      <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4 bg-body text-body-emphasis">
+          <div class="modal-header bg-dark text-white border-0">
+            <div>
+              <h5 class="modal-title fw-bold mb-0">
+                <i class="fas fa-file-alt text-info me-2"></i>Chi tiết Đơn đặt phòng #{{ selectedBookingDetail.id }}
+              </h5>
+              <small class="text-white-50">
+                Trạng thái: {{ selectedBookingDetail.status === 'PENDING' ? 'Chờ thu cọc' : 'Đã xác nhận (Chờ check-in)' }}
+              </small>
+            </div>
+            <button type="button" class="btn-close btn-close-white" @click="showDetailModal = false"></button>
+          </div>
+
+          <div class="modal-body p-4" style="max-height: 72vh; overflow-y: auto;">
+            <!-- Thông tin tổng quan & Chủ đơn -->
+            <div class="row g-3 mb-4">
+              <div class="col-md-7">
+                <div class="p-3 rounded-3 bg-body-tertiary border border-secondary-subtle h-100">
+                  <div class="small text-uppercase fw-bold text-primary mb-2">
+                    <i class="fas fa-user-circle me-1"></i>Thông tin chủ đơn
+                  </div>
+                  <div class="fw-bold fs-6 mb-1">
+                    {{ selectedBookingDetail.customer?.user?.lastName }} {{ selectedBookingDetail.customer?.user?.firstName }}
+                  </div>
+                  <div class="small text-body-secondary mb-1">
+                    <strong>CCCD / Hộ chiếu:</strong> <span class="text-body-emphasis">{{ selectedBookingDetail.customer?.user?.pid || 'N/A' }}</span>
+                  </div>
+                  <div class="small text-body-secondary mb-1">
+                    <strong>Số điện thoại:</strong> <span class="text-body-emphasis">{{ selectedBookingDetail.customer?.user?.phoneNumber || 'N/A' }}</span>
+                  </div>
+                  <div class="small text-body-secondary mb-1">
+                    <strong>Email:</strong> <span class="text-body-emphasis">{{ selectedBookingDetail.customer?.user?.email || 'Chưa cung cấp' }}</span>
+                  </div>
+                  <div class="small text-body-secondary">
+                    <strong>Quốc tịch:</strong> <span class="text-body-emphasis">{{ selectedBookingDetail.customer?.user?.nationality || 'Việt Nam' }}</span>
+                    <span class="mx-2">|</span>
+                    <strong>Giới tính:</strong> <span class="text-body-emphasis">{{ selectedBookingDetail.customer?.user?.sex === 'FEMALE' ? 'Nữ' : 'Nam' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-5">
+                <div class="p-3 rounded-3 bg-body-tertiary border border-secondary-subtle h-100 d-flex flex-column justify-content-between">
+                  <div>
+                    <div class="small text-uppercase fw-bold text-primary mb-2">
+                      <i class="fas fa-receipt me-1"></i>Thông tin đơn
+                    </div>
+                    <div class="d-flex justify-content-between small mb-1">
+                      <span class="text-body-secondary">Mã đơn:</span>
+                      <strong class="text-body-emphasis">{{ selectedBookingDetail.id }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between small mb-1">
+                      <span class="text-body-secondary">Số lượng phòng:</span>
+                      <strong class="text-body-emphasis">{{ selectedBookingDetail.rentalDetails?.length || 0 }} phòng</strong>
+                    </div>
+                    <div class="d-flex justify-content-between small mb-1">
+                      <span class="text-body-secondary">Trạng thái:</span>
+                      <span v-if="selectedBookingDetail.status === 'PENDING'" class="badge bg-warning-subtle text-warning-emphasis">Chờ cọc</span>
+                      <span v-else class="badge bg-primary-subtle text-primary">Đã xác nhận</span>
+                    </div>
+                  </div>
+                  <div class="pt-2 mt-2 border-top border-secondary-subtle d-flex justify-content-between align-items-center">
+                    <span class="small fw-bold text-body-secondary">Tiền cọc yêu cầu:</span>
+                    <span class="fw-bold fs-5 text-danger">{{ formatPrice(selectedBookingDetail.depositAmount || 0) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Danh sách chi tiết từng phòng -->
+            <h6 class="fw-bold text-body-emphasis mb-2">
+              <i class="fas fa-door-open text-primary me-2"></i>Danh sách phòng & Khách lưu trú dự kiến
+            </h6>
+            <div v-if="selectedBookingDetail.note" class="alert alert-warning border-warning py-2 px-3 small mb-3">
+              <i class="fas fa-sticky-note me-1"></i><strong>Ghi chú của khách khi đặt đơn:</strong> {{ selectedBookingDetail.note }}
+            </div>
+            <div v-for="(d, idx) in selectedBookingDetail.rentalDetails" :key="d.id || idx" class="card border border-secondary-subtle rounded-3 mb-3 bg-body">
+              <div class="card-header bg-body-tertiary border-secondary-subtle py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                  <span class="fw-bold text-primary">Phòng {{ d.room?.name || 'N/A' }}</span>
+                  <span class="text-body-secondary small ms-2">{{ d.room?.roomType?.name }}</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-info-subtle text-info-emphasis">
+                    {{ d.rentalType === 'DAILY' ? 'Thuê qua đêm / Ngày' : 'Thuê theo giờ' }}
+                  </span>
+                  <span class="fw-bold text-danger small">
+                    {{ formatPrice(d.unitPrice || 0) }} / {{ d.rentalType === 'DAILY' ? 'đêm' : 'giờ' }}
+                  </span>
+                </div>
+              </div>
+              <div class="card-body p-3 small">
+                <div class="row g-2 mb-2">
+                  <div class="col-md-4">
+                    <span class="text-body-secondary d-block">Giờ nhận phòng dự kiến</span>
+                    <strong class="text-body-emphasis">{{ formatDateTime(d.checkinDate) }}</strong>
+                  </div>
+                  <div class="col-md-4">
+                    <span class="text-body-secondary d-block">Thời lượng đăng ký</span>
+                    <strong class="text-body-emphasis">{{ d.lengthOfStay || 1 }} giờ</strong>
+                  </div>
+                  <div class="col-md-4">
+                    <span class="text-body-secondary d-block">Số khách đăng ký</span>
+                    <strong class="text-body-emphasis">{{ d.adultCount }} Người lớn, {{ d.childrenCount }} Trẻ em</strong>
+                  </div>
+                </div>
+
+                <div v-if="d.note" class="alert alert-secondary py-1 px-2 small mb-2">
+                  <strong>Ghi chú:</strong> {{ d.note }}
+                </div>
+
+                <div v-if="d.rentalGuests && d.rentalGuests.length > 0" class="mt-2 pt-2 border-top border-secondary-subtle">
+                  <div class="fw-semibold text-body-secondary mb-1">Khách đã khai báo:</div>
+                  <ul class="mb-0 ps-3">
+                    <li v-for="(g, gIdx) in d.rentalGuests" :key="gIdx">
+                      <strong>{{ g.fullName }}</strong>
+                      <span v-if="g.isRepresentative" class="badge bg-success-subtle text-success ms-1">Đại diện</span>
+                      <span class="text-body-secondary ms-1">
+                        ({{ g.isAdult !== false ? 'Người lớn' : 'Trẻ em' }}<span v-if="g.pid"> - CCCD: {{ g.pid }}</span><span v-if="g.phoneNumber"> - SĐT: {{ g.phoneNumber }}</span>)
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer bg-body-tertiary border-0 rounded-bottom-4">
+            <button type="button" class="btn btn-secondary fw-semibold px-4" @click="showDetailModal = false">Đóng</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -153,6 +346,10 @@
               <div class="alert alert-info py-2 px-3 small mb-3">
                 <i class="fas fa-info-circle me-1"></i>
                 <strong>Quy định lưu trú:</strong> Vui lòng kiểm tra và nhập đầy đủ Họ tên + Số CCCD/Hộ chiếu của tất cả <strong>Người lớn</strong> lưu trú trong từng phòng (Trẻ em chỉ bắt buộc Họ tên). Mỗi số CCCD chỉ được đăng ký ở 1 phòng.
+              </div>
+
+              <div v-if="selectedBookingForCheckIn.note" class="alert alert-warning border-warning py-2 px-3 small mb-3">
+                <i class="fas fa-sticky-note me-1"></i><strong>Ghi chú từ khách hàng:</strong> {{ selectedBookingForCheckIn.note }}
               </div>
 
               <div v-for="(group, gIdx) in checkInGuestGroups" :key="group.rentalDetailId" class="card border border-secondary-subtle rounded-3 mb-3 shadow-sm bg-body">
@@ -308,7 +505,7 @@
     </div>
 
     <!-- MODAL CONFIRM (Dùng cho Thu cọc & Hủy đơn) -->
-    <div v-if="showConfirmModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5); z-index: 1050;">
+    <div v-if="showConfirmModal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5); z-index: 1070;">
       <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content border-0 shadow-lg rounded-4 bg-body text-body-emphasis">
           <div class="modal-header border-0 pb-0 justify-content-center mt-3">
@@ -348,6 +545,9 @@ const notification = ref({ type: '', message: '' })
 
 const activeTab = ref('today')
 const searchQuery = ref('')
+
+const showDetailModal = ref(false)
+const selectedBookingDetail = ref(null)
 
 const showConfirmModal = ref(false)
 const confirmConfig = ref({ title: '', message: '', type: 'primary', icon: '', action: null })
@@ -410,6 +610,11 @@ const filteredBookings = computed(() => {
 const showNotification = (type, message) => {
   notification.value = { type, message }
   setTimeout(() => notification.value.message = '', 5000)
+}
+
+const openDetailModal = (booking) => {
+  selectedBookingDetail.value = booking
+  showDetailModal.value = true
 }
 
 const openConfirm = (title, message, type, icon, actionCallback) => {
@@ -672,4 +877,10 @@ onMounted(() => fetchBookings())
   color: var(--bs-secondary-color) !important;
   border-color: var(--bs-border-color) !important;
 }
+
+.dropdown-item:active {
+  background-color: var(--bs-secondary-bg);
+  color: inherit;
+}
 </style>
+```[cite: 16]
